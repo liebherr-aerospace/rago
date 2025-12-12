@@ -250,8 +250,8 @@ optuna-dashboard sqlite:///experiments/my_experiment/study.db
 
 We welcome contributions! Here's how:
 
-1. 🐛 **Report Bugs**: [Open an issue](https://github.com/your-repo/issues)
-2. 💡 **Suggest Features**: [Share your ideas](https://github.com/your-repo/issues)
+1. 🐛 **Report Bugs**: [Open an issue](https://github.com/liebherr-aerospace/rago/issues)
+2. 💡 **Suggest Features**: [Share your ideas](https://github.com/liebherr-aerospace/rago/issues)
 3. 📝 **Improve Docs**: Fix typos, add examples
 4. 🔧 **Submit Code**: Fork, code, test, PR!
 
