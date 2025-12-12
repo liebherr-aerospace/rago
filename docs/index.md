@@ -102,8 +102,7 @@ Welcome to the RAGO (Retrieval Augmented Generation Optimizer) documentation!
 
 ## 💡 Need Help?
 
-- 📖 Check the [Troubleshooting Guide](troubleshooting.md)
-- 💬 Ask in [GitHub Discussions](https://github.com/your-repo/rago/discussions)
-- 🐛 Report bugs in [Issues](https://github.com/your-repo/rago/issues)
+- 💬 Ask in [GitHub Discussions](https://github.com/liebherr-aerospace/rago/discussions)
+- 🐛 Report bugs in [Issues](https://github.com/liebherr-aerospace/rago/issues)
 
 ---
