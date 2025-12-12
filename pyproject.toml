@@ -1,0 +1,76 @@
+[project]
+name = "rago"
+version = "0.1.0"
+description = ""
+authors = [
+  { name = "Rehel Briag"},
+  { name = "Bonneu Adrien"}
+]
+readme = "README.md"
+requires-python = ">=3.12"
+
+dependencies = [
+    "pydantic>=2.10.5",
+    "langchain>=0.3.14",
+    "langchain-ollama>=0.2.2",
+    "llama-index-llms-ollama>=0.5.0",
+    "llama-index>=0.12.10",
+    "optuna-dashboard>=0.17.0",
+    "langchain-chroma>=0.2.3",
+    "llama-index-embeddings-ollama>=0.6.0",
+    "llama-index-embeddings-huggingface>=0.5.3",
+    "langchain-huggingface>=0.1.2",
+    "optuna>=4.3.0",
+    "opensearch-py>=3.0.0",
+    "datasets>=4.0.0",
+    "wget>=3.2",
+    "evaluate>=0.4.5",
+    "bert-score>=0.3.13",
+    "mypy>=1.18.2",
+    "ruff>=0.14.2",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["rago"]
+
+[tool.hatch.build.targets.sdist]
+include = ["rago"]
+
+[project.optional-dependencies]
+dev = [
+    "ruff>=0.8.6",
+    "pytest>=8.3.4",
+    "mypy>=1.17.0",
+    "pre-commit>=4.3.0",
+    "ipykernel>=6.29.5",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.ruff.lint]
+select = ["ALL"]
+ignore = ["RET504", "UP007", "S311"]
+
+[tool.ruff]
+line-length = 120
+exclude = ["__init__.py"]
+
+[tool.ruff.lint.pylint]
+max-args = 10
+
+[tool.ruff.lint.per-file-ignores]
+"test_*" = ["D103", "S101"]
+
+[tool.mypy]
+plugins = ["pydantic.mypy"]
+
+[[tool.mypy.overrides]]
+module = [
+  "llama_index.*",
+  "evaluate",
+  "datasets",
+  "wget",
+]
+ignore_missing_imports = true
