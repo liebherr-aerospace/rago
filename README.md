@@ -242,7 +242,7 @@ optuna-dashboard sqlite:///experiments/my_experiment/study.db
 > **Note:** This roadmap reflects our current vision and priorities. It will evolve based on community feedback and open-source contributions. We welcome your input to shape RAGO's future!
 
 
-💡 **Ideas?** [Open an issue](https://github.com/your-repo/issues) or contribute!
+💡 **Ideas?** [Open an issue](https://github.com/liebherr-aerospace/rago/issues) or contribute!
 
 ---
 
