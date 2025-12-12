@@ -1,0 +1,109 @@
+# RAGO Documentation
+
+Welcome to the RAGO (Retrieval Augmented Generation Optimizer) documentation!
+
+## 📚 Documentation Structure
+
+```
+    📁 docs/
+    ├── 📁 code_architecture                 # Code Architecture
+    │   ├── 📄 overview.md
+    ├── 📁 installation                      # Installation guide
+    │   ├── 📄 elasticsearch.md
+    │   └── 📄 ollama.md
+    └── 📁 usage_guide                       # Usage guide
+        ├── 📁 dataset                       # Generate and load datasets
+        │   ├── 📄 data_loader.md
+        │   └── 📄 generator.md
+        ├── 📁 evaluation                    # Evaluation and metrics
+        │   └── 📄 metrics.md
+        ├── 📁 optimization                  # Optimization methods and strategies
+        │   ├── 📄 run_experiment.md
+        │   └── 📄 tpe.md
+        └── 📁 rag                           # RAG concepts, configurations and components
+            ├── 📄 rag_concepts.md
+            ├── 📄 rag_configuration.md
+            ├── 📄 reader.md
+            └── 📄 retriever.md
+```
+
+---
+
+## 🎯 Quick Navigation
+
+<table>
+<tr>
+<td width="50%" valign="top">
+
+### 🚀 Getting Started
+- **[Installation](installation/ollama.md)** - Setup & ollama configuration
+- **[Quick Start](usage_guide/optimization/run_experiment.md)** - Your first optimization
+
+</td>
+<td width="50%" valign="top">
+
+### 📖 Core Documentation
+- **[RAG Concepts](usage_guide/rag/rag_concepts.md)** - Understanding RAG
+- **[RAG Configuration](usage_guide/rag/rag_configuration.md)** - Parameters & search space
+- **[Retriever](usage_guide/rag/retriever.md)** - Retrieval methods
+- **[Reader](usage_guide/rag/reader.md)** - Generation strategies
+
+</td>
+</tr>
+<tr>
+<td width="50%" valign="top">
+
+### ⚙️ Optimization
+- **[Run Optimization](usage_guide/optimization/run_experiment.md)** - Optimization parameters and strategies
+- **[TPE Algorithm](usage_guide/optimization/tree_parzen_estimator.md)** - Bayesian optimization theory
+
+</td>
+<td width="50%" valign="top">
+
+### 🔧 Advanced
+- **[Dataset Loader & Format](usage_guide/dataset/data_loader.md)** - Dataset Loading and format
+- **[Dataset Generator](usage_guide/dataset/generator.md)** - Dataset Generators
+- **[Evaluation](usage_guide/evaluation/metrics.md)** - Metrics & evaluators
+
+</td>
+</tr>
+</table>
+
+---
+
+## 🔬 Core Concepts
+
+**RAG (Retrieval Augmented Generation)** combines:
+1. **Retrieve** relevant documents from knowledge base
+2. **Augment** LLM prompt with context
+3. **Generate** informed answers
+
+**RAG Optimization** automatically finds the best configuration (retriever, embeddings, LLM params) for your use case using **Bayesian Optimization**.
+
+→ **Learn more**: [RAG Concepts](usage_guide/rag/rag_concepts.md) | [Config Space](usage_guide/rag/rag_configuration.md)
+
+---
+
+
+## 📖 External Resources
+
+### Research Papers
+- [Tree-structured Parzen Estimator](https://arxiv.org/html/2304.11127v4) - TPE optimization algorithm
+- [BERTScore](https://arxiv.org/abs/1904.09675) - Semantic evaluation metrics
+- [LLM-as-a-Judge](https://arxiv.org/abs/2411.15594) - Using LLMs for evaluation
+
+### Related Projects
+- [Optuna](https://optuna.org/) - Hyperparameter optimization framework
+- [LangChain](https://www.langchain.com/) - LLM application framework
+- [LlamaIndex](https://www.llamaindex.ai/) - Data framework for LLMs
+- [Ollama](https://ollama.ai/) - Run LLMs locally
+
+---
+
+## 💡 Need Help?
+
+- 📖 Check the [Troubleshooting Guide](troubleshooting.md)
+- 💬 Ask in [GitHub Discussions](https://github.com/your-repo/rago/discussions)
+- 🐛 Report bugs in [Issues](https://github.com/your-repo/rago/issues)
+
+---
