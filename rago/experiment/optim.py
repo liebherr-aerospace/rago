@@ -1,18 +1,16 @@
-#!/usr/bin/env python
 """Defines an optim experiment class to run experiments."""
-
-import urllib3
-urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 import argparse
 import json
 from pathlib import Path
 from typing import cast
 
+import urllib3
 from optuna.samplers import TPESampler
 
 from rago.dataset import QADatasetLoader, RAGDataset
 from rago.eval import BertScore
+from rago.experiment.base import Experiment
 from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.llm_config_space import OllamaLLMConfigSpace
@@ -21,7 +19,7 @@ from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.optimization.search_space.reader_config_space import LangchainReaderConfigSpace
 from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
 
-from rago.experiment.base import Experiment
+urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 
 
 class OptimExperiment(Experiment):
@@ -45,7 +43,11 @@ class OptimExperiment(Experiment):
                 retriever_type_name=CategoricalParamSpace(choices=["VectorIndexRetriever", "BM25Retriever"]),
             ),
             reader_space=LangchainReaderConfigSpace(
-                OllamaLLMConfigSpace(model_name=CategoricalParamSpace(choices=["ministral-3:8b", "qwen3:8b", "gemma3:12b","gpt-oss:20b"])),
+                OllamaLLMConfigSpace(
+                    model_name=CategoricalParamSpace(
+                        choices=["ministral-3:8b", "qwen3:8b", "gemma3:12b", "gpt-oss:20b"],
+                    ),
+                ),
             ),
         )
         self.optimizer = SimpleDirectOptunaManager.from_dataset(
@@ -78,8 +80,8 @@ class OptimExperiment(Experiment):
         return score
 
 
-def main():
-    """Main entry point with argument parsing."""
+def main() -> None:
+    """Run experiment with argument parsing."""
     parser = argparse.ArgumentParser(
         description="Run RAG optimization experiment",
         formatter_class=argparse.ArgumentDefaultsHelpFormatter,
@@ -102,13 +104,11 @@ def main():
         default=50,
         help="Number of random startup trials for TPE sampler",
     )
-    
+
     args = parser.parse_args()
-    
-    print(f"🚀 Starting experiment: {args.experiment_name}")
+
     experiment = OptimExperiment()
     experiment.run(experiment_name=args.experiment_name)
-    print(f"✅ Experiment '{args.experiment_name}' completed!")
 
 
 if __name__ == "__main__":
