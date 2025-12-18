@@ -1,0 +1,204 @@
+{
+    "samples": [
+        {
+            "query": "Who published the comic book in which Jean Loring was a supporting character and primary love interest of The Atom (Dr. Ray Palmer) is a fictional superhero appearing in American comic books?",
+            "context": [
+                {
+                    "text": "Jean Loring is a fictional character in comic books published by DC Comics, formerly associated with superhero the Atom for whom she was a supporting character and primary love interest.\n She first appeared in \"Showcase\" #34 (September\u2013October 1961), created by Gardner Fox and Gil Kane.\n The character appeared continually in minor roles until the 2004 storyline \"Identity Crisis\", in which she suffered a mental breakdown and murdered Sue Dibny, wife of the Elongated Man.\n This would later lead Loring to assume the mantle of the supervillain Eclipso.",
+                    "id": "Jean Loring"
+                },
+                {
+                    "text": "The Atom (Dr. Ray Palmer) is a fictional superhero appearing in American comic books published by DC Comics.\n The character was created by editor and co-plotter Julius Schwartz, writer Gardner Fox and penciler Gil Kane.\n The Atom was one of the first superheroes of the Silver Age of comic books and debuted in \"Showcase\" #34 (October 1961).",
+                    "id": "Atom (Ray Palmer)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "DC Comics",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Where is the official residence of the head of state of Germany?",
+            "context": [
+                {
+                    "text": "The President of Germany, officially the President of the Federal Republic of Germany (German: \"Bundespr\u00e4sident der Bundesrepublik Deutschland\" ), is the head of state of Germany.",
+                    "id": "President of Germany"
+                },
+                {
+                    "text": "Berlin is a city-state and the capital of the Federal Republic of Germany.\n The President of Germany, whose functions are primarily ceremonial under the German constitution, has his official residence in Schloss Bellevue.\n Berlin is the seat of the German executive, housed in the Chancellery (the \"Bundeskanzleramt\").\n Facing the Chancellery is the Bundestag, the German Parliament, housed in the renovated Reichstag building since the government's move to Berlin in 1998.\n The Bundesrat (\"federal council\", functioning as an upper house) represents the Federal States (\"Bundesl\u00e4nder\") of Germany and has its seat at the former Prussian House of Lords.",
+                    "id": "Politics of Berlin"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Schloss Bellevue",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Which game can be played by more than 2 players at a time, Game of the Generals or Ludo?",
+            "context": [
+                {
+                    "text": "The Game of the Generals, also called GG as it is most fondly called, or simply The Generals, is an educational war game invented in the Philippines by Sofronio H. Pasola, Jr. in 1970.\n Its Filipino name is \"Salpakan.\"\n It can be played within twenty to thirty minutes.\n It is designed for two players, each controlling an army, and a neutral arbiter (sometimes called a referee or an adjutant) to decide the results of \"challenges\" between opposing playing pieces, that like playing cards, have their identities hidden from the opponent.",
+                    "id": "Game of the Generals"
+                },
+                {
+                    "text": "Ludo , (from Latin \"ludo\", \"I play\") is a strategy board game for two to four players, in which the players race their four tokens from start to finish according to the rolls of a single die.\n Like other cross and circle games, Ludo is derived from the Indian game Pachisi, but simpler.\n The game and its variations are popular in many countries and under various names.",
+                    "id": "Ludo (board game)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Ludo",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "comparison"
+            }
+        },
+        {
+            "query": "What was Robert Tree Cody's adopted father's most prominent PSA role?",
+            "context": [
+                {
+                    "text": "Robert Tree Cody (born April 20, 1951) is a Native American musician, dancer, and educator.\n He graduated from John Marshall High School in 1969.\n Robert is an adopted son of Hollywood actor Iron Eyes Cody.",
+                    "id": "Robert Tree Cody"
+                },
+                {
+                    "text": "Iron Eyes Cody (born Espera Oscar de Corti April 3, 1904 \u2013 January 4, 1999) was an Italian-American actor.\n He portrayed Native Americans in Hollywood films.\n He also played a Native American shedding a tear about litter in one of the country's most well-known television PSAs, \"Keep America Beautiful\".\n In 1996, Cody's half-sister said that he was of Italian ancestry, but he denied it.",
+                    "id": "Iron Eyes Cody"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Keep America Beautiful",
+            "reference_score": null,
+            "metadata": {
+                "level": "hard",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "What is the premier date of this South Korean television drama airing every Wednesday and Thursday, in which Jung Hae-in appears?",
+            "context": [
+                {
+                    "text": "While You Were Sleeping () is a South Korean television drama starring Lee Jong-suk, Bae Suzy, Lee Sang-yeob, Ko Sung-hee and Jung Hae-in.\n It airs on SBS, every Wednesday and Thursday at 22:00 (KST) time slot, and premiered September 27, 2017.",
+                    "id": "While You Were Sleeping (2017 TV series)"
+                },
+                {
+                    "text": "Jung Hae-In (born April 1, 1988) is a South Korean actor.\n He is currently appearing in the SBS's television series \"While You Were Sleeping\".",
+                    "id": "Jung Hae-in"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "September 27, 2017",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Brooklyn Nine-Nine had a supporting cast that included which comedian and writer?",
+            "context": [
+                {
+                    "text": "Chelsea Vanessa Peretti (born February 20, 1978) is an American comedian, actress, and writer.\n She is best known for portraying Gina Linetti on the Fox comedy series \"Brooklyn Nine-Nine\". \"\nPaste\" ranked her Twitter account #75 on \"The 75 Best Twitter Accounts of 2014\".",
+                    "id": "Chelsea Peretti"
+                },
+                {
+                    "text": "Brooklyn Nine-Nine is an American police sitcom that premiered on Fox on September 17, 2013, garnering 6.17 million viewers.\n Created by Dan Goor and Michael Schur, the series revolves around Jake Peralta (Andy Samberg), an immature but talented NYPD detective in Brooklyn's 99th Precinct, who comes into immediate conflict with his new commanding officer, the serious and stern Captain Raymond Holt (Andre Braugher).\n The ensemble and supporting cast feature Stephanie Beatriz as Rosa Diaz, Terry Crews as Terrence \"Terry\" Jeffords, Melissa Fumero as Amy Santiago, Joe Lo Truglio as Charles Boyle, Chelsea Peretti as Regina \"Gina\" Linetti, Dirk Blocker as Michael Hitchcock and Joel McKinnon Miller as Norman \"Norm\" Scully.",
+                    "id": "Brooklyn Nine-Nine"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Chelsea Vanessa Peretti",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Are the Sternbergia and Echinopsis genuses of plants both native to the same regions?",
+            "context": [
+                {
+                    "text": "Sternbergia is a genus of Eurasian and North African plants in the Amaryllis family, subfamily Amaryllidoideae.",
+                    "id": "Sternbergia"
+                },
+                {
+                    "text": "Echinopsis is a large genus of cacti native to South America, sometimes known as hedgehog cactus, sea-urchin cactus or Easter lily cactus.\n One small species, \"E. chamaecereus\", is known as the peanut cactus.\n The 128 species range from large and treelike types to small globose cacti.\n The name derives from \"echinos\" hedgehog or sea urchin, and \"opsis\" appearance, a reference to these plants' dense coverings of spines.",
+                    "id": "Echinopsis"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "no",
+            "reference_score": null,
+            "metadata": {
+                "level": "hard",
+                "type": "comparison"
+            }
+        },
+        {
+            "query": "Who besides Marceau founded Ballroom Theater\u2019s Dancing Classrooms program that was featured in a 2005 American documentary?",
+            "context": [
+                {
+                    "text": "Yvonne Marceau is an American ballroom dancer, choreographer, and instructor.\n She was born in Chicago, IL, and holds a B.F.A. from the University of Utah as well as an associate degree from the Imperial Society of Ballroom Dance.\n In 1984, Marceau co-founded American Ballroom Theater with her dance partner, Pierre Dulaine.\n Together, Marceau and Dulaine won numerous ballroom dance contests and were four-time winners of the British Exhibition ballroom competition.\n Marceau is the recipient of various awards, including the Astaire Award and the Dance Magazine Award.\n Along with Dulaine, Marceau co-founded the Ballroom Theater\u2019s Dancing Classrooms program, which is featured in the documentary Mad Hot Ballroom.\n Marceau has been on the faculty at The Juilliard School since 1993 and has taught at the School of American Ballet as well as for numerous New York City social groups, including the Union Club and cotillion societies.\n Marceau also currently teaches at the NYU Tisch New Studio on Broadway.",
+                    "id": "Yvonne Marceau"
+                },
+                {
+                    "text": "Mad Hot Ballroom is a 2005 American documentary film directed and co-produced by Marilyn Agrelo and written and co-produced by Amy Sewell, about a ballroom dance program in the New York City Department of Education, the New York City public school system for fifth graders.\n Several styles of dance are shown in the film, such as tango, foxtrot, swing, rumba and merengue.",
+                    "id": "Mad Hot Ballroom"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Dulaine",
+            "reference_score": null,
+            "metadata": {
+                "level": "easy",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Between Jason Bateman and Jan Troell, which filmmaker has had a more diverse career?",
+            "context": [
+                {
+                    "text": "Jan Gustaf Troell (born 23 July 1931) is a Swedish film director.\n Usually, Troell writes his own scripts and serves as his own director of photography.\n His realistic films, with a lyrical photography in which nature is prominent, have placed him in the first rank of modern Swedish film directors along with Ingmar Bergman and Bo Widerberg.",
+                    "id": "Jan Troell"
+                },
+                {
+                    "text": "Jason Kent Bateman (born January 14, 1969) is an American actor, director, and producer.\n He began acting on television in the early 1980s on \"Little House on the Prairie\", and in the sitcoms \"Silver Spoons\" and \"The Hogan Family\".\n In the 2000s, he became known for his role of Michael Bluth using deadpan comedy in the critically acclaimed sitcom \"Arrested Development\", for which he won a Golden Globe and a Satellite Award.\n He has had starring roles in the films \"Juno\" (2007), \"Hancock\" (2008), \"Up in the Air\" (2009), \"The Switch\" (2010), \"Paul\" (2011), \"Horrible Bosses\" (2011), \"The Change-Up\" (2011), \"Identity Thief\" (2013), \"Bad Words\" (2013), \"Horrible Bosses 2\" (2014), \"The Gift\" (2015), and \"Zootopia\" (2016), as well as the 2017 Netflix series \"Ozark\".",
+                    "id": "Jason Bateman"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Jan Gustaf Troell",
+            "reference_score": null,
+            "metadata": {
+                "level": "hard",
+                "type": "comparison"
+            }
+        },
+        {
+            "query": "Mindless Self Indulgence and Tappi T\u00edkarrass are both what?",
+            "context": [
+                {
+                    "text": "Mindless Self Indulgence (often shortened to MSI) is an American electropunk band formed in New York City in 1997.\n Their music has a mixed style which includes punk rock, alternative rock, electronica, techno, industrial, hip hop and breakbeat hardcore.\n Their group name is derived from an Ayn Rand quote found in the book \"Atlas Shrugged\".",
+                    "id": "Mindless Self Indulgence"
+                },
+                {
+                    "text": "Tappi T\u00edkarrass was an Icelandic punk band which added elements of funk, rock and jazz to their music, marking a difference from other traditional bands at that time.\n The band is also considered the first serious music project of now renowned singer Bj\u00f6rk Gu\u00f0mundsd\u00f3ttir.",
+                    "id": "Tappi T\u00edkarrass"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "band",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "comparison"
+            }
+        }
+    ]
+}
