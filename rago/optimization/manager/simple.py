@@ -264,5 +264,5 @@ class SimpleDirectOptunaManager(BaseOptunaManager):
             self.logger.debug("[PROCESS] Mean score for current iteration: %s", score)
         self.logger.debug("[PROCESS] Final Mean score: %s", score)
         gc.collect()
-            
+
         return score
