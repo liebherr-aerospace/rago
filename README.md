@@ -102,7 +102,7 @@ RAGO uses **Optimization Methods** (Bayesian methods for instance) to automatica
 
 ```bash
 # 1. Clone the repository
-git clone <repository-url>
+git clone https://github.com/liebherr-aerospace/rago.git
 cd rago
 
 # 2. Install dependencies using UV
