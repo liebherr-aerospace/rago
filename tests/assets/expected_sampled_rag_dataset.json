@@ -1,0 +1,686 @@
+{
+    "samples": [
+        {
+            "query": "Who published the comic book in which Jean Loring was a supporting character and primary love interest of The Atom (Dr. Ray Palmer) is a fictional superhero appearing in American comic books?",
+            "context": [
+                {
+                    "text": "Jean Loring is a fictional character in comic books published by DC Comics, formerly associated with superhero the Atom for whom she was a supporting character and primary love interest.\n She first appeared in \"Showcase\" #34 (September\u2013October 1961), created by Gardner Fox and Gil Kane.\n The character appeared continually in minor roles until the 2004 storyline \"Identity Crisis\", in which she suffered a mental breakdown and murdered Sue Dibny, wife of the Elongated Man.\n This would later lead Loring to assume the mantle of the supervillain Eclipso.",
+                    "id": "Jean Loring"
+                },
+                {
+                    "text": "The Atom (Dr. Ray Palmer) is a fictional superhero appearing in American comic books published by DC Comics.\n The character was created by editor and co-plotter Julius Schwartz, writer Gardner Fox and penciler Gil Kane.\n The Atom was one of the first superheroes of the Silver Age of comic books and debuted in \"Showcase\" #34 (October 1961).",
+                    "id": "Atom (Ray Palmer)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "DC Comics",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Where is the official residence of the head of state of Germany?",
+            "context": [
+                {
+                    "text": "The President of Germany, officially the President of the Federal Republic of Germany (German: \"Bundespr\u00e4sident der Bundesrepublik Deutschland\" ), is the head of state of Germany.",
+                    "id": "President of Germany"
+                },
+                {
+                    "text": "Berlin is a city-state and the capital of the Federal Republic of Germany.\n The President of Germany, whose functions are primarily ceremonial under the German constitution, has his official residence in Schloss Bellevue.\n Berlin is the seat of the German executive, housed in the Chancellery (the \"Bundeskanzleramt\").\n Facing the Chancellery is the Bundestag, the German Parliament, housed in the renovated Reichstag building since the government's move to Berlin in 1998.\n The Bundesrat (\"federal council\", functioning as an upper house) represents the Federal States (\"Bundesl\u00e4nder\") of Germany and has its seat at the former Prussian House of Lords.",
+                    "id": "Politics of Berlin"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Schloss Bellevue",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Which game can be played by more than 2 players at a time, Game of the Generals or Ludo?",
+            "context": [
+                {
+                    "text": "The Game of the Generals, also called GG as it is most fondly called, or simply The Generals, is an educational war game invented in the Philippines by Sofronio H. Pasola, Jr. in 1970.\n Its Filipino name is \"Salpakan.\"\n It can be played within twenty to thirty minutes.\n It is designed for two players, each controlling an army, and a neutral arbiter (sometimes called a referee or an adjutant) to decide the results of \"challenges\" between opposing playing pieces, that like playing cards, have their identities hidden from the opponent.",
+                    "id": "Game of the Generals"
+                },
+                {
+                    "text": "Ludo , (from Latin \"ludo\", \"I play\") is a strategy board game for two to four players, in which the players race their four tokens from start to finish according to the rolls of a single die.\n Like other cross and circle games, Ludo is derived from the Indian game Pachisi, but simpler.\n The game and its variations are popular in many countries and under various names.",
+                    "id": "Ludo (board game)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Ludo",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "comparison"
+            }
+        },
+        {
+            "query": "What was Robert Tree Cody's adopted father's most prominent PSA role?",
+            "context": [
+                {
+                    "text": "Robert Tree Cody (born April 20, 1951) is a Native American musician, dancer, and educator.\n He graduated from John Marshall High School in 1969.\n Robert is an adopted son of Hollywood actor Iron Eyes Cody.",
+                    "id": "Robert Tree Cody"
+                },
+                {
+                    "text": "Iron Eyes Cody (born Espera Oscar de Corti April 3, 1904 \u2013 January 4, 1999) was an Italian-American actor.\n He portrayed Native Americans in Hollywood films.\n He also played a Native American shedding a tear about litter in one of the country's most well-known television PSAs, \"Keep America Beautiful\".\n In 1996, Cody's half-sister said that he was of Italian ancestry, but he denied it.",
+                    "id": "Iron Eyes Cody"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Keep America Beautiful",
+            "reference_score": null,
+            "metadata": {
+                "level": "hard",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "What is the premier date of this South Korean television drama airing every Wednesday and Thursday, in which Jung Hae-in appears?",
+            "context": [
+                {
+                    "text": "While You Were Sleeping () is a South Korean television drama starring Lee Jong-suk, Bae Suzy, Lee Sang-yeob, Ko Sung-hee and Jung Hae-in.\n It airs on SBS, every Wednesday and Thursday at 22:00 (KST) time slot, and premiered September 27, 2017.",
+                    "id": "While You Were Sleeping (2017 TV series)"
+                },
+                {
+                    "text": "Jung Hae-In (born April 1, 1988) is a South Korean actor.\n He is currently appearing in the SBS's television series \"While You Were Sleeping\".",
+                    "id": "Jung Hae-in"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "September 27, 2017",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Brooklyn Nine-Nine had a supporting cast that included which comedian and writer?",
+            "context": [
+                {
+                    "text": "Chelsea Vanessa Peretti (born February 20, 1978) is an American comedian, actress, and writer.\n She is best known for portraying Gina Linetti on the Fox comedy series \"Brooklyn Nine-Nine\". \"\nPaste\" ranked her Twitter account #75 on \"The 75 Best Twitter Accounts of 2014\".",
+                    "id": "Chelsea Peretti"
+                },
+                {
+                    "text": "Brooklyn Nine-Nine is an American police sitcom that premiered on Fox on September 17, 2013, garnering 6.17 million viewers.\n Created by Dan Goor and Michael Schur, the series revolves around Jake Peralta (Andy Samberg), an immature but talented NYPD detective in Brooklyn's 99th Precinct, who comes into immediate conflict with his new commanding officer, the serious and stern Captain Raymond Holt (Andre Braugher).\n The ensemble and supporting cast feature Stephanie Beatriz as Rosa Diaz, Terry Crews as Terrence \"Terry\" Jeffords, Melissa Fumero as Amy Santiago, Joe Lo Truglio as Charles Boyle, Chelsea Peretti as Regina \"Gina\" Linetti, Dirk Blocker as Michael Hitchcock and Joel McKinnon Miller as Norman \"Norm\" Scully.",
+                    "id": "Brooklyn Nine-Nine"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Chelsea Vanessa Peretti",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Are the Sternbergia and Echinopsis genuses of plants both native to the same regions?",
+            "context": [
+                {
+                    "text": "Sternbergia is a genus of Eurasian and North African plants in the Amaryllis family, subfamily Amaryllidoideae.",
+                    "id": "Sternbergia"
+                },
+                {
+                    "text": "Echinopsis is a large genus of cacti native to South America, sometimes known as hedgehog cactus, sea-urchin cactus or Easter lily cactus.\n One small species, \"E. chamaecereus\", is known as the peanut cactus.\n The 128 species range from large and treelike types to small globose cacti.\n The name derives from \"echinos\" hedgehog or sea urchin, and \"opsis\" appearance, a reference to these plants' dense coverings of spines.",
+                    "id": "Echinopsis"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "no",
+            "reference_score": null,
+            "metadata": {
+                "level": "hard",
+                "type": "comparison"
+            }
+        },
+        {
+            "query": "Who besides Marceau founded Ballroom Theater\u2019s Dancing Classrooms program that was featured in a 2005 American documentary?",
+            "context": [
+                {
+                    "text": "Yvonne Marceau is an American ballroom dancer, choreographer, and instructor.\n She was born in Chicago, IL, and holds a B.F.A. from the University of Utah as well as an associate degree from the Imperial Society of Ballroom Dance.\n In 1984, Marceau co-founded American Ballroom Theater with her dance partner, Pierre Dulaine.\n Together, Marceau and Dulaine won numerous ballroom dance contests and were four-time winners of the British Exhibition ballroom competition.\n Marceau is the recipient of various awards, including the Astaire Award and the Dance Magazine Award.\n Along with Dulaine, Marceau co-founded the Ballroom Theater\u2019s Dancing Classrooms program, which is featured in the documentary Mad Hot Ballroom.\n Marceau has been on the faculty at The Juilliard School since 1993 and has taught at the School of American Ballet as well as for numerous New York City social groups, including the Union Club and cotillion societies.\n Marceau also currently teaches at the NYU Tisch New Studio on Broadway.",
+                    "id": "Yvonne Marceau"
+                },
+                {
+                    "text": "Mad Hot Ballroom is a 2005 American documentary film directed and co-produced by Marilyn Agrelo and written and co-produced by Amy Sewell, about a ballroom dance program in the New York City Department of Education, the New York City public school system for fifth graders.\n Several styles of dance are shown in the film, such as tango, foxtrot, swing, rumba and merengue.",
+                    "id": "Mad Hot Ballroom"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Dulaine",
+            "reference_score": null,
+            "metadata": {
+                "level": "easy",
+                "type": "bridge"
+            }
+        },
+        {
+            "query": "Between Jason Bateman and Jan Troell, which filmmaker has had a more diverse career?",
+            "context": [
+                {
+                    "text": "Jan Gustaf Troell (born 23 July 1931) is a Swedish film director.\n Usually, Troell writes his own scripts and serves as his own director of photography.\n His realistic films, with a lyrical photography in which nature is prominent, have placed him in the first rank of modern Swedish film directors along with Ingmar Bergman and Bo Widerberg.",
+                    "id": "Jan Troell"
+                },
+                {
+                    "text": "Jason Kent Bateman (born January 14, 1969) is an American actor, director, and producer.\n He began acting on television in the early 1980s on \"Little House on the Prairie\", and in the sitcoms \"Silver Spoons\" and \"The Hogan Family\".\n In the 2000s, he became known for his role of Michael Bluth using deadpan comedy in the critically acclaimed sitcom \"Arrested Development\", for which he won a Golden Globe and a Satellite Award.\n He has had starring roles in the films \"Juno\" (2007), \"Hancock\" (2008), \"Up in the Air\" (2009), \"The Switch\" (2010), \"Paul\" (2011), \"Horrible Bosses\" (2011), \"The Change-Up\" (2011), \"Identity Thief\" (2013), \"Bad Words\" (2013), \"Horrible Bosses 2\" (2014), \"The Gift\" (2015), and \"Zootopia\" (2016), as well as the 2017 Netflix series \"Ozark\".",
+                    "id": "Jason Bateman"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Jan Gustaf Troell",
+            "reference_score": null,
+            "metadata": {
+                "level": "hard",
+                "type": "comparison"
+            }
+        },
+        {
+            "query": "Mindless Self Indulgence and Tappi T\u00edkarrass are both what?",
+            "context": [
+                {
+                    "text": "Mindless Self Indulgence (often shortened to MSI) is an American electropunk band formed in New York City in 1997.\n Their music has a mixed style which includes punk rock, alternative rock, electronica, techno, industrial, hip hop and breakbeat hardcore.\n Their group name is derived from an Ayn Rand quote found in the book \"Atlas Shrugged\".",
+                    "id": "Mindless Self Indulgence"
+                },
+                {
+                    "text": "Tappi T\u00edkarrass was an Icelandic punk band which added elements of funk, rock and jazz to their music, marking a difference from other traditional bands at that time.\n The band is also considered the first serious music project of now renowned singer Bj\u00f6rk Gu\u00f0mundsd\u00f3ttir.",
+                    "id": "Tappi T\u00edkarrass"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "band",
+            "reference_score": null,
+            "metadata": {
+                "level": "medium",
+                "type": "comparison"
+            }
+        }
+    ],
+    "corpus": {
+        "Jean Loring": {
+            "text": "Jean Loring is a fictional character in comic books published by DC Comics, formerly associated with superhero the Atom for whom she was a supporting character and primary love interest.\n She first appeared in \"Showcase\" #34 (September\u2013October 1961), created by Gardner Fox and Gil Kane.\n The character appeared continually in minor roles until the 2004 storyline \"Identity Crisis\", in which she suffered a mental breakdown and murdered Sue Dibny, wife of the Elongated Man.\n This would later lead Loring to assume the mantle of the supervillain Eclipso.",
+            "id": "Jean Loring"
+        },
+        "Atom (Ray Palmer)": {
+            "text": "The Atom (Dr. Ray Palmer) is a fictional superhero appearing in American comic books published by DC Comics.\n The character was created by editor and co-plotter Julius Schwartz, writer Gardner Fox and penciler Gil Kane.\n The Atom was one of the first superheroes of the Silver Age of comic books and debuted in \"Showcase\" #34 (October 1961).",
+            "id": "Atom (Ray Palmer)"
+        },
+        "President of Germany": {
+            "text": "The President of Germany, officially the President of the Federal Republic of Germany (German: \"Bundespr\u00e4sident der Bundesrepublik Deutschland\" ), is the head of state of Germany.",
+            "id": "President of Germany"
+        },
+        "Politics of Berlin": {
+            "text": "Berlin is a city-state and the capital of the Federal Republic of Germany.\n The President of Germany, whose functions are primarily ceremonial under the German constitution, has his official residence in Schloss Bellevue.\n Berlin is the seat of the German executive, housed in the Chancellery (the \"Bundeskanzleramt\").\n Facing the Chancellery is the Bundestag, the German Parliament, housed in the renovated Reichstag building since the government's move to Berlin in 1998.\n The Bundesrat (\"federal council\", functioning as an upper house) represents the Federal States (\"Bundesl\u00e4nder\") of Germany and has its seat at the former Prussian House of Lords.",
+            "id": "Politics of Berlin"
+        },
+        "Game of the Generals": {
+            "text": "The Game of the Generals, also called GG as it is most fondly called, or simply The Generals, is an educational war game invented in the Philippines by Sofronio H. Pasola, Jr. in 1970.\n Its Filipino name is \"Salpakan.\"\n It can be played within twenty to thirty minutes.\n It is designed for two players, each controlling an army, and a neutral arbiter (sometimes called a referee or an adjutant) to decide the results of \"challenges\" between opposing playing pieces, that like playing cards, have their identities hidden from the opponent.",
+            "id": "Game of the Generals"
+        },
+        "Ludo (board game)": {
+            "text": "Ludo , (from Latin \"ludo\", \"I play\") is a strategy board game for two to four players, in which the players race their four tokens from start to finish according to the rolls of a single die.\n Like other cross and circle games, Ludo is derived from the Indian game Pachisi, but simpler.\n The game and its variations are popular in many countries and under various names.",
+            "id": "Ludo (board game)"
+        },
+        "Robert Tree Cody": {
+            "text": "Robert Tree Cody (born April 20, 1951) is a Native American musician, dancer, and educator.\n He graduated from John Marshall High School in 1969.\n Robert is an adopted son of Hollywood actor Iron Eyes Cody.",
+            "id": "Robert Tree Cody"
+        },
+        "Iron Eyes Cody": {
+            "text": "Iron Eyes Cody (born Espera Oscar de Corti April 3, 1904 \u2013 January 4, 1999) was an Italian-American actor.\n He portrayed Native Americans in Hollywood films.\n He also played a Native American shedding a tear about litter in one of the country's most well-known television PSAs, \"Keep America Beautiful\".\n In 1996, Cody's half-sister said that he was of Italian ancestry, but he denied it.",
+            "id": "Iron Eyes Cody"
+        },
+        "While You Were Sleeping (2017 TV series)": {
+            "text": "While You Were Sleeping () is a South Korean television drama starring Lee Jong-suk, Bae Suzy, Lee Sang-yeob, Ko Sung-hee and Jung Hae-in.\n It airs on SBS, every Wednesday and Thursday at 22:00 (KST) time slot, and premiered September 27, 2017.",
+            "id": "While You Were Sleeping (2017 TV series)"
+        },
+        "Jung Hae-in": {
+            "text": "Jung Hae-In (born April 1, 1988) is a South Korean actor.\n He is currently appearing in the SBS's television series \"While You Were Sleeping\".",
+            "id": "Jung Hae-in"
+        },
+        "Chelsea Peretti": {
+            "text": "Chelsea Vanessa Peretti (born February 20, 1978) is an American comedian, actress, and writer.\n She is best known for portraying Gina Linetti on the Fox comedy series \"Brooklyn Nine-Nine\". \"\nPaste\" ranked her Twitter account #75 on \"The 75 Best Twitter Accounts of 2014\".",
+            "id": "Chelsea Peretti"
+        },
+        "Brooklyn Nine-Nine": {
+            "text": "Brooklyn Nine-Nine is an American police sitcom that premiered on Fox on September 17, 2013, garnering 6.17 million viewers.\n Created by Dan Goor and Michael Schur, the series revolves around Jake Peralta (Andy Samberg), an immature but talented NYPD detective in Brooklyn's 99th Precinct, who comes into immediate conflict with his new commanding officer, the serious and stern Captain Raymond Holt (Andre Braugher).\n The ensemble and supporting cast feature Stephanie Beatriz as Rosa Diaz, Terry Crews as Terrence \"Terry\" Jeffords, Melissa Fumero as Amy Santiago, Joe Lo Truglio as Charles Boyle, Chelsea Peretti as Regina \"Gina\" Linetti, Dirk Blocker as Michael Hitchcock and Joel McKinnon Miller as Norman \"Norm\" Scully.",
+            "id": "Brooklyn Nine-Nine"
+        },
+        "Sternbergia": {
+            "text": "Sternbergia is a genus of Eurasian and North African plants in the Amaryllis family, subfamily Amaryllidoideae.",
+            "id": "Sternbergia"
+        },
+        "Echinopsis": {
+            "text": "Echinopsis is a large genus of cacti native to South America, sometimes known as hedgehog cactus, sea-urchin cactus or Easter lily cactus.\n One small species, \"E. chamaecereus\", is known as the peanut cactus.\n The 128 species range from large and treelike types to small globose cacti.\n The name derives from \"echinos\" hedgehog or sea urchin, and \"opsis\" appearance, a reference to these plants' dense coverings of spines.",
+            "id": "Echinopsis"
+        },
+        "Yvonne Marceau": {
+            "text": "Yvonne Marceau is an American ballroom dancer, choreographer, and instructor.\n She was born in Chicago, IL, and holds a B.F.A. from the University of Utah as well as an associate degree from the Imperial Society of Ballroom Dance.\n In 1984, Marceau co-founded American Ballroom Theater with her dance partner, Pierre Dulaine.\n Together, Marceau and Dulaine won numerous ballroom dance contests and were four-time winners of the British Exhibition ballroom competition.\n Marceau is the recipient of various awards, including the Astaire Award and the Dance Magazine Award.\n Along with Dulaine, Marceau co-founded the Ballroom Theater\u2019s Dancing Classrooms program, which is featured in the documentary Mad Hot Ballroom.\n Marceau has been on the faculty at The Juilliard School since 1993 and has taught at the School of American Ballet as well as for numerous New York City social groups, including the Union Club and cotillion societies.\n Marceau also currently teaches at the NYU Tisch New Studio on Broadway.",
+            "id": "Yvonne Marceau"
+        },
+        "Mad Hot Ballroom": {
+            "text": "Mad Hot Ballroom is a 2005 American documentary film directed and co-produced by Marilyn Agrelo and written and co-produced by Amy Sewell, about a ballroom dance program in the New York City Department of Education, the New York City public school system for fifth graders.\n Several styles of dance are shown in the film, such as tango, foxtrot, swing, rumba and merengue.",
+            "id": "Mad Hot Ballroom"
+        },
+        "Jan Troell": {
+            "text": "Jan Gustaf Troell (born 23 July 1931) is a Swedish film director.\n Usually, Troell writes his own scripts and serves as his own director of photography.\n His realistic films, with a lyrical photography in which nature is prominent, have placed him in the first rank of modern Swedish film directors along with Ingmar Bergman and Bo Widerberg.",
+            "id": "Jan Troell"
+        },
+        "Jason Bateman": {
+            "text": "Jason Kent Bateman (born January 14, 1969) is an American actor, director, and producer.\n He began acting on television in the early 1980s on \"Little House on the Prairie\", and in the sitcoms \"Silver Spoons\" and \"The Hogan Family\".\n In the 2000s, he became known for his role of Michael Bluth using deadpan comedy in the critically acclaimed sitcom \"Arrested Development\", for which he won a Golden Globe and a Satellite Award.\n He has had starring roles in the films \"Juno\" (2007), \"Hancock\" (2008), \"Up in the Air\" (2009), \"The Switch\" (2010), \"Paul\" (2011), \"Horrible Bosses\" (2011), \"The Change-Up\" (2011), \"Identity Thief\" (2013), \"Bad Words\" (2013), \"Horrible Bosses 2\" (2014), \"The Gift\" (2015), and \"Zootopia\" (2016), as well as the 2017 Netflix series \"Ozark\".",
+            "id": "Jason Bateman"
+        },
+        "Mindless Self Indulgence": {
+            "text": "Mindless Self Indulgence (often shortened to MSI) is an American electropunk band formed in New York City in 1997.\n Their music has a mixed style which includes punk rock, alternative rock, electronica, techno, industrial, hip hop and breakbeat hardcore.\n Their group name is derived from an Ayn Rand quote found in the book \"Atlas Shrugged\".",
+            "id": "Mindless Self Indulgence"
+        },
+        "Tappi T\u00edkarrass": {
+            "text": "Tappi T\u00edkarrass was an Icelandic punk band which added elements of funk, rock and jazz to their music, marking a difference from other traditional bands at that time.\n The band is also considered the first serious music project of now renowned singer Bj\u00f6rk Gu\u00f0mundsd\u00f3ttir.",
+            "id": "Tappi T\u00edkarrass"
+        },
+        "Meridian Gate, Cardiff": {
+            "text": "Meridian Gate is a hotel and residential skyscraper complex in Cardiff, Wales.\n Meridian Gate comprises two buildings, the taller of which is 63 metres high, has 21 floors and contains the largest hotel in Cardiff, operated by Radisson Blu.\n It is the joint-fifth tallest building in Cardiff.\n The smaller building, called Meridian Plaza is 33 metres high, has 11 floors and contains luxury residential apartments.",
+            "id": "Meridian Gate, Cardiff"
+        },
+        "Dance of Death (film)": {
+            "text": "The Dance of Death is a 1969 film version of the play \"The Dance of Death\" by August Strindberg as presented by the National Theatre Company.\n It stars Laurence Olivier and Geraldine McEwan.",
+            "id": "Dance of Death (film)"
+        },
+        "National Terrorism Advisory System": {
+            "text": "The National Terrorism Advisory System (NTAS) is a terrorism threat advisory scale used by the US Department of Homeland Security since April 26, 2011.\n The NTAS is the replacement for the often-criticized, color-coded Homeland Security Advisory System introduced by the George W. Bush administration in 2002.\n Janet Napolitano said that the color-coded system often presented \"little practical information\" to the public and that the NTAS will provide alerts \"specific to the threat\" with \"a specified end date.\"",
+            "id": "National Terrorism Advisory System"
+        },
+        "The Return (Shinhwa album)": {
+            "text": "The Return is the tenth studio album of South Korean boy band Shinhwa, in commemoration of their 14th anniversary.\n It was released on 23 March 2012 by Shinhwa Company and distributed by CJ E&M Music.\n The album and its associated concerts, \"\", marks their comeback to the music industry after a four-year hiatus, since their 10th anniversary concert and album \"Volume 9\" in 2008, during which band members served individual mandatory military services.",
+            "id": "The Return (Shinhwa album)"
+        },
+        "Pashofa": {
+            "text": "Pashofa, or pishofa, is a Chickasaw and Choctaw Indian soupy dish made from cracked white cracked corn, also known as pearl hominy.\n The dish is one of the most important to the Chickasaw people and has been served at ceremonial and social events for centuries.\n Pashofa is also used in specific healing ceremonies.",
+            "id": "Pashofa"
+        },
+        "Baghdad Metro": {
+            "text": "The Baghdad Metro is a surface commuter train that operates in the Iraqi city of Baghdad.\n It is operated by the state owned Iraqi Republic Railways.\n It resumed operation in October, 2008.\n The train runs about 24 km between Baghdad Central Station and the southern neighborhood of Dora.\n It operates two round trips a day, one in the morning and one in the afternoon.\n The Baghdad Metro and the passenger train that runs between Baghdad and Basra, which resumed service in 2007, were the first two regular passenger services to resume in Iraq since the Iraq War.",
+            "id": "Baghdad Metro"
+        },
+        "I Need Dubs": {
+            "text": "I Need Dubs is the first single from Master P's 2005 studio album, \"Ghetto Bill\", produced by him.\n The song features his son Romeo Miller.\n The song samples LL Cool J's I Need Love.",
+            "id": "I Need Dubs"
+        },
+        "List of Durio species": {
+            "text": "Among the thirty known species of \"Durio\", so far nine species have been identified to produce edible fruits.\n However, there are many species for which the fruit has never been collected or properly described and it is likely that other species with edible fruit exist.\n The currently known nine species of edible durians are:",
+            "id": "List of Durio species"
+        },
+        "Portraits (Bury Tomorrow album)": {
+            "text": "Portraits Is the debut studio album from British metalcore band Bury Tomorrow.\n The album was released first in the United Kingdom on Basick Records on 12 October 2009.\n Adam Jackson has stated it was named Portraits for two reasons: \"Firstly, the title track is based on the story of Dorian Gray by Oscar Wilde, a cautionary tale of the beauty and frailty of life.\n Secondly, Portraits depicts a person or character frozen in time as they were at a given moment.\n This is how we see this album \u2013 it's a reflection of our tastes, loves, hates, losses and gains.\n It's a memory in musical form, the first glimpse of the picture that is Bury Tomorrow.\u201d",
+            "id": "Portraits (Bury Tomorrow album)"
+        },
+        "Centre for Effective Dispute Resolution": {
+            "text": "Centre for Effective Dispute Resolution (CEDR) is a London-based mediation and alternative dispute resolution body.\n It was founded as a non-profit organisation in 1990, with the support of The Confederation of British Industry (CBI) and a number of British businesses and law firms, to encourage the development and use of Alternative Dispute Resolution (ADR) and mediation in commercial disputes.\n Professor Karl Mackie, a barrister and psychologist, became the organisation's Chief Executive and Eileen Carroll QC (hon), a Trans-Atlantic partner with a law firm (who had been involved in the initiative to form CEDR) joined to become the Deputy Chief Executive in 1996.\n On 12 June 2010 it was announced in the Queen's Birthday Honours that Karl Mackie was awarded the CBE (Commander of the Order of the British Empire) by the UK Government for \u2018services to mediation', the first citing of this reason for the award.",
+            "id": "Centre for Effective Dispute Resolution"
+        },
+        "Open Directory License": {
+            "text": "The Open Directory License (ODL) is a public copyright license that was used by DMOZ for its content.",
+            "id": "Open Directory License"
+        },
+        "Margaret of L'Aigle": {
+            "text": "Margaret of L'Aigle (French: \"Marguerite de L'Aigle\" , Spanish: \"Margarita de L\u2019Aigle\" ) (died 1141) was a Queen consort of Navarre, the first wife to Garc\u00eda Ram\u00edrez of Navarre.\n She was the daughter of Gilbert of L'Aigle and Juliana du Perche, daughter of Geoffrey II, Count of Perche.",
+            "id": "Margaret of L'Aigle"
+        },
+        "Scheme $6,000": {
+            "text": "Scheme $6,000 () is a 2011 Hong Kong Government tax rebate program that gave out HK$6,000 to all adult holders of a Hong Kong permanent identity card, in a bid to \"\u85cf\u5bcc\u65bc\u6c11\" (Leave wealth with the people).",
+            "id": "Scheme $6,000"
+        },
+        "Xiangfang District": {
+            "text": "Xiangfang District () is one of nine districts of Harbin, the capital of Heilongjiang province, China.\n It is an urban district in the pre-1940 part of Harbin, bordering the districts of Daowai to the north, Acheng to the southeast, Pingfang to the southwest, and Nangang to the west.\n It is an industrialized area, and contains the main scientific, technological and industrial zones of the city.\n The Harbin Development Zone is in the district.",
+            "id": "Xiangfang District"
+        },
+        "Uggs-N-Rugs": {
+            "text": "Uggs-N-Rugs is a small business in Perth, Western Australia, manufacturing and retailing ugg boots.\n In 2006 Uggs-N-Rugs successfully challenged the registration of \"ugg/ug/ugh\" as a trade mark in Australia and continues to challenge the trademark registration through the Australian Sheepskin Association.",
+            "id": "Uggs-N-Rugs"
+        },
+        "Thank You Girl": {
+            "text": "\"Thank You Girl\" is a song recorded by the Beatles, written by John Lennon and Paul McCartney (Lennon\u2013McCartney), and issued as the B-side of the single \"From Me to You\", which was recorded on the same day (5 March 1963).\n While not released on an LP in the United Kingdom until \"Rarities\" in 1978, the song was the second track on \"The Beatles' Second Album\" in the United States.\n As the B-side of the single \"Do You Want to Know a Secret\", it hit No. 35 on the \"Billboard\" Hot 100 in the spring of 1964.",
+            "id": "Thank You Girl"
+        },
+        "Tobias Exxel": {
+            "text": "Tobias \"Eggi\" Exxel (born 27 February 1973) is the current bass player for the power metal band Edguy.\n Tobias was hired by Edguy in 1998 when vocalist Tobias Sammet, who had played bass since the band's formation in 1992, decided the band should have someone who could focus on playing the instrument full-time.",
+            "id": "Tobias Exxel"
+        },
+        "William Robert Grove": {
+            "text": "Sir William Robert Grove, PC, FRS FRSE (11 July 1811 \u2013 1 August 1896) was a Welsh judge and physical scientist.\n He anticipated the general theory of the conservation of energy, and was a pioneer of fuel cell technology.\n He invented the Grove voltaic cell.",
+            "id": "William Robert Grove"
+        },
+        "Billardiera": {
+            "text": "Billardiera is a genus of small vines and shrubs which is endemic to Australia.\n The genus was first formally described in 1793 by botanist James Edward Smith who named it in honour of Jacques Labillardi\u00e8re, a French botanist.",
+            "id": "Billardiera"
+        },
+        "Vanjari Hound": {
+            "text": "The Vanjari Hound (Malayalam: \u0d35\u0d1e\u0d4d\u0d1a\u0d3e\u0d30\u0d3f \u0d39\u0d57\u0d23\u0d4d\u0d1f\u0d4d ) is a breed of dog found in India.\n It is a greyhound-type dog used by the nomadic Vanjari of Maharashtra, primarily as a sighthound in hunting.\n However, it has also been used as a guard dog and a herding dog.\n The breed is currently at risk from interbreeding with other dog breeds.",
+            "id": "Vanjari Hound"
+        },
+        "Sulette Damons": {
+            "text": "Sulette Damons (born 30 October 1989) is a South African field hockey player.\n At the 2012 Summer Olympics she competed with the South Africa women's national field hockey team in the women's tournament.",
+            "id": "Sulette Damons"
+        },
+        "Newsboy Legion": {
+            "text": "The Newsboy Legion are fictional characters, a kid gang in the DC Comics Universe.\n Created by Joe Simon and Jack Kirby, they appeared in their own self-titled feature which ran from \"Star-Spangled Comics\" #7 (April 1942) to \"Star-Spangled Comics\" #64 (January 1947).",
+            "id": "Newsboy Legion"
+        },
+        "Macedonia (ancient kingdom)": {
+            "text": "Macedonia or Macedon ( , ] , Greek: \u039c\u03b1\u03ba\u03b5\u03b4\u03bf\u03bd\u03af\u03b1 , \"Makedon\u00eda \") was an ancient kingdom on the periphery of Archaic and Classical Greece, and later the dominant state of Hellenistic Greece.\n The kingdom was founded and initially ruled by the royal Argead dynasty, which was followed by the Antipatrid and Antigonid dynasties.\n Home to the ancient Macedonians, the earliest kingdom was centered on the northeastern part of the Greek peninsula, and bordered by Epirus to the west, Paeonia to the north, Thrace to the east and Thessaly to the south.",
+            "id": "Macedonia (ancient kingdom)"
+        },
+        "Sisterhood Online Mixtape": {
+            "text": "Sisterhood Online Mixtape is the first project of Sisterhood.\n This was an online mixtape.\n \"Deeyah Presents Sisterhood\" was launched in May 2008.\n The Mixtape was started through MySpace and placed online for free in order to remain true to its birth through the Internet.\n Deeyah Khan connected with young Muslim women online who were aspiring rappers, singers and poets.\n This Sisterhood collection became the first online mixtape of its kind.\n The reactions to this mixtape project were primarily positive and very supportive from the Western media and Muslim community.",
+            "id": "Sisterhood Online Mixtape"
+        },
+        "Chief Joseph Dam": {
+            "text": "The Chief Joseph Dam is a concrete gravity dam on the Columbia River, 2.4 km upriver from Bridgeport, Washington.\n The dam is 877 km upriver from the mouth of the Columbia at Astoria, Oregon.\n It is operated by the USACE Chief Joseph Dam Project Office, and the electricity is marketed by the Bonneville Power Administration.",
+            "id": "Chief Joseph Dam"
+        },
+        "Kalispell City Airport": {
+            "text": "Kalispell City Airport (FAA LID: S27) is a city-owned public-use airport located one nautical mile (1.85 km) south of the central business district of Kalispell, a city in Flathead County, Montana, United States.\n This airport is included in the FAA's National Plan of Integrated Airport Systems for 2009\u20132013, which categorized it as a \"general aviation\" facility.",
+            "id": "Kalispell City Airport"
+        },
+        "So Seductive": {
+            "text": "\"So Seductive\" is a song by Tony Yayo as the first single from his debut album \"Thoughts of a Predicate Felon\" (2005), it features guest vocals from 50 Cent, and was produced by Punch, who helped write the song along with Tony Yayo and 50 Cent.\n Released following a highly publicized campaign by G-Unit, to release Tony Yayo from prison prior to the song's release, \"So Seductive\" is an uptempo \"club banger\" containing elements of string instruments and a repetitive bassline in its instrumentation.\n The song received little promotion from Tony Yayo at the time of its release, as he was still under house arrest following the end of his prison sentence, although he has since performed the song during various live performances.",
+            "id": "So Seductive"
+        },
+        "Frank Neubarth": {
+            "text": "Frank Neubarth (born 29 July 1962 in Hamburg) is a German football manager and former player who spent his whole career with SV Werder Bremen and has since managed FC Schalke 04, Holstein Kiel and FC Carl Zeiss Jena.",
+            "id": "Frank Neubarth"
+        },
+        "Beirut Arab University shooting": {
+            "text": "The Beirut Arab University shooting happened on January 25, 2007 in the Beirut Arab University in the Lebanese capital.",
+            "id": "Beirut Arab University shooting"
+        },
+        "Malia (canoe)": {
+            "text": "M\u0101lia is a Hawaiian-style wooden racing canoe crafted by James Takeo Yamasaki.\n The canoe was hewn out of blonde koa wood in Kailua-Kona, Hawaii, in 1933.\n Its wooden hull provided the founding model for all subsequent outrigger canoeing hulls, including those later molded from fiberglass.\n Hawaiian racing canoeist Tommy Holmes observed that \"Malia\" \"remains a prototype for contemporary racing canoes [and] was among the first canoes built exclusively for the sport.\"\n The canoe was listed on the State and National Register of Historic Places in 1993.",
+            "id": "Malia (canoe)"
+        },
+        "Plunkett Lake Press": {
+            "text": "Plunkett Lake Press is a publishing company based in Lexington, Massachusetts.\n It was founded by Patrick Mehr in 2010.\n PLP e-publishes classics of non-fiction: biographies, memoirs and texts of historical interest with a focus on Central Europe, such as Under a Cruel Star by Heda Margolius Kovaly and Defying Hitler by Sebastian Haffner.",
+            "id": "Plunkett Lake Press"
+        },
+        "Madden NFL 2000": {
+            "text": "Madden NFL 2000 (also known as Madden 2000) is a football video game.\n This was the second of the \"Madden NFL\" games to not solely feature John Madden on the cover in North America.\n The only other one was Madden NFL '95.\n Most versions of the game cover featured Madden prominently in the foreground, and a recognizable Barry Sanders in a background action graphic.\n The European PAL edition features only Dorsey Levens on the cover.",
+            "id": "Madden NFL 2000"
+        },
+        "Wendell Taylor": {
+            "text": "Wendell Smith Taylor (April 7, 1899 \u2013 October 6, 1987) was an American football player.\n He was raised in Oklahoma, and, in June 1919, he was admitted to the United States Naval Academy.\n At the Academy, he played at the end position for the Navy Midshipmen football team.\n He was a consensus first-team selection to the 1922 College Football All-America Team.\n He also competed in track for the Naval Academy and has been inducted into the Navy Sports Hall of Fame.\n In his later years, he lived in Cookson, Oklahoma.\n He died in 1987 at the age of 88.",
+            "id": "Wendell Taylor"
+        },
+        "Frank Navetta": {
+            "text": "Frank Navetta (March 6, 1962 \u2013 October 31, 2008) was an American musician who was the original guitarist of the punk rock band the Descendents, which he co-founded.\n He formed the band in Manhattan Beach, California with Dave Nolte in the late 1970s and played on their 1979 debut single, the \"Fat EP\" (1981), and their first album, \"Milo Goes to College\" (1982).\n Navetta then quit the band and moved to Oregon to become a fisherman.\n He collaborated with the Descendents again on the 1996 album \"Everything Sucks\", and prior to his death in 2008 had been working on new material with original Descendents members Bill Stevenson and Tony Lombardo.",
+            "id": "Frank Navetta"
+        },
+        "Lapponian Herder": {
+            "text": "The Lapponian herder (Lapinporokoira or \"Lapp Reindeer dog\" or Lapsk Vallhund) is a breed of dog from Finland, one of three \"Lapphund\" breeds developed from a type of dog used by the Sami people for herding and guarding their reindeer.",
+            "id": "Lapponian Herder"
+        },
+        "Michael Alsbury": {
+            "text": "Michael Tyner Alsbury (March 19, 1975 \u2013 31 October 2014) was an American test pilot for Scaled Composites.\n He was killed on 31 October 2014 during test flight PF04 of the Virgin Galactic SpaceShipTwo VSS \"Enterprise\".",
+            "id": "Michael Alsbury"
+        },
+        "Guilderland, New York": {
+            "text": "Guilderland is a town in Albany County, New York, United States.\n In the 2010 census, the town had a population of 35,303.\n The town is named for the Gelderland province in the Netherlands.",
+            "id": "Guilderland, New York"
+        },
+        "Pragelato Plan": {
+            "text": "Pragelato Plan is a cross-country skiing venue located in Pragelato, Italy.\n It hosted the cross-country skiing and the cross-country skiing portion of the Nordic combined events for the 2006 Winter Olympics in neighboring Turin.",
+            "id": "Pragelato Plan"
+        },
+        "Antonio Z. Atienza, Jr.": {
+            "text": "Antonio Z. Atienza, Jr. (born August 30, 1959) is a Filipino jeweler.\n As a manufacturer, exporter, and retailer of fine jewelry products, he is the owner of Goldenas Jewelry, Inc.\n He is a member of the Guild of Philippine Jewelers, Inc.\n The Guild's mission as a national organization is to promote the transformation and growth of the Philippine jewelry industry.",
+            "id": "Antonio Z. Atienza, Jr."
+        },
+        "C'est la Vie (B*Witched song)": {
+            "text": "\"C'est la Vie\" is a song by Irish girl group B*Witched.\n It served as their debut single and the lead single from their self-titled debut studio album (1998).\n Written by band members Edele Lynch, Keavy Lynch, Lindsay Armaou, and Sin\u00e9ad O'Carroll, Ray \"Madman\" Hedges, Martin Brannigan and Tracey Ackerman, it was released by Epic Records on 25 May 1998.",
+            "id": "C'est la Vie (B*Witched song)"
+        },
+        "Gudangaay Tlaats'gaa Naay Secondary School": {
+            "text": "Gudangaay Tlaats'gaa Naay Secondary, formerly George Mercer Dawson Secondary is a public high school in Masset, British Columbia.\n It is one of two secondary schools and one of six schools in School District 50 Haida Gwaii.\n George Mercer Dawson Secondary officially opened on October 19, 1970, and was named after George Mercer Dawson CMG FRS FRSC, (August 1, 1849 \u2013 March 2, 1901) a Canadian scientist, surveyor and eminent authority on ethnology and archeology who undertook the Canadian Governments Geological Survey of Haida Gwaii, formerly named Queen Charlotte Islands.\n In September, 2016 the school was renamed to Gudangaay Tlaats'gaa Naay Secondary by unanimous decision of the SD50 School Board.",
+            "id": "Gudangaay Tlaats'gaa Naay Secondary School"
+        },
+        "Search analytics": {
+            "text": "Search analytics is the use of search data to investigate particular interactions among Web searchers, the search engine, or the content during searching episodes.\n The resulting analysis and aggregation of search engine statistics can be used in search engine marketing (SEM) and search engine optimization (SEO).\n In other words, search analytics helps website owners understand and improve their performance on search engines, for example identifying highly valuable site visitors, or understanding user intent.\n Search analytics includes search volume trends and analysis, reverse searching (entering websites to see their keywords), keyword monitoring, search result and advertisement history, advertisement spending statistics, website comparisons, affiliate marketing statistics, multivariate ad testing, et al.",
+            "id": "Search analytics"
+        },
+        "Whitney Young Birthplace and Museum": {
+            "text": "The Whitney Young Birthplace and Museum was the birthplace and childhood home of Whitney M. Young, Jr., an American civil rights leader.\n The simple wooden house in Shelby County, Kentucky, near Louisville, is on the campus of the former Lincoln Institute, an all-black high school that Young attended and Young's father led.",
+            "id": "Whitney Young Birthplace and Museum"
+        },
+        "Brinkley Court": {
+            "text": "Brinkley Court is a recurring fictional location, a country house in the stories of British comic writer P. G. Wodehouse, being the seat of Tom and Dahlia Travers.\n It is the setting of a great number of Wodehouse's Jeeves stories and a popular destination for Bertie Wooster, Dahlia's beloved nephew.",
+            "id": "Brinkley Court"
+        },
+        "Carlos Gracie": {
+            "text": "Carlos Gracie (September 14, 1902October 7, 1994) was a Brazilian martial artist who is credited with being one of the primary developers of modern jiu-jitsu in Brazil.\n Along with his younger brother H\u00e9lio Gracie and fellow students Luis Franca and Oswaldo Fadda, Gracie helped develop Brazilian jiu-jitsu (BJJ) based on knowledge from Mitsuyo Maeda, and is widely considered to be the martial-arts patriarch of the Gracie family.\n Carlos Gracie acquired his knowledge of Jiu-Jitsu by studying in Belem under Maeda and his students.\n As he taught the techniques to his brothers, he created a martial arts family with H\u00e9lio and with other members of the Gracie family who provided key contributions to the style.",
+            "id": "Carlos Gracie"
+        },
+        "Water for Chocolate": {
+            "text": "Water for Chocolate is the second studio album by Deni Hines.\n Released in August 2006, it was her first album to be released independently.\n Three singles were released from the album: \"Water for Chocolate\", \"Son of a Preacher Man\" and \"5 Days of Rain\".\n Hines toured the album in 2007.",
+            "id": "Water for Chocolate"
+        },
+        "Blood Bowl": {
+            "text": "Blood Bowl is a fantasy football game created by Jervis Johnson for the British games company Games Workshop as a parody of American Football.\n The game was first released in 1986 and has been re-released in new editions since.\n \"Blood Bowl\" is set in an alternate version of the \"Warhammer Fantasy\" setting, populated by traditional fantasy elements such as human warriors, goblins, dwarves, elves, orcs and trolls.",
+            "id": "Blood Bowl"
+        },
+        "Ray Lane (sportscaster)": {
+            "text": "Ray Lane (born 1930) is an American sportscaster from Detroit, Michigan.\n During the late 1940s, Ray played baseball and basketball for the Stags of Mackenzie High School.\n In 1949, he enrolled at Michigan State University and played baseball for the Spartans while earning a bachelor's degree in communications.",
+            "id": "Ray Lane (sportscaster)"
+        },
+        "Osama Alomar": {
+            "text": "Osama Alomar (Arabic: \u0627\u0633\u0627\u0645\u0629 \u0627\u0644\u062d\u0648\u064a\u062c \u0627\u0644\u0639\u0645\u0631) born Damascus, Syria, 1968, is a Syrian short story writer poet and essayist.\n He is especially recognized for his work in the \"very short story\" medium.\n He has published three fiction collections in Arabic: \"\u0623\u064a\u0647\u0627 \u0627\u0644\u0627\u0646\u0633\u0627\u0646 (O Man)\", \"\u0631\u0628\u0637\u0629 \u0644\u0633\u0627\u0646 (Tongue Tie)\", and \"\u062c\u0645\u064a\u0639 \u0627\u0644\u062d\u0642\u0648\u0642 \u063a\u064a\u0631 \u0645\u062d\u0641\u0648\u0638\u0629 (All Rights Not Reserved)\", as well as one volume of poetry, \"\u0642\u0627\u0644 \u0625\u0646\u0633\u0627\u0646 \u0627\u0644\u0639\u0635\u0631 \u0627\u0644\u062d\u062f\u064a\u062b (Man Said the Modern World)\".\n The 2007 winner of Egypt's Najlaa Muharam Short Story Contest, his work has been heard on the BBC Arabic Service and he is a regular contributor to various newspapers and journals in Syria and the Arab community, including Tishrin, an-Nur, Spot Light, al-Halil, Adab wa Naqd, and al-Ghad.\n His work has appeared in English translation in \"Noon (Literary Annual)\", \"Gigantic (magazine)\", \"Coffin Factory\", and \"The Literary Review\", as well as the online journals Conjunctions and The Outlet.\n Alomar is currently based in Chicago.",
+            "id": "Osama Alomar"
+        },
+        "Christopher Langan": {
+            "text": "Christopher Michael Langan (born March 25, 1952) is an American whose IQ was reportedly believed to be \"between 190 and 210\".\n In Morris 2001, Langan relates that he took what was billed as \"the world's most difficult IQ test\" in \"Omni\" magazine, and he gives his IQ as \"somewhere between 190 and 210\".\n He has been described as \"the smartest man in America\" as well as \"the smartest man in the world\" by some journalists.\n Langan has developed a \"theory of the relationship between mind and reality\" which he calls the \"Cognitive-Theoretic Model of the Universe\" (CTMU).",
+            "id": "Christopher Langan"
+        },
+        "Last Flag Flying": {
+            "text": "Last Flag Flying is an upcoming American comedy-drama film directed by Richard Linklater with a screenplay by Linklater and Darryl Ponicsan, based upon the latter's 2005 novel of the same name.\n It stars Steve Carell, Bryan Cranston, and Laurence Fishburne.\n It is a sequel to the 1973 Hal Ashby film \"The Last Detail\".",
+            "id": "Last Flag Flying"
+        },
+        "Man from God's Country": {
+            "text": "Man from God's Country is a 1959 American Western film starring George Montgomery and Randy Stuart.",
+            "id": "Man from God's Country"
+        },
+        "Steel guitar": {
+            "text": "Steel guitar is a type of guitar or the method of playing the instrument.\n Developed in Hawaii in the late 19th and early 20th centuries, a steel guitar is usually positioned horizontally; strings are plucked with one hand, while the other hand changes the pitch of one or more strings with the use of a bar or slide called a steel (generally made of metal, but also of glass or other materials).\n The earliest use of an electrified steel guitar was first made in the early 1930s by Bob Dunn of Milton Brown and His Brownies, a western swing band from Fort Worth, Texas; the instrument was perfected in the mid to late 1930s by Fort Worth's Leon McAluff, who played for western swing band Bob Wills and His Texas Playboys.\n Nashville later picked up the use of the steel guitar in the early days of the late 1940s and early 1950s \"Honky Tonk\" country & western music with a number of fine steel guitarists backing names like :Hank Williams, Lefty Frizell and Webb Pierce.\n The term steel guitar is often mistakenly used to describe any metal body resophonic guitar.",
+            "id": "Steel guitar"
+        },
+        "Ephraim Mirvis": {
+            "text": "Ephraim Mirvis (born 1956) is an Orthodox rabbi who serves as the Chief Rabbi of the United Hebrew Congregations of the Commonwealth.\n Traditionally the post has entailed that he also serves as the head of all Jews as the Chief Rabbi of the United Kingdom and Commonwealth.\n He served as the Chief Rabbi of Ireland between 1985 and 1992.",
+            "id": "Ephraim Mirvis"
+        },
+        "Heinz aus Wien": {
+            "text": "Heinz aus Wien are a rock band from Austria.\n They sing in German.\n The band was created 1995.\n The band consists of Cornelius Dix (Bass), Michi Gaissmaier (vocals, guitar), Markus Gartner (guitar) and Bernd Jungmair (drums, vocals).\n Past members are Lelo Brossmann (guitar, vocals, 1995 \u2013 2003) and Paul Wallner (guitar, 2003 \u2013 2008).",
+            "id": "Heinz aus Wien"
+        },
+        "Mana Midiyithu": {
+            "text": "Mana Midiyithu (Kannada: \u0cae\u0ca8 \u0cae\u0cbf\u0ca1\u0cbf\u0caf\u0cbf\u0ca4\u0cc1 ) is a 1995 Indian Kannada romance film directed by M. S. Rajashekar and the story is by Ashwini.\n The film features Shivarajkumar, in his 25th feature film, and Priya Raman, making her Kannada debut, in the lead roles.\n The film's soundtrack and score is composed by Upendra Kumar.",
+            "id": "Mana Midiyithu"
+        },
+        "Michael Jackson's This Is It": {
+            "text": "Michael Jackson's This Is It is a 2009 American documentary\u2013concert film directed by Kenny Ortega that documents Michael Jackson's rehearsals and preparation for his concert series of the same name that was originally scheduled to start on July 13, 2009, but was cancelled due to his death eighteen days prior on June 25.\n The film consists of Jackson rehearsing musical numbers, directing his team, and additional behind-the-scenes footage including dancer auditions and costume design.\n Ortega confirmed that none of the footage was originally intended for release, but after Jackson's death it was agreed that the film be made.\n The footage was filmed in Los Angeles at the Staples Center and The Forum, and features a clip from East Rutherford's Arena where Jackson publicly announced the concert series.",
+            "id": "Michael Jackson's This Is It"
+        },
+        "Pressure (play)": {
+            "text": "Pressure is a play written by David Haig.\n It made its world premiere at the Royal Lyceum Theatre, Edinburgh in May 2014, a year later than originally planned, before transferring to the Chichester Festival at the end of the same month.\n The play centres on the true story of James Stagg and Operation Overlord, in particular the weather-forecasting for the D-Day landings and the resultant tensions between Dwight D. Eisenhower, James Stagg and Irving P. Krick.",
+            "id": "Pressure (play)"
+        },
+        "Last Call (1991 film)": {
+            "text": "Last Call is a 1991 American erotic thriller film about a woman who decides to take revenge on an estate agent who killed her mother.\n The film was directed by Jag Mundhra, and stars William Katt, Shannon Tweed, and Joseph Campanella.",
+            "id": "Last Call (1991 film)"
+        },
+        "Scientific Games Corporation": {
+            "text": "Scientific Games Corporation is an American company that provides gambling products and services to lottery and gambling organizations worldwide.\n The company is headquartered in Las Vegas, Nevada.\n Products include electronic gaming machines, table games, iGaming and iLottery products, instant lottery games, lottery gaming systems, terminals and services, internet applications, server-based interactive gambling terminals, and gambling control systems.",
+            "id": "Scientific Games Corporation"
+        },
+        "Janoi Donacien": {
+            "text": "Janoi Donacien (born 3 November 1993) is a Saint Lucian professional footballer who plays for Accrington Stanley.\n Usually a centre back, he is also capable of playing at right back and right wing back.\n Born in Saint Lucia, he previously played for the academy sides of Luton Town and briefly Tottenham Hotspur before joining the Aston Villa Academy for six years.\n He was loaned from Aston Villa to Tranmere Rovers and Wycombe Wanderers and spent the majority of the 2015\u201316 season on loan at Newport County in League Two before joining Accrington Stanley on a permanent deal.",
+            "id": "Janoi Donacien"
+        },
+        "Martha Hunt": {
+            "text": "Martha Seifert Hunt (born April 27, 1989) is an American fashion model, who walked the Victoria's Secret Fashion Show in 2013, 2014, and 2015.\n Hunt has been a Victoria's Secret Angel since 2015.",
+            "id": "Martha Hunt"
+        },
+        "Samsung Galaxy Note 4": {
+            "text": "The Samsung Galaxy Note 4 is an Android phablet smartphone developed and produced by Samsung Electronics.\n The Galaxy Note 4 was unveiled during a Samsung press conference at IFA Berlin on 3 September 2014 and was released globally in October 2014.\n It is the successor to the Samsung Galaxy Note 3, with the subsequent model unveiled on 13 August 2015.",
+            "id": "Samsung Galaxy Note 4"
+        },
+        "Shenyang": {
+            "text": "Shenyang ( ; ), formerly known by its Manchu name Mukden or Fengtian (), is the provincial capital and the largest city of Liaoning Province, People's Republic of China, as well as the largest city in Northeast China by urban population.\n According to the 2010 census, the city's urban area has 6.3 million inhabitants, while the total population of the Shenyang municipality, which holds the administrative status of a sub-provincial city, is up to 8.1 million.\n Shenyang's city region includes the ten metropolitan districts of Shenyang \"proper\", the county-level city of Xinmin, and two counties of Kangping and Faku.",
+            "id": "Shenyang"
+        },
+        "Holly Hynes": {
+            "text": "Holly Hynes is an accomplished costume designer with over 250 ballets to her credit, including more than 70 at the New York City Ballet.\n Ms. Hynes' designs are also on view in companies around the world, including American Ballet Theatre, San Francisco Ballet, Bolshoi Ballet, National Ballet of Canada, Kirov Ballet, Royal Ballet, Paris Opera Ballet, Royal Danish Ballet, La Scala Theatre Ballet, Koninklijk Ballet van Vlaanderen, Houston Ballet, BalletMet, Pennsylvania Ballet, Ballet Vancouver, Les Grands Ballets Canadiens, American Repertory Ballet, Pacific Northwest Ballet, Atlanta Ballet, Richmond Ballet, Nashville Ballet, Miami City Ballet, Alberta Ballet, Joffrey Ballet, Kansas City Ballet , and the Suzanne Farrell Ballet at The John F. Kennedy Center for the Performing Arts, where she serves as the resident costume designer.",
+            "id": "Holly Hynes"
+        },
+        "Latin Americans": {
+            "text": "Latin Americans (Spanish: \"latinoamericanos\" , Portuguese: \"latino-americanos\" , French: \"latino-am\u00e9ricains\" ) are the citizens of the Latin American countries and dependencies.\n Latin American countries are multi-ethnic, home to people of different ethnic and national backgrounds.\n As a result, some Latin Americans don't take their nationality as an ethnicity, but identify themselves with both their nationality and their ancestral origins.\n Aside from the indigenous Amerindian (aka Native American) population, all Latin Americans or their ancestors immigrated within the past five centuries.\n Latin America has the largest diasporas of Spaniards, Portuguese, Black Africans, Italians, Lebanese and Japanese in the world.\n The region also has large German (second largest after the United States), French, Chinese and Jewish diasporas.",
+            "id": "Latin Americans"
+        },
+        "Prince Karl of Leiningen": {
+            "text": "Karl Vladimir Ernst Heinrich, Prince of Leiningen (2 January 1928 \u2013 28 September 1990) was the son of Karl, 6th Prince of Leiningen (1898\u20131946) and Maria Kirillovna of Russia.\n Maria was the daughter of Princess Victoria Melita of Edinburgh and Saxe-Coburg-Gotha, a paternal granddaughter of Queen Victoria of the United Kingdom, and Cyril Vladimirovich, Grand Duke of Russia.\n As such, Karl was a great-great-grandson of Queen Victoria and Alexander II of Russia (as Victoria Melita and Cyril Vladimirovich were both grandchildren of Alexander II).",
+            "id": "Prince Karl of Leiningen"
+        },
+        "Cincinnati Reds Hall of Fame and Museum": {
+            "text": "The Cincinnati Reds Hall of Fame and Museum is an entity established by Major League Baseball's Cincinnati Reds franchise that pays homage to the team's past through displays, photographs and multimedia.\n It was instituted in 1958 to recognize the career of former Cincinnati Reds players, managers and front-office executives.",
+            "id": "Cincinnati Reds Hall of Fame and Museum"
+        },
+        "Woodland, Cumbria": {
+            "text": "Woodland is a dispersed hamlet within the civil parish of Broughton West in the Furness region of Cumbria, England, and is located in the southern part of the Lake District National Park, west of Coniston Water, between Torver and Broughton-in-Furness.",
+            "id": "Woodland, Cumbria"
+        },
+        "Another Journal Entry": {
+            "text": "Another Journal Entry is the second studio album released by the Christian pop/rock group BarlowGirl.\n The album was released on September 27, 2005.\n Two of the songs are covers: \"Enough\" was originally sung by Chris Tomlin, while \"No One Like You\" was originally sung by the David Crowder Band.\n The hit \"Never Alone\" from their debut album returns on this sophomore album in an acoustic mix.",
+            "id": "Another Journal Entry"
+        },
+        "Back to Forever": {
+            "text": "Back to Forever is the second studio album by American singer-songwriter Lissie.\n It was released in the United States on October 8, 2013, and in the United Kingdom on October 14, 2013.",
+            "id": "Back to Forever"
+        },
+        "Percival Molson Memorial Stadium": {
+            "text": "Percival Molson Memorial Stadium (also known in French as Stade Percival-Molson; commonly referred to as Molson Stadium in English or Stade Molson in French) is an outdoor football stadium located downtown on the slopes of Mount Royal in Montreal, Quebec, Canada.\n Named in honour of Percival Molson, it is owned by McGill University and has been the home of the Montreal Alouettes of the Canadian Football League from 1947 to 1967 and again from 1998 to present.\n The stadium is also home to the McGill Redmen of the Quebec University Football League, the Montreal Royal of the American Ultimate Disc League, and the Canadian Corporate Soccer League, the largest amateur corporate league in Canada.\n The Selwyn House Gryphons high-school football team also play their home games at the stadium.\n The stadium has a capacity of 23,420 the result of a renovation project begun in 2009 that increased capacity from 20,202 to over 25,000, before seats were removed in 2014 to reduce capacity to its current level.",
+            "id": "Percival Molson Memorial Stadium"
+        },
+        "Al Kapone": {
+            "text": "Alphonzo Bailey, better known by his stage name Al Kapone, is an American rapper from Memphis, Tennessee.\n Al Kapone is known principally for his underground success in the Memphis hip hop scene in the 1990s, and his later role in a number of more contemporary songs.",
+            "id": "Al Kapone"
+        },
+        "If You (NU'EST W song)": {
+            "text": "\"If You\" (Hangul: \uc788\ub2e4\uba74; RR: itdamyeon) is the debut single by South Korean boy group special unit NU'EST W, composed of JR, Aron, Baekho and Ren.\n It was released as a digital single on July 25, 2017, by Pledis Entertainment and distributed by CJ E&M Music.",
+            "id": "If You (NU'EST W song)"
+        },
+        "Cleopatra ballet": {
+            "text": "Cleopatra (French: Cl\u00e9op\u00e2tre ) is a dramatic ballet in one act, with choreography and libretto by Michel Fokine, and music by Anton Arensky, Alexander Taneyev, Nikolai Rimsky-Korsakov, Mikhail Glinka, Alexander Glazunov, Modeste Mussorgsky, Nikolai Tcherepnin.",
+            "id": "Cleopatra ballet"
+        },
+        "Miller v. Alabama": {
+            "text": "Miller v. Alabama, 567 U.S. 460 (2012) , was a United States Supreme Court case in which the Court held that mandatory sentences of life without the possibility of parole are unconstitutional for juvenile offenders.\n The ruling applied even to those persons who had committed murder as a juvenile, extending beyond the \"Graham v. Florida\" (2010) case, which had ruled juvenile life without parole sentences unconstitutional for crimes \"excluding murder\".",
+            "id": "Miller v. Alabama"
+        },
+        "Lewis Hastings Sarett": {
+            "text": "Lewis Hastings Sarett (December 22, 1917 \u2013 November 29, 1999) was an American organic chemist.\n While serving as a research scientist at Merck & Co., Inc., synthesized cortisone.",
+            "id": "Lewis Hastings Sarett"
+        },
+        "List of Life in Pieces episodes": {
+            "text": "\"Life in Pieces\" is an American sitcom that airs on CBS.\n It was created by Justin Adler and debuted on September 21, 2015.\n The series chronicles the lives of three generations of the Short family as they go about their daily lives in Los Angeles County.\n Each episode is told as four short stories, one for each branch of the Short family.",
+            "id": "List of Life in Pieces episodes"
+        },
+        "Sistine Chapel": {
+            "text": "The Sistine Chapel ( ; Latin: \"Sacellum Sixtinum\" ; Italian: \"Cappella Sistina\" ] ) is a chapel in the Apostolic Palace, the official residence of the Pope, in Vatican City.\n Originally known as the \"Cappella Magna\", the chapel takes its name from Pope Sixtus IV, who restored it between 1477 and 1480.\n Since that time, the chapel has served as a place of both religious and functionary papal activity.\n Today it is the site of the Papal conclave, the process by which a new pope is selected.\n The fame of the Sistine Chapel lies mainly in the frescos that decorate the interior, and most particularly the Sistine Chapel ceiling and \"The Last Judgment\" by Michelangelo.",
+            "id": "Sistine Chapel"
+        },
+        "Genre (magazine)": {
+            "text": "Genre magazine (ISSN 1074-5246  ) was a New York city-based monthly periodical from 1992 to 2009 written for gay men.\n It was owned by gay press publisher Window Media.",
+            "id": "Genre (magazine)"
+        },
+        "Paul Winchell": {
+            "text": "Paul Winchell (born Paul Wilchinsky; December 21, 1922 \u2013 June 24, 2005) was an American ventriloquist, comedian, actor, humanitarian, and inventor whose career flourished in the 1950s and 1960s.\n From 1950 to 1954, he hosted \"The Paul Winchell Show\", which also used two other titles during its prime time run on NBC, \"The Speidel Show\", and \"What's My Name?\n\".\n From 1965\u20131968, Winchell hosted the children's television series, \"Winchell-Mahoney Time\".",
+            "id": "Paul Winchell"
+        },
+        "Income Tax Service, Group \u2018B\u2019": {
+            "text": "The Income Tax Service, Group \u2018B\u2019 (Hindi: \u0906\u092f\u0915\u0930 \u0938\u0947\u0935\u093e, \u0917\u094d\u0930\u0941\u092a '\u092c\u0940') is the revenue service of the Government of India.\n It is the feeder service of the premier and elite Indian Revenue Service.\n The service functions under the Department of Revenue in the Union Ministry of Finance and is concerned with the collection and administration of the various direct accruing to the Union Government.\n All officers of and up to the rank of Income Tax Officer belong to Group B (Income Tax officer (ITO) is gazetted while those below the rank of Income Tax Officer are non-gazetted).\n On reaching the rank of Assistant Commissioner they are accorded IRS (Group A) by the President of India.",
+            "id": "Income Tax Service, Group \u2018B\u2019"
+        },
+        "Spartacus (Fast novel)": {
+            "text": "Spartacus is a 1951 historical novel by American writer Howard Fast.\n It is about the historic slave revolt led by Spartacus around 71 BCE.\n The book inspired the 1960 film directed by Stanley Kubrick and the 2004 TV adaptation by Robert Dornhelm.",
+            "id": "Spartacus (Fast novel)"
+        },
+        "Carlos Newton": {
+            "text": "Carlos Newton (born August 17, 1976) is an Anguillian-born Canadian retired mixed martial artist and one of the original MMA pioneers.\n He is a former UFC Welterweight Champion and Pride FC Japan MMA Legend.\n Known as \"The Ronin\", he competed worldwide in the biggest MMA organizations including UFC, Pride FC, IFL, K-1, Shooto and most recently W-1.\n He is a 3rd Degree Brazilian Jiu-Jitsu Black Belt alongside his coach Terry Riggs, at Warrior MMA in Newmarket, Ontario.\n Newton has always been considered a fan favourite and a \"Submission Master\" and has dubbed his personal fighting style\u2014an amalgam of Brazilian Jiu-Jitsu, judo, wrestling and boxing as \"Dragon Ball Jiu-Jitsu\" in tribute to \"Dragon Ball\", a Japanese manga series.\n As a testament to his worldwide popularity, Newton is one of only a few MMA athletes to ever be allowed to compete in the UFC and Pride FC at the same time.",
+            "id": "Carlos Newton"
+        },
+        "Edward Waring": {
+            "text": "Edward Waring {'1': \", '2': \", '3': \", '4': \"} ( \u20091736 15 August 1798) was an English mathematician.\n He entered Magdalene College, Cambridge as a sizar and became Senior wrangler in 1757.\n He was elected a Fellow of Magdalene and in 1760 Lucasian Professor of Mathematics, holding the chair until his death.\n He made the assertion known as Waring's problem without proof in his writings \"Meditationes Algebraicae\".\n Waring was elected a Fellow of the Royal Society in 1763 and awarded the Copley Medal in 1784.",
+            "id": "Edward Waring"
+        },
+        "2000 NCAA Men's Volleyball Tournament": {
+            "text": "The 2000 NCAA Men's Volleyball Tournament was the 31st annual tournament to determine the national champion of NCAA men's collegiate indoor volleyball.\n The single elimination tournament was played at the Allen County War Memorial Coliseum in Fort Wayne, Indiana during May 2000.",
+            "id": "2000 NCAA Men's Volleyball Tournament"
+        },
+        "Black Jazz Records": {
+            "text": "Black Jazz Records was a jazz record company and label founded in Oakland, California by pianist Gene Russell (December 2, 1932 - May 3, 1981) and percussionist Dick Schory.\n The label was created to promote the talents of young African American jazz musicians and singers, and released twenty albums between 1971 and 1975.\n Some of the more notable artists to record for Black Jazz Records were Cleveland Eaton, former bassist for Count Basie and Ramsey Lewis, and pianist Doug Carn, whose four albums were the most successful of any Black Jazz artist.\n Carn's wife at the time, Jean Carn, sang on his albums; she changed her name to Jean Carne and went on to have a successful solo career as an R & B singer.\n Singer Kellee Patterson gained notoriety as the first black Miss Indiana in 1971, before recording her debut album, \"Maiden Voyage\", with Black Jazz Records in 1973.\n The label was distributed and financed by Ovation Records, a country and western label based in Chicago, which was also founded by Schory.\n Black Jazz Records was considered at the time to be the first jazz label started by an African American since brothers John and Reb Spikes started Sunshine Records in 1921.",
+            "id": "Black Jazz Records"
+        },
+        "Brave New Jersey": {
+            "text": "Brave New Jersey is a 2016 American comedy film directed by Jody Lambert written by Michael Dowling and Jody Lambert.\n The film stars Tony Hale, Anna Camp, Sam Jaeger, Heather Burns, Dan Bakkedahl and Raymond J. Barry.\n The film was released on August 4, 2017, by Gravitas Ventures.",
+            "id": "Brave New Jersey"
+        },
+        "California Republic": {
+            "text": "The California Republic was an unrecognized breakaway state that, for twenty-five days in 1846, militarily controlled the area to the north of the San Francisco Bay in the present-day state of California.",
+            "id": "California Republic"
+        },
+        "Louis Gigante": {
+            "text": "Louis Gigante is a retired Catholic priest, former, Bronx, New York City Council Member, the founder of the influential South East Bronx Community Organization (SEBCO), a Bronx community activist, and brother of two legendary figures in the Genovese crime family, family boss Vincent \"The Chin\" Gigante and top capo/acting boss Mario Gigante.\n He was the parish priest of U.S. Supreme Court Associate Justice Sonia Sotomayor when she was a teenager.",
+            "id": "Louis Gigante"
+        },
+        "The Unholy Wife": {
+            "text": "The Unholy Wife is a 1957 Technicolor film noir crime film produced and directed by John Farrow at RKO Radio Pictures, but released by Universal Pictures as RKO was in the process of ceasing its film activities.\n The film features Diana Dors, Rod Steiger, Tom Tryon and Beulah Bondi.\n The screenplay was written by William Durkee and Jonathan Latimer",
+            "id": "The Unholy Wife"
+        },
+        "Leotis Harris": {
+            "text": "Leotis Harris (born June 28, 1955 in Little Rock, Arkansas) is a former American football offensive guard in the NFL.\n He played his entire six-year career for the Green Bay Packers.\n He attended the University of Arkansas.\n Harris is also a member of the Arkansas Razorbacks All-Century Team.",
+            "id": "Leotis Harris"
+        },
+        "Istv\u00e1n Stumpf": {
+            "text": "Istv\u00e1n Stumpf (born 5 August 1957) is a Hungarian politician.\n A former member of the ruling Communist Hungarian Socialist Workers' Party, he was the last Vice President of National Council of the Patriotic People's Front from 1989 to 1990.\n He also served as Minister of Prime Minister's Office between 1998 and 2002 in the first cabinet of Viktor Orb\u00e1n.\n He is a member of the Constitutional Court of Hungary since July 2010.",
+            "id": "Istv\u00e1n Stumpf"
+        },
+        "Certificate of Advanced Study": {
+            "text": "A Certificate of Advanced Study (CAS), also called an \"Advanced Certificate\" (AC), Certificate of Advanced Graduate Study (CAGS), or a Certificate of Advanced Professional Studies (CAPS), is a post-Master's academic certificate designed for non-traditional students of the liberal arts, and practitioners who seek a continuing education program to enhance their professional development in areas such as education and library science.\n Some CAGS are connected to an existing doctoral program such as PhD in Organizational Leadership: for example, PhD students receives a CAGS in Leadership Studies after completing their 2 years of doctoral study at Eastern University.",
+            "id": "Certificate of Advanced Study"
+        },
+        "Sophie Theallet": {
+            "text": "Sophie Theallet (Born 1964 in Bagn\u00e8res-de-Bigorre, France) is a French fashion designer whose clients include First Lady Michelle Obama.",
+            "id": "Sophie Theallet"
+        },
+        "WEUP (AM)": {
+            "text": "WEUP (1700 AM) is an urban contemporary gospel formatted radio station that serves Huntsville, Alabama, and the majority of the Tennessee Valley in North Alabama, United States.\n WEUP is dubbed \"Huntsville's Heritage Station\" because it was the first in the region to broadcast an urban format.\n It has an urban contemporary sister station called WEUP-FM.\n The station's studios and transmitter are both co-located along Jordan Lane (SR 53) in Northwest Huntsville.",
+            "id": "WEUP (AM)"
+        },
+        "Beach Boys Studio": {
+            "text": "Beach Boys Studio, also known as Brother Recording Studio, was a private recording studio located within the home of the Beach Boys' Brian Wilson at 10452 Bellagio Road, Los Angeles, California.\n Built in 1967, a number of the band's albums were recorded there in addition to his \"Bedroom Tapes\".\n Because the other Beach Boys took much of the recording equipment with them when they left for concert tours, Wilson was not typically allowed to use the studio unless the band was present.\n In 1972, the studio was dismantled and later succeeded by Brother Studios in Santa Monica, California.",
+            "id": "Beach Boys Studio"
+        },
+        "William A. White": {
+            "text": "William Andrew White II (June 16, 1874 \u2013 September 9, 1936) was a Nova Scotian who became the first black officer in the British army.\n He served in World War I as a chaplain, the only black chaplain in the entire British Army during the war.\n He was the father of singer Portia White and politicians Bill White and Jack White.\n In 1936, White was awarded an honorary doctorate from Acadia University, the first Black Canadian to be given an honorary doctorate.",
+            "id": "William A. White"
+        },
+        "Bernardo Mattarella": {
+            "text": "Bernardo Mattarella (15 September 1905 \u2013 1 March 1971) was an Italian politician for the Christian Democrat party (\"Democrazia Cristiana\", DC).\n He has been Minister of Italy several times.\n He was the father of Piersanti Mattarella and Sergio Mattarella, who both became politicians as well; Sergio is the President of the Italian Republic since 3 February 2015 and Piersanti was President of the Regional Government of Sicily, before being assassinated in 1980 by \"Cosa Nostra\".",
+            "id": "Bernardo Mattarella"
+        },
+        "Brighton railway station, Adelaide": {
+            "text": "Brighton railway station is located on the Seaford line.\n Situated in the south-western Adelaide suburb of Brighton, it is 16 kilometres from Adelaide station.",
+            "id": "Brighton railway station, Adelaide"
+        }
+    }
+}

@@ -1,0 +1,516 @@
+{
+    "samples": [
+        {
+            "query": "What was the first nationally distributed lesbian publication in the United States, The Woman Voter or The Ladder ?",
+            "context": [
+                {
+                    "text": "The Woman Voter was a monthly suffragist journal published in New York City by the Woman Suffrage Party (WSP).\n It ran between 1910 and 1917.\n The first editor was Mary Ritter Beard.\n Beard created a suffragist publication which was unique in offering coverage of topics that \"cut across class, age and organizational boundaries.\"",
+                    "id": "The Woman Voter"
+                },
+                {
+                    "text": "The Ladder was the first nationally distributed lesbian publication in the United States.\n It was published monthly from 1956 to 1970, and once every other month in 1971 and 1972.\n It was the primary publication and method of communication for the Daughters of Bilitis, the first lesbian organization in the US.\n It was supported by ONE, Inc. and the Mattachine Society, with whom the DOB retained friendly relations.\n The name of the magazine was derived from the artwork on its first cover, simple line drawings showing figures moving towards a ladder that disappeared into the clouds.",
+                    "id": "The Ladder (magazine)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "The Ladder",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "The principal building in the village of Guthrie dates back to what century?",
+            "context": [
+                {
+                    "text": "Guthrie is a village in Angus, Scotland, roughly at the centre point of the towns of Arbroath, Brechin and Forfar.\n The principal building in the village is Guthrie Castle, which has its own public golf course and is a popular venue for events such as markets, parties and weddings.\n The village of Guthrie is centered on the Guthrie parish church, containing the Guthrie Aisle, built in 1150.",
+                    "id": "Guthrie, Angus"
+                },
+                {
+                    "text": "Guthrie Castle is a castle and country house in Angus, Scotland.\n It is located in the village of Guthrie, 10 km east of Forfar, and 29 km north-east of Dundee.\n The castle dates back to the 15th century, although much of the present building is of 19th-century origin.\n It is now a private house.",
+                    "id": "Guthrie Castle"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "the 15th century",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Which BBC Three sitcom that first aired 2006 was written by a an English screenwriter, television producer, and script editor whose initials are SN?",
+            "context": [
+                {
+                    "text": "Grownups is a BBC Three sitcom written by Susan Nickson, who also created hit BBC Three sitcom \"Two Pints of Lager and a Packet of Crisps\".\n It follows the trials and tribulations of a group of twentysomething friends in Manchester, facing the decision to either settle down or carrying on partying.",
+                    "id": "Grownups (2006 TV series)"
+                },
+                {
+                    "text": "Susan Nickson is an English screenwriter, television producer, and script editor.\n She is the creator and writer of BBC sitcoms \"Two Pints of Lager and a Packet of Crisps\" (2001\u20132011) and \"Grownups\" (2006\u20132009).",
+                    "id": "Susan Nickson"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Grownups",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "American actor and singer, Michael Dunn, starred in the 1965 drama Ship of Fools which was directed by who?",
+            "context": [
+                {
+                    "text": "Michael Dunn (October 20, 1934 \u2013 August 30, 1973) was an American actor and singer.\n He inspired a number of actors that were smaller and shorter than most \"average\" people, including Zelda Rubinstein, Mark Povinelli, and Ricardo Gil.",
+                    "id": "Michael Dunn (actor)"
+                },
+                {
+                    "text": "Ship of Fools is a 1965 drama film directed by Stanley Kramer, which recounts the stories of several passengers aboard an ocean liner bound to Germany from Mexico in 1933.\n It stars Vivien Leigh, Simone Signoret, Jos\u00e9 Ferrer, Lee Marvin, Oskar Werner, Michael Dunn, Elizabeth Ashley, George Segal, Jos\u00e9 Greco, Charles Korvin and Heinz R\u00fchmann.\n It was to be Vivien Leigh's last film and Christiane Schmidtmer's first U.S. production.",
+                    "id": "Ship of Fools (film)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Stanley Kramer",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "The author of My Awakening: A Path to Racial Understanding held what title in the Ku Klux Klan?",
+            "context": [
+                {
+                    "text": "My Awakening: A Path to Racial Understanding is a 1998 autobiography written by David Duke.",
+                    "id": "My Awakening: A Path to Racial Understanding"
+                },
+                {
+                    "text": "David Ernest Duke (born July 1, 1950) is an American white supremacist and white nationalist, politician, antisemitic conspiracy theorist, Holocaust denier, convicted felon, and former Grand Wizard of the Ku Klux Klan.",
+                    "id": "David Duke"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Grand Wizard",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Are Stephen King and Nalini Prava Deka both authors?",
+            "context": [
+                {
+                    "text": "Nalini Prava Deka (11 March 1944 \u2013 15 June 2014) was an Assamese-language author, poet, storyteller, actress and playwright from Assam, a state encompassing the Brahmaputra Valley in India.\n She was honoured at a 2012 gathering in Ledo by the Assam Sahitya Sabha (Assam Literary Society).\n Deka promoted Assamese heritage, traditional customs, weaving and fabric art, cooking and folk music with her husband, Bhabananda Deka.\n They researched traditional Assamese lifestyle, art, literature and culture.\n Deka was the first female editor and publisher of a children's magazine, \"Phul\" (\"Flower\"), and wrote 30 critically praised books.\n All India Radio broadcast Deka's radio plays on issues related to women and children.\n<br>",
+                    "id": "Nalini Prava Deka"
+                },
+                {
+                    "text": "Stephen Edwin King (born September 21, 1947) is an American author of horror, supernatural fiction, suspense, science fiction, and fantasy.\n His books have sold more than 350 million copies, many of which have been adapted into feature films, miniseries, television series, and comic books.\n King has published 54 novels, including seven under the pen name Richard Bachman, and six non-fiction books.\n He has written nearly 200 short stories, most of which have been collected in book collections.\n Many of his stories are set in his home state of Maine.\n His novella \"Rita Hayworth and Shawshank Redemption\" was the basis for the film \"The Shawshank Redemption\" which is widely regarded as one of the greatest films of all time.",
+                    "id": "Stephen King"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "yes",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Are both Papa Murphy's and Frank Pepe Pizzeria Napoletana in the United States?",
+            "context": [
+                {
+                    "text": "Frank Pepe Pizzeria Napoletana, known locally as Pepe's, is a popular pizza restaurant in the Wooster Square neighborhood of New Haven, Connecticut, at 163 Wooster Street.\n Opened in 1925, it is one of the oldest and best known pizzerias in the United States.",
+                    "id": "Frank Pepe Pizzeria Napoletana"
+                },
+                {
+                    "text": "Papa Murphy's, a business based in Vancouver, Washington, United States, is a take-and-bake pizza company.\n It began in 1995 as the merger of two take-and-bake pizza companies: Papa Aldo's Pizza (founded in 1981) and Murphy's Pizza (founded in 1981).\n The company and its franchisees operate more than 1,300 outlets in the United States and Canada.\n Papa Murphy's is the fifth-largest pizza chain in the United States.",
+                    "id": "Papa Murphy's"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "yes",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Who was the absent father in the HBO film Gey Gardens?",
+            "context": [
+                {
+                    "text": "Phelan Beale (May 23, 1881 \u2013 June 12, 1956) was an American attorney and sportsman in New York City who was married to Edith Ewing Bouvier, an aunt of Jacqueline Kennedy Onassis.\n Beale is probably best remembered as the absent father chronicled in the Grey Gardens saga portrayed in a 1975 movie documentary, 2006 Broadway musical, and 2009 HBO Film, all of which were named for his home in East Hampton, New York.",
+                    "id": "Phelan Beale"
+                },
+                {
+                    "text": "Grey Gardens is an HBO film about the lives of Edith Bouvier Beale/\"Little Edie\", played by Drew Barrymore, and her mother Edith Ewing Bouvier/\"Big Edie\", played by Jessica Lange.\n Co-stars include Jeanne Tripplehorn as Jacqueline Kennedy (Little Edie's cousin) and Ken Howard as Phelan Beale (Little Edie's father).\n The film, directed by Michael Sucsy and co-written by Sucsy and Patricia Rozema, flashes back and forth between various events and dates ranging from Little Edie as a young d\u00e9butante in 1936 moving with her mother to their Grey Gardens estate through the filming and premiere of the actual 1975 documentary \"Grey Gardens\".",
+                    "id": "Grey Gardens (2009 film)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Phelan Beale",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "A theoretical explanation  of the Wien effect has been proposed by a man awarded the Nobel Prize in Chemistry in what year?",
+            "context": [
+                {
+                    "text": "Lars Onsager (November 27, 1903 \u2013 October 5, 1976) was a Norwegian-born American physical chemist and theoretical physicist.\n He held the Gibbs Professorship of Theoretical Chemistry at Yale University.\n He was awarded the Nobel Prize in Chemistry in 1968.",
+                    "id": "Lars Onsager"
+                },
+                {
+                    "text": "The Wien effect is the experimentally-observed increase in ionic mobility or conductivity of electrolytes at very high gradient of electrical potential.\n A theoretical explanation has been proposed by Lars Onsager.",
+                    "id": "Wien effect"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "1968",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "For what MLB team does the player who was the series MVP in the 2006 Asia Series play ?",
+            "context": [
+                {
+                    "text": "The second annual Konami Cup Asia Series was held in November 2006 with four teams participating.\n The champions from the domestic leagues in Japan, South Korea, Taiwan along with an all-star team from China took part in the competition.\n All games were held in the Tokyo Dome in Japan.\n The tournament was sponsored by the Nippon Professional Baseball Association and Konami.\n The Hokkaido Nippon Ham Fighters defeated the La New Bears in the title game to win the championship for Japan.\n Starting pitcher Yu Darvish was named the MVP of the series.",
+                    "id": "2006 Asia Series"
+                },
+                {
+                    "text": "Yu Darvish (Japanese: \u30c0\u30eb\u30d3\u30c3\u30b7\u30e5 \u6709 , Hepburn: Darubisshu Y\u016b , born 16 August 1986) is a Japanese professional baseball starting pitcher for the Los Angeles Dodgers of Major League Baseball (MLB).\n Darvish pitched in the 2008 Beijing Olympics as well as the 2009 World Baseball Classic as a member of the Japanese national team.\n Darvish previously pitched in MLB for the Texas Rangers.",
+                    "id": "Yu Darvish"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": "Los Angeles Dodgers",
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Question 1: What is the title of the first editor of The Woman Voter?",
+            "context": [
+                {
+                    "text": "The Woman Voter was a monthly suffragist journal published in New York City by the Woman Suffrage Party (WSP).\n It ran between 1910 and 1917.\n The first editor was Mary Ritter Beard.\n Beard created a suffragist publication which was unique in offering coverage of topics that \"cut across class, age and organizational boundaries.\"",
+                    "id": "The Woman Voter"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is the Ladder?",
+            "context": [
+                {
+                    "text": "The Ladder was the first nationally distributed lesbian publication in the United States.\n It was published monthly from 1956 to 1970, and once every other month in 1971 and 1972.\n It was the primary publication and method of communication for the Daughters of Bilitis, the first lesbian organization in the US.\n It was supported by ONE, Inc. and the Mattachine Society, with whom the DOB retained friendly relations.\n The name of the magazine was derived from the artwork on its first cover, simple line drawings showing figures moving towards a ladder that disappeared into the clouds.",
+                    "id": "The Ladder (magazine)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "What is the principal building in the village of Guthrie?",
+            "context": [
+                {
+                    "text": "Guthrie is a village in Angus, Scotland, roughly at the centre point of the towns of Arbroath, Brechin and Forfar.\n The principal building in the village is Guthrie Castle, which has its own public golf course and is a popular venue for events such as markets, parties and weddings.\n The village of Guthrie is centered on the Guthrie parish church, containing the Guthrie Aisle, built in 1150.",
+                    "id": "Guthrie, Angus"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "What is the location of Guthrie Castle?",
+            "context": [
+                {
+                    "text": "Guthrie Castle is a castle and country house in Angus, Scotland.\n It is located in the village of Guthrie, 10 km east of Forfar, and 29 km north-east of Dundee.\n The castle dates back to the 15th century, although much of the present building is of 19th-century origin.\n It is now a private house.",
+                    "id": "Guthrie Castle"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is the name of the sitcom that was written by Susan Nickson?",
+            "context": [
+                {
+                    "text": "Grownups is a BBC Three sitcom written by Susan Nickson, who also created hit BBC Three sitcom \"Two Pints of Lager and a Packet of Crisps\".\n It follows the trials and tribulations of a group of twentysomething friends in Manchester, facing the decision to either settle down or carrying on partying.",
+                    "id": "Grownups (2006 TV series)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "What is the name of the sitcom that Susan Nickson created?",
+            "context": [
+                {
+                    "text": "Susan Nickson is an English screenwriter, television producer, and script editor.\n She is the creator and writer of BBC sitcoms \"Two Pints of Lager and a Packet of Crisps\" (2001\u20132011) and \"Grownups\" (2006\u20132009).",
+                    "id": "Susan Nickson"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is Michael Dunn?",
+            "context": [
+                {
+                    "text": "Michael Dunn (October 20, 1934 \u2013 August 30, 1973) was an American actor and singer.\n He inspired a number of actors that were smaller and shorter than most \"average\" people, including Zelda Rubinstein, Mark Povinelli, and Ricardo Gil.",
+                    "id": "Michael Dunn (actor)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is the title of the 1965 drama film?",
+            "context": [
+                {
+                    "text": "Ship of Fools is a 1965 drama film directed by Stanley Kramer, which recounts the stories of several passengers aboard an ocean liner bound to Germany from Mexico in 1933.\n It stars Vivien Leigh, Simone Signoret, Jos\u00e9 Ferrer, Lee Marvin, Oskar Werner, Michael Dunn, Elizabeth Ashley, George Segal, Jos\u00e9 Greco, Charles Korvin and Heinz R\u00fchmann.\n It was to be Vivien Leigh's last film and Christiane Schmidtmer's first U.S. production.",
+                    "id": "Ship of Fools (film)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Here are the questions and answers for the given document:",
+            "context": [
+                {
+                    "text": "My Awakening: A Path to Racial Understanding is a 1998 autobiography written by David Duke.",
+                    "id": "My Awakening: A Path to Racial Understanding"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Here are the questions you asked:",
+            "context": [
+                {
+                    "text": "David Ernest Duke (born July 1, 1950) is an American white supremacist and white nationalist, politician, antisemitic conspiracy theorist, Holocaust denier, convicted felon, and former Grand Wizard of the Ku Klux Klan.",
+                    "id": "David Duke"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is the name of the Assamese-language author, poet, storyteller, actress and playwright from Assam?",
+            "context": [
+                {
+                    "text": "Nalini Prava Deka (11 March 1944 \u2013 15 June 2014) was an Assamese-language author, poet, storyteller, actress and playwright from Assam, a state encompassing the Brahmaputra Valley in India.\n She was honoured at a 2012 gathering in Ledo by the Assam Sahitya Sabha (Assam Literary Society).\n Deka promoted Assamese heritage, traditional customs, weaving and fabric art, cooking and folk music with her husband, Bhabananda Deka.\n They researched traditional Assamese lifestyle, art, literature and culture.\n Deka was the first female editor and publisher of a children's magazine, \"Phul\" (\"Flower\"), and wrote 30 critically praised books.\n All India Radio broadcast Deka's radio plays on issues related to women and children.\n<br>",
+                    "id": "Nalini Prava Deka"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is Stephen Edwin King?",
+            "context": [
+                {
+                    "text": "Stephen Edwin King (born September 21, 1947) is an American author of horror, supernatural fiction, suspense, science fiction, and fantasy.\n His books have sold more than 350 million copies, many of which have been adapted into feature films, miniseries, television series, and comic books.\n King has published 54 novels, including seven under the pen name Richard Bachman, and six non-fiction books.\n He has written nearly 200 short stories, most of which have been collected in book collections.\n Many of his stories are set in his home state of Maine.\n His novella \"Rita Hayworth and Shawshank Redemption\" was the basis for the film \"The Shawshank Redemption\" which is widely regarded as one of the greatest films of all time.",
+                    "id": "Stephen King"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Question 1: What is the name of the pizza restaurant that opened in 1925?",
+            "context": [
+                {
+                    "text": "Frank Pepe Pizzeria Napoletana, known locally as Pepe's, is a popular pizza restaurant in the Wooster Square neighborhood of New Haven, Connecticut, at 163 Wooster Street.\n Opened in 1925, it is one of the oldest and best known pizzerias in the United States.",
+                    "id": "Frank Pepe Pizzeria Napoletana"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Question 1: What was the name of the first take-and-bake pizza company founded in 1981?",
+            "context": [
+                {
+                    "text": "Papa Murphy's, a business based in Vancouver, Washington, United States, is a take-and-bake pizza company.\n It began in 1995 as the merger of two take-and-bake pizza companies: Papa Aldo's Pizza (founded in 1981) and Murphy's Pizza (founded in 1981).\n The company and its franchisees operate more than 1,300 outlets in the United States and Canada.\n Papa Murphy's is the fifth-largest pizza chain in the United States.",
+                    "id": "Papa Murphy's"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Question 1: What was the name of the film that Phelan Beale was best remembered as?",
+            "context": [
+                {
+                    "text": "Phelan Beale (May 23, 1881 \u2013 June 12, 1956) was an American attorney and sportsman in New York City who was married to Edith Ewing Bouvier, an aunt of Jacqueline Kennedy Onassis.\n Beale is probably best remembered as the absent father chronicled in the Grey Gardens saga portrayed in a 1975 movie documentary, 2006 Broadway musical, and 2009 HBO Film, all of which were named for his home in East Hampton, New York.",
+                    "id": "Phelan Beale"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "Here are the answers to your questions:",
+            "context": [
+                {
+                    "text": "Grey Gardens is an HBO film about the lives of Edith Bouvier Beale/\"Little Edie\", played by Drew Barrymore, and her mother Edith Ewing Bouvier/\"Big Edie\", played by Jessica Lange.\n Co-stars include Jeanne Tripplehorn as Jacqueline Kennedy (Little Edie's cousin) and Ken Howard as Phelan Beale (Little Edie's father).\n The film, directed by Michael Sucsy and co-written by Sucsy and Patricia Rozema, flashes back and forth between various events and dates ranging from Little Edie as a young d\u00e9butante in 1936 moving with her mother to their Grey Gardens estate through the filming and premiere of the actual 1975 documentary \"Grey Gardens\".",
+                    "id": "Grey Gardens (2009 film)"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "What is the name of the Norwegian-born American physical chemist and theoretical physicist?",
+            "context": [
+                {
+                    "text": "Lars Onsager (November 27, 1903 \u2013 October 5, 1976) was a Norwegian-born American physical chemist and theoretical physicist.\n He held the Gibbs Professorship of Theoretical Chemistry at Yale University.\n He was awarded the Nobel Prize in Chemistry in 1968.",
+                    "id": "Lars Onsager"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is the theoretical explanation for the increase in ionic mobility or conductivity of electrolytes at very high gradient of electrical potential?",
+            "context": [
+                {
+                    "text": "The Wien effect is the experimentally-observed increase in ionic mobility or conductivity of electrolytes at very high gradient of electrical potential.\n A theoretical explanation has been proposed by Lars Onsager.",
+                    "id": "Wien effect"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is the name of the tournament held in November 2006?",
+            "context": [
+                {
+                    "text": "The second annual Konami Cup Asia Series was held in November 2006 with four teams participating.\n The champions from the domestic leagues in Japan, South Korea, Taiwan along with an all-star team from China took part in the competition.\n All games were held in the Tokyo Dome in Japan.\n The tournament was sponsored by the Nippon Professional Baseball Association and Konami.\n The Hokkaido Nippon Ham Fighters defeated the La New Bears in the title game to win the championship for Japan.\n Starting pitcher Yu Darvish was named the MVP of the series.",
+                    "id": "2006 Asia Series"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        },
+        {
+            "query": "1. What is Yu Darvish's nationality?",
+            "context": [
+                {
+                    "text": "Yu Darvish (Japanese: \u30c0\u30eb\u30d3\u30c3\u30b7\u30e5 \u6709 , Hepburn: Darubisshu Y\u016b , born 16 August 1986) is a Japanese professional baseball starting pitcher for the Los Angeles Dodgers of Major League Baseball (MLB).\n Darvish pitched in the 2008 Beijing Olympics as well as the 2009 World Baseball Classic as a member of the Japanese national team.\n Darvish previously pitched in MLB for the Texas Rangers.",
+                    "id": "Yu Darvish"
+                }
+            ],
+            "explanations": null,
+            "reference_answer": null,
+            "reference_score": null,
+            "metadata": {}
+        }
+    ],
+    "corpus": {
+        "The Woman Voter": {
+            "text": "The Woman Voter was a monthly suffragist journal published in New York City by the Woman Suffrage Party (WSP).\n It ran between 1910 and 1917.\n The first editor was Mary Ritter Beard.\n Beard created a suffragist publication which was unique in offering coverage of topics that \"cut across class, age and organizational boundaries.\"",
+            "id": "The Woman Voter"
+        },
+        "The Ladder (magazine)": {
+            "text": "The Ladder was the first nationally distributed lesbian publication in the United States.\n It was published monthly from 1956 to 1970, and once every other month in 1971 and 1972.\n It was the primary publication and method of communication for the Daughters of Bilitis, the first lesbian organization in the US.\n It was supported by ONE, Inc. and the Mattachine Society, with whom the DOB retained friendly relations.\n The name of the magazine was derived from the artwork on its first cover, simple line drawings showing figures moving towards a ladder that disappeared into the clouds.",
+            "id": "The Ladder (magazine)"
+        },
+        "Guthrie, Angus": {
+            "text": "Guthrie is a village in Angus, Scotland, roughly at the centre point of the towns of Arbroath, Brechin and Forfar.\n The principal building in the village is Guthrie Castle, which has its own public golf course and is a popular venue for events such as markets, parties and weddings.\n The village of Guthrie is centered on the Guthrie parish church, containing the Guthrie Aisle, built in 1150.",
+            "id": "Guthrie, Angus"
+        },
+        "Guthrie Castle": {
+            "text": "Guthrie Castle is a castle and country house in Angus, Scotland.\n It is located in the village of Guthrie, 10 km east of Forfar, and 29 km north-east of Dundee.\n The castle dates back to the 15th century, although much of the present building is of 19th-century origin.\n It is now a private house.",
+            "id": "Guthrie Castle"
+        },
+        "Grownups (2006 TV series)": {
+            "text": "Grownups is a BBC Three sitcom written by Susan Nickson, who also created hit BBC Three sitcom \"Two Pints of Lager and a Packet of Crisps\".\n It follows the trials and tribulations of a group of twentysomething friends in Manchester, facing the decision to either settle down or carrying on partying.",
+            "id": "Grownups (2006 TV series)"
+        },
+        "Susan Nickson": {
+            "text": "Susan Nickson is an English screenwriter, television producer, and script editor.\n She is the creator and writer of BBC sitcoms \"Two Pints of Lager and a Packet of Crisps\" (2001\u20132011) and \"Grownups\" (2006\u20132009).",
+            "id": "Susan Nickson"
+        },
+        "Michael Dunn (actor)": {
+            "text": "Michael Dunn (October 20, 1934 \u2013 August 30, 1973) was an American actor and singer.\n He inspired a number of actors that were smaller and shorter than most \"average\" people, including Zelda Rubinstein, Mark Povinelli, and Ricardo Gil.",
+            "id": "Michael Dunn (actor)"
+        },
+        "Ship of Fools (film)": {
+            "text": "Ship of Fools is a 1965 drama film directed by Stanley Kramer, which recounts the stories of several passengers aboard an ocean liner bound to Germany from Mexico in 1933.\n It stars Vivien Leigh, Simone Signoret, Jos\u00e9 Ferrer, Lee Marvin, Oskar Werner, Michael Dunn, Elizabeth Ashley, George Segal, Jos\u00e9 Greco, Charles Korvin and Heinz R\u00fchmann.\n It was to be Vivien Leigh's last film and Christiane Schmidtmer's first U.S. production.",
+            "id": "Ship of Fools (film)"
+        },
+        "My Awakening: A Path to Racial Understanding": {
+            "text": "My Awakening: A Path to Racial Understanding is a 1998 autobiography written by David Duke.",
+            "id": "My Awakening: A Path to Racial Understanding"
+        },
+        "David Duke": {
+            "text": "David Ernest Duke (born July 1, 1950) is an American white supremacist and white nationalist, politician, antisemitic conspiracy theorist, Holocaust denier, convicted felon, and former Grand Wizard of the Ku Klux Klan.",
+            "id": "David Duke"
+        },
+        "Nalini Prava Deka": {
+            "text": "Nalini Prava Deka (11 March 1944 \u2013 15 June 2014) was an Assamese-language author, poet, storyteller, actress and playwright from Assam, a state encompassing the Brahmaputra Valley in India.\n She was honoured at a 2012 gathering in Ledo by the Assam Sahitya Sabha (Assam Literary Society).\n Deka promoted Assamese heritage, traditional customs, weaving and fabric art, cooking and folk music with her husband, Bhabananda Deka.\n They researched traditional Assamese lifestyle, art, literature and culture.\n Deka was the first female editor and publisher of a children's magazine, \"Phul\" (\"Flower\"), and wrote 30 critically praised books.\n All India Radio broadcast Deka's radio plays on issues related to women and children.\n<br>",
+            "id": "Nalini Prava Deka"
+        },
+        "Stephen King": {
+            "text": "Stephen Edwin King (born September 21, 1947) is an American author of horror, supernatural fiction, suspense, science fiction, and fantasy.\n His books have sold more than 350 million copies, many of which have been adapted into feature films, miniseries, television series, and comic books.\n King has published 54 novels, including seven under the pen name Richard Bachman, and six non-fiction books.\n He has written nearly 200 short stories, most of which have been collected in book collections.\n Many of his stories are set in his home state of Maine.\n His novella \"Rita Hayworth and Shawshank Redemption\" was the basis for the film \"The Shawshank Redemption\" which is widely regarded as one of the greatest films of all time.",
+            "id": "Stephen King"
+        },
+        "Frank Pepe Pizzeria Napoletana": {
+            "text": "Frank Pepe Pizzeria Napoletana, known locally as Pepe's, is a popular pizza restaurant in the Wooster Square neighborhood of New Haven, Connecticut, at 163 Wooster Street.\n Opened in 1925, it is one of the oldest and best known pizzerias in the United States.",
+            "id": "Frank Pepe Pizzeria Napoletana"
+        },
+        "Papa Murphy's": {
+            "text": "Papa Murphy's, a business based in Vancouver, Washington, United States, is a take-and-bake pizza company.\n It began in 1995 as the merger of two take-and-bake pizza companies: Papa Aldo's Pizza (founded in 1981) and Murphy's Pizza (founded in 1981).\n The company and its franchisees operate more than 1,300 outlets in the United States and Canada.\n Papa Murphy's is the fifth-largest pizza chain in the United States.",
+            "id": "Papa Murphy's"
+        },
+        "Phelan Beale": {
+            "text": "Phelan Beale (May 23, 1881 \u2013 June 12, 1956) was an American attorney and sportsman in New York City who was married to Edith Ewing Bouvier, an aunt of Jacqueline Kennedy Onassis.\n Beale is probably best remembered as the absent father chronicled in the Grey Gardens saga portrayed in a 1975 movie documentary, 2006 Broadway musical, and 2009 HBO Film, all of which were named for his home in East Hampton, New York.",
+            "id": "Phelan Beale"
+        },
+        "Grey Gardens (2009 film)": {
+            "text": "Grey Gardens is an HBO film about the lives of Edith Bouvier Beale/\"Little Edie\", played by Drew Barrymore, and her mother Edith Ewing Bouvier/\"Big Edie\", played by Jessica Lange.\n Co-stars include Jeanne Tripplehorn as Jacqueline Kennedy (Little Edie's cousin) and Ken Howard as Phelan Beale (Little Edie's father).\n The film, directed by Michael Sucsy and co-written by Sucsy and Patricia Rozema, flashes back and forth between various events and dates ranging from Little Edie as a young d\u00e9butante in 1936 moving with her mother to their Grey Gardens estate through the filming and premiere of the actual 1975 documentary \"Grey Gardens\".",
+            "id": "Grey Gardens (2009 film)"
+        },
+        "Lars Onsager": {
+            "text": "Lars Onsager (November 27, 1903 \u2013 October 5, 1976) was a Norwegian-born American physical chemist and theoretical physicist.\n He held the Gibbs Professorship of Theoretical Chemistry at Yale University.\n He was awarded the Nobel Prize in Chemistry in 1968.",
+            "id": "Lars Onsager"
+        },
+        "Wien effect": {
+            "text": "The Wien effect is the experimentally-observed increase in ionic mobility or conductivity of electrolytes at very high gradient of electrical potential.\n A theoretical explanation has been proposed by Lars Onsager.",
+            "id": "Wien effect"
+        },
+        "2006 Asia Series": {
+            "text": "The second annual Konami Cup Asia Series was held in November 2006 with four teams participating.\n The champions from the domestic leagues in Japan, South Korea, Taiwan along with an all-star team from China took part in the competition.\n All games were held in the Tokyo Dome in Japan.\n The tournament was sponsored by the Nippon Professional Baseball Association and Konami.\n The Hokkaido Nippon Ham Fighters defeated the La New Bears in the title game to win the championship for Japan.\n Starting pitcher Yu Darvish was named the MVP of the series.",
+            "id": "2006 Asia Series"
+        },
+        "Yu Darvish": {
+            "text": "Yu Darvish (Japanese: \u30c0\u30eb\u30d3\u30c3\u30b7\u30e5 \u6709 , Hepburn: Darubisshu Y\u016b , born 16 August 1986) is a Japanese professional baseball starting pitcher for the Los Angeles Dodgers of Major League Baseball (MLB).\n Darvish pitched in the 2008 Beijing Olympics as well as the 2009 World Baseball Classic as a member of the Japanese national team.\n Darvish previously pitched in MLB for the Texas Rangers.",
+            "id": "Yu Darvish"
+        }
+    }
+}
