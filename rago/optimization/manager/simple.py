@@ -3,37 +3,17 @@
 from __future__ import annotations
 
 import gc
-from enum import StrEnum
 from typing import TYPE_CHECKING
-
-from pydantic.dataclasses import dataclass
 
 if TYPE_CHECKING:
     import optuna
 
     from rago.data_objects import Metric
     from rago.data_objects.eval_sample import EvalSample
-from rago.data_objects import DataObject
 from rago.eval import BaseEvaluator
-from rago.model.wrapper.rag.base import RAG, RAGConfig
+from rago.model.wrapper.rag.base import RAG
 
-from .base import BaseOptunaManager
-
-
-class EvalMode(StrEnum):
-    """Eval mode of the current evaluation."""
-
-    TRAIN = "train"
-    TEST = "Test"
-
-
-@dataclass
-class RAGCandidateResult(DataObject):
-    """Performance and config of a rag on train and test set."""
-
-    config: RAGConfig
-    train_score: float
-    test_score: float
+from .base import BaseOptunaManager, EvalMode
 
 
 class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
@@ -55,7 +35,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         rag_candidate = RAG.make(rag_config=config, prompt_config=self.prompt_config, inputs_chunks=self.chunks)
         return rag_candidate
 
-    def optimize(self) -> tuple[optuna.Study, RAGCandidateResult]:
+    def optimize(self) -> None:
         """Carry Out the optimization by simply call study.optimize.
 
         :return: The optuna study that contains the experiment.
@@ -64,9 +44,6 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         self.logger.info("[PROCESS] Starting Optimization...")
         self.manager.optimize(self.objective, self.params.n_iter, show_progress_bar=self.params.show_progress_bar)
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
-        self.logger.info("[PROCESS] Evaluating best trial on test set...")
-        test_result = self.test()
-        return self.manager, test_result
 
     def _get_score(self, evaluation: dict[str, Metric]) -> float:
         if self.metric_name is None:
@@ -132,20 +109,3 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         gc.collect()
 
         return score
-
-    def test(self) -> RAGCandidateResult:
-        """Eval the best candidate of the optimization on the test set.
-
-        :return: The config and score on train and test set.
-        :rtype: RAGCandidateResult
-        """
-        best_trial = self.manager.best_trial
-        config = self.config_space.sample(best_trial)
-        best_rag_test_score = self.objective(best_trial, eval_mode=EvalMode.TEST)
-        best_rag_results = RAGCandidateResult(
-            config=config,
-            train_score=best_trial.value,
-            test_score=best_rag_test_score,
-        )
-        DataObject.save_to_json(best_rag_results, f"experiments/{self.params.experiment_name}/best_rag_results.json")
-        return best_rag_results

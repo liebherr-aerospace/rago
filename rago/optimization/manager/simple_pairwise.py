@@ -24,8 +24,7 @@ from rago.data_objects import PromptTemplate
 from rago.eval import BaseLLMEvaluator, EvalPrompts, SimpleLLMEvaluator
 from rago.model.wrapper.llm_agent import LangchainLLMAgent
 from rago.model.wrapper.rag.base import RAG
-from rago.optimization.manager.base import BaseOptunaManager, OptimParams
-from rago.optimization.manager.simple import EvalMode
+from rago.optimization.manager.base import BaseOptunaManager, EvalMode, OptimParams
 from rago.prompts import DEFAULT_EVAL_PROMPT, DEFAULT_REFERENCE_EVAL_PROMPT
 
 

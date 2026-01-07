@@ -24,11 +24,30 @@ from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
     from rago.data_objects import RAGOutput
-    from rago.data_objects.rag_config import RAGConfig
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
+    from rago.model.wrapper.rag.base import RAGConfig
 
+from enum import StrEnum
+
+from rago.data_objects import DataObject
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
+
+
+class EvalMode(StrEnum):
+    """Eval mode of the current evaluation."""
+
+    TRAIN = "train"
+    TEST = "Test"
+
+
+@dataclass
+class RAGCandidateResult(DataObject):
+    """Performance and config of a rag on train and test set."""
+
+    config: RAGConfig
+    train_score: float
+    test_score: float
 
 
 @dataclass
@@ -204,7 +223,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self.logger.debug("[INIT] Optuna Study Sampler: %s", self.manager.sampler)
 
     @abstractmethod
-    def optimize(self) -> optuna.Study:
+    def optimize(self) -> None:
         """Carry Out the optimization.
 
         :return: The optuna study that contains the experiment.
@@ -212,7 +231,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         """
 
     @abstractmethod
-    def objective(self, trial: optuna.trial.BaseTrial) -> float:
+    def objective(self, trial: optuna.trial.BaseTrial, eval_mode: EvalMode = EvalMode.TRAIN) -> float:
         """Evaluate a RAG config on the dataset made by dataset_generator.
 
         :param trial: the RAG config to test
@@ -248,4 +267,32 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :rtype: list[RAGConfig]
         """
         best_trials = self.get_n_best_trials(number)
-        return [self.experiment_repo.convert_trial_to_rag_config(trial) for trial in best_trials]
+        return [self.config_space.sample(trial) for trial in best_trials]
+
+    def run_experiment(self) -> tuple[optuna.Study, RAGCandidateResult]:
+        """Carry out the optimization and test the result.
+
+        :return: The optimization and best result evaluation.
+        :rtype: tuple[optuna.Study, RAGCandidateResult]
+        """
+        self.optimize()
+        best_candidate_result = self.test()
+        return self.manager, best_candidate_result
+
+    def test(self) -> RAGCandidateResult:
+        """Eval the best candidate of the optimization on the test set.
+
+        :return: The config and score on train and test set.
+        :rtype: RAGCandidateResult
+        """
+        self.logger.info("[PROCESS] Evaluating best trial on test set...")
+        best_trial = self.manager.best_trial
+        config = self.config_space.sample(best_trial)
+        best_rag_test_score = self.objective(best_trial, eval_mode=EvalMode.TEST)
+        best_rag_results = RAGCandidateResult(
+            config=config,
+            train_score=best_trial.value,
+            test_score=best_rag_test_score,
+        )
+        DataObject.save_to_json(best_rag_results, f"experiments/{self.params.experiment_name}/best_rag_results.json")
+        return best_rag_results
