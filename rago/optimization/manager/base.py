@@ -17,10 +17,16 @@ from typing import TYPE_CHECKING, Optional
 import optuna
 from pydantic.dataclasses import dataclass
 
+from rago.dataset.generator.simple import SeedDataType, SimpleDatasetGenerator
+from rago.eval import BaseEvaluator
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
+from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
+    from rago.data_objects import RAGOutput
     from rago.data_objects.rag_config import RAGConfig
+    from rago.dataset import RAGDataset
+    from rago.dataset.generator import DatasetGeneratorConfig
 
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
@@ -34,11 +40,11 @@ class OptimParams:
     experiment_name: str = "experiment_001"
     log_to_file: bool = True
     n_startup_trials: int = 50
-    n_iter: Optional[int] = None
+    n_iter: int | None = None
     show_progress_bar: bool = True
 
 
-class BaseOptunaManager(ABC):
+class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
     """An Abstract Class that defines the optimization manager."""
 
     manager: optuna.Study
@@ -49,24 +55,111 @@ class BaseOptunaManager(ABC):
         self,
         *,
         params: Optional[OptimParams] = None,
+        dataset: RAGDataset,
+        evaluator: EvaluatorType,
+        metric_name: str,
         config_space: Optional[RAGConfigSpace] = None,
+        prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
     ) -> None:
         """Optimization Manager initialization.
 
-        :param sampler: The sampler used for the optimization algorithm.
-        :type sampler: optuna.samplers.BaseSampler | None
-        :param pruner: The pruner method to stop the current optimization iteration.
-        :type pruner: optuna.pruners.BasePruner | None
+        :param params: Parameters of the optimization, defaults to None.
+        :type params: Optional[OptimParams], optional
+        :param dataset: Dataset on which rag configs will be evaluated.
+        :type dataset: RAGDataset
+        :param evaluator: Evaluator used to evaluate RAG outputs.
+        :type evaluator: BaseLLMEvaluator
+        :param metric_name: Name of the metric to optimize if the evaluator returns a dict, defaults to None
+        :type metric_name: Optional[str], optional
+        :param config_space: The space of RAG config to search in, defaults to None
+        :type config_space: Optional[RAGConfigSpace], optional
+        :param prompt_config: Configuration of the prompt used by the reader of each RAG.
+        :type prompt_config: Optional[PromptConfig], optional
+        :param sampler: The sampler used to suggest new rag configuration to tests, defaults to None
+        :type sampler: Optional[optuna.samplers.BaseSampler], optional
+        :param pruner: The pruner used to terminate early unpromising trials, defaults to None
+        :type pruner: Optional[optuna.pruners.BasePruner], optional
         """
         self.params = params if params is not None else OptimParams()
+        self.dataset = dataset
+        self.evaluator = evaluator
+        self.metric_name = metric_name
         self.config_space = config_space if config_space is not None else RAGConfigSpace()
+        self.prompt_config = prompt_config if prompt_config is not None else PromptConfig()
         self.sampler = sampler
         self.pruner = pruner
+        self.chunks = [doc.text for doc in self.dataset.corpus.values()]
         self.initialize_experiment_repository()
         self.initialize_logger()
         self.initialize_optuna_study()
+
+    @classmethod
+    def from_seed_data(
+        cls,
+        *,
+        params: OptimParams | None = None,
+        seed_data: SeedDataType,
+        dataset_generator_config: DatasetGeneratorConfig | None = None,
+        evaluator: EvaluatorType,
+        metric_name: str,
+        config_space: Optional[RAGConfigSpace] = None,
+        prompt_config: Optional[PromptConfig] = None,
+        sampler: Optional[optuna.samplers.BaseSampler] = None,
+        pruner: Optional[optuna.pruners.BasePruner] = None,
+    ) -> BaseOptunaManager:
+        """Initialize the Simple Direct Optimization Manager from seed data to generate dataset.
+
+        :param params: Parameters of the optimization, defaults to None.
+        :type params: Optional[OptimParams], optional
+        :param seed_data: If no dataset is provided seed data used to generate a dataset, defaults to None.
+        :type seed_data: Optional[RAGDataset], optional
+        :param dataset_generator_config: Generator Configuration used to generate a dataset, defaults to None.
+        :type dataset_generator_config: Optional[DatasetGeneratorConfig], optional
+        :param evaluator: Evaluator used to evaluate RAG outputs.
+        :type evaluator: BaseLLMEvaluator
+        :param metric_name: Name of the metric to optimize if the evaluator returns a dict, defaults to None
+        :type metric_name: Optional[str], optional
+        :param config_space: The space of RAG config to search in, defaults to None
+        :type config_space: Optional[RAGConfigSpace], optional
+        :param prompt_config: Configuration of the prompt used by the reader of each RAG.
+        :type prompt_config: Optional[PromptConfig], optional
+        :param sampler: The sampler used to suggest new rag configuration to tests, defaults to None
+        :type sampler: Optional[optuna.samplers.BaseSampler], optional
+        :param pruner: The pruner used to terminate early unpromising trials, defaults to None
+        :type pruner: Optional[optuna.pruners.BasePruner], optional
+        """
+        return cls(
+            params=params,
+            dataset=cls.get_dataset(seed_data, dataset_generator_config),
+            evaluator=evaluator,
+            metric_name=metric_name,
+            config_space=config_space,
+            prompt_config=prompt_config,
+            sampler=sampler,
+            pruner=pruner,
+        )
+
+    @classmethod
+    def get_dataset(
+        cls,
+        seed_data: Optional[SeedDataType] = None,
+        dataset_generator_config: DatasetGeneratorConfig | None = None,
+    ) -> RAGDataset:
+        """Get the dataset to use for optimization.
+
+        :param dataset: The dataset to use, defaults to None
+        :type dataset: Optional[RAGDataset], optional
+        :param seed_data: The seed data to use to generate the dataset, defaults to None
+        :type seed_data: Optional[RAGDataset], optional
+        :param dataset_generator_config: The config of dataset generator, defaults to None
+        :type dataset_generator_config: Optional[DatasetGeneratorConfig], optional
+        :return: The dataset to use for optimization.
+        :rtype: RAGDataset
+        """
+        dataset_generator = SimpleDatasetGenerator.make(dataset_generator_config)
+        return dataset_generator.generate_dataset(seed_data)
 
     def initialize_logger(self) -> None:
         """Initialize the logger."""
@@ -119,7 +212,7 @@ class BaseOptunaManager(ABC):
         """
 
     @abstractmethod
-    def objective(self, trial: optuna.Trial) -> float:
+    def objective(self, trial: optuna.trial.BaseTrial) -> float:
         """Evaluate a RAG config on the dataset made by dataset_generator.
 
         :param trial: the RAG config to test

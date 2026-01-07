@@ -41,7 +41,7 @@ class PromptTemplate:
         new_content = self.content.format(**kwargs)
         return PromptTemplate(new_content)
 
-    def get_filled_prompt(self, sep: str = "\n", **kwargs: str | list[str]) -> str:
+    def get_filled_prompt(self, sep: str = "\n", **kwargs: str | list[str] | None) -> str:
         """Get the prompt filled with the keyword arguments.
 
         :param sep: The separator to put in between strings of a list of string args.
@@ -54,7 +54,7 @@ class PromptTemplate:
         preprocessed_kwargs = self.preprocess_kwargs(sep, **kwargs)
         return self.content.format(**preprocessed_kwargs)
 
-    def preprocess_kwargs(self, sep: str = "\n", **kwargs: str | list[str]) -> dict[str, str]:
+    def preprocess_kwargs(self, sep: str = "\n", **kwargs: str | list[str] | None) -> dict[str, str]:
         """Preprocess the keyword args to convert them to string if needed.
 
         :param sep: The separator to put in between strings of a list of string args.
@@ -70,7 +70,7 @@ class PromptTemplate:
                 case list():
                     processed_kwargs[key_arg] = self.aggregate_strings(val_arg, sep)
                 case _:
-                    raise TypeError(val_arg)
+                    continue
         return processed_kwargs
 
     def aggregate_strings(self, list_strings: list[str], separator: str) -> str:

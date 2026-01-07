@@ -1,8 +1,6 @@
 """Defines an optim experiment class to run experiments."""
 
 import argparse
-import json
-from pathlib import Path
 from typing import cast
 
 import urllib3
@@ -11,7 +9,6 @@ from optuna.samplers import TPESampler
 from rago.dataset import QADatasetLoader, RAGDataset
 from rago.eval import BertScore
 from rago.experiment.base import Experiment
-from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.llm_config_space import OllamaLLMConfigSpace
 from rago.optimization.search_space.param_space import CategoricalParamSpace
@@ -34,7 +31,7 @@ class OptimExperiment(Experiment):
         )
         sampler = TPESampler(n_startup_trials=params.n_startup_trials)
         self.datasets_dict = cast(
-            RAGDataset,
+            "RAGDataset",
             QADatasetLoader.load_dataset(RAGDataset, "crag"),
         ).split_dataset([0.1, 0.9], split_names=["train", "valid"], seed=0)
         self.evaluator = BertScore()
@@ -50,7 +47,7 @@ class OptimExperiment(Experiment):
                 ),
             ),
         )
-        self.optimizer = SimpleDirectOptunaManager.from_dataset(
+        self.optimizer = SimpleDirectOptunaManager(
             params=params,
             dataset=self.datasets_dict["train"],
             evaluator=self.evaluator,
@@ -58,26 +55,7 @@ class OptimExperiment(Experiment):
             config_space=config_space,
             sampler=sampler,
         )
-        study = self.optimizer.optimize()
-        best_trial = study.best_trial
-        best_rag = self.optimizer.sample_rag(best_trial)
-        best_rag_eval_score = self.evaluate(best_rag)
-        with Path(f"experiments/{experiment_name}/best_score.json").open("w") as f:
-            json.dump({"eval_score": best_rag_eval_score}, f)
-
-    def evaluate(self, rag: RAG) -> float:
-        """Evaluate a RAG on the validation dataset.
-
-        :param rag: The RAG model to evaluate.
-        :type rag: RAG
-        :return: The evaluation score
-        :rtype: float
-        """
-        score = 0.0
-        for n, test_sample in enumerate(self.datasets_dict["valid"].samples):
-            score_eval = self.optimizer.eval(test_sample, rag)
-            score = self.evaluator.update_avg_score(score, score_eval, n)
-        return score
+        self.optimizer.optimize()
 
 
 def main() -> None:

@@ -46,27 +46,28 @@ class SimpleLLMEvaluator(BaseLLMEvaluator):
             raise ValueError(score_string)
         return score
 
-    def parse_pairwise_evaluation(self, evaluation: str) -> tuple[dict[str, Metric], dict[str, Metric]]:
-        """Parse the judge LM output evaluation string and return the results for both outputs.
+    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> list[dict[str, Metric]]:
+        """Parse the judge LM output evaluation string and return the results for each outputs.
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
         :type evaluation: str
+        :param expected_number_of_score: Expected number of score in the evaluation.
+        :type expected_number_of_score: int
         :raises JudgeError: The Judge did not respect the guidelines.
         This can be because:
             - the judge outputs a score outside the allowed interval.
             - it does not follow evaluation template.
-        :raises ValueError: Any of the two scores in the evaluation can not be converted to a float.
-        :return: The evaluation results of both answers.
-        :rtype: tuple[dict[str, Metric], dict[str, Metric]]
+        :raises ValueError: Any of the scores in the evaluation can not be converted to a float.
+        :return: The evaluation results of each answers.
+        :rtype: list[dict[str, Metric]]
         """
-        expected_number_of_score = 2
         evaluation_scores = evaluation.strip("\n").split("\n")
         if len(evaluation_scores) != expected_number_of_score:
             raise JudgeError(evaluation)
 
-        result_1, result_2 = tuple(
+        results = [
             {"correctness": Metric(score=self.get_score_from_string_score(evaluation_score.strip()))}
             for evaluation_score in evaluation_scores
-        )
+        ]
 
-        return result_1, result_2
+        return results

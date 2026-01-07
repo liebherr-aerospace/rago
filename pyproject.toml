@@ -28,6 +28,8 @@ dependencies = [
     "bert-score>=0.3.13",
     "mypy>=1.18.2",
     "ruff>=0.14.2",
+    "numpy>=2.3.5",
+    "pre-commit>=4.5.1",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -51,7 +53,7 @@ build-backend = "hatchling.build"
 
 [tool.ruff.lint]
 select = ["ALL"]
-ignore = ["RET504", "UP007", "S311"]
+ignore = ["RET504", "UP007", "S311", "UP045"]
 
 [tool.ruff]
 line-length = 120
