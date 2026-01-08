@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Literal, Optional, overload
 
 import optuna
 from pydantic.dataclasses import dataclass
@@ -23,7 +23,7 @@ from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
-    from rago.data_objects import RAGOutput
+    from rago.data_objects import Metric, RAGOutput
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
     from rago.model.wrapper.rag.base import RAGConfig
@@ -31,6 +31,7 @@ if TYPE_CHECKING:
 from enum import StrEnum
 
 from rago.data_objects import DataObject
+from rago.model.wrapper.rag.base import RAG
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
 
@@ -47,7 +48,7 @@ class RAGCandidateResult(DataObject):
 
     config: RAGConfig
     train_score: float
-    test_score: float
+    test_eval: dict[str, Metric]
 
 
 @dataclass
@@ -74,9 +75,10 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self,
         *,
         params: Optional[OptimParams] = None,
-        dataset: RAGDataset,
-        evaluator: EvaluatorType,
-        metric_name: str,
+        datasets: dict[str, RAGDataset],
+        optim_evaluator: EvaluatorType,
+        optim_metric_name: str,
+        test_evaluators: list[BaseEvaluator],
         config_space: Optional[RAGConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
@@ -88,10 +90,12 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :type params: Optional[OptimParams], optional
         :param dataset: Dataset on which rag configs will be evaluated.
         :type dataset: RAGDataset
-        :param evaluator: Evaluator used to evaluate RAG outputs.
-        :type evaluator: BaseLLMEvaluator
-        :param metric_name: Name of the metric to optimize if the evaluator returns a dict, defaults to None
-        :type metric_name: Optional[str], optional
+        :param optim_evaluator: Evaluator used to evaluate RAG outputs.
+        :type optim_evaluator: BaseLLMEvaluator
+        :param optim_metric_name: Name of the metric to optimize if the evaluator returns a dict, defaults to None.
+        :type optim_metric_name: Optional[str], optional
+        :param test_evaluators: Evaluators used in test.
+        :type test_evaluators: list[EvaluatorType]
         :param config_space: The space of RAG config to search in, defaults to None
         :type config_space: Optional[RAGConfigSpace], optional
         :param prompt_config: Configuration of the prompt used by the reader of each RAG.
@@ -102,27 +106,29 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :type pruner: Optional[optuna.pruners.BasePruner], optional
         """
         self.params = params if params is not None else OptimParams()
-        self.dataset = dataset
-        self.evaluator = evaluator
-        self.metric_name = metric_name
+        self.datasets = datasets
+        self.optim_evaluator = optim_evaluator
+        self.optim_metric_name = optim_metric_name
+        self.test_evaluators = test_evaluators
         self.config_space = config_space if config_space is not None else RAGConfigSpace()
         self.prompt_config = prompt_config if prompt_config is not None else PromptConfig()
         self.sampler = sampler
         self.pruner = pruner
-        self.chunks = [doc.text for doc in self.dataset.corpus.values()]
         self.initialize_experiment_repository()
         self.initialize_logger()
         self.initialize_optuna_study()
 
     @classmethod
-    def from_seed_data(
+    def from_seed_data(  # noqa: PLR0913
         cls,
         *,
         params: Optional[OptimParams] = None,
         seed_data: SeedDataType,
         dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
-        evaluator: EvaluatorType,
-        metric_name: str,
+        splits: tuple[int, int],
+        optim_evaluator: EvaluatorType,
+        optim_metric_name: str,
+        test_evaluators: list[BaseEvaluator],
         config_space: Optional[RAGConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
@@ -136,10 +142,14 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :type seed_data: Optional[RAGDataset], optional
         :param dataset_generator_config: Generator Configuration used to generate a dataset, defaults to None.
         :type dataset_generator_config: Optional[DatasetGeneratorConfig], optional
-        :param evaluator: Evaluator used to evaluate RAG outputs.
-        :type evaluator: BaseLLMEvaluator
-        :param metric_name: Name of the metric to optimize if the evaluator returns a dict, defaults to None
-        :type metric_name: Optional[str], optional
+        :param splits: split sizes of the generated dataset.
+        :type splits: tuple[int, int]
+        :param optim_evaluator: Evaluator used to evaluate RAG outputs.
+        :type optim_evaluator: BaseLLMEvaluator
+        :param optim_metric_name: Name of the metric to optimize if the evaluator returns a dict.
+        :type optim_metric_name: str
+        :param test_evaluators: Evaluators used in test, if None evaluator is used for tests, defaults to None.
+        :type test_evaluators: Optional[list[EvaluatorType]] = None
         :param config_space: The space of RAG config to search in, defaults to None
         :type config_space: Optional[RAGConfigSpace], optional
         :param prompt_config: Configuration of the prompt used by the reader of each RAG.
@@ -151,9 +161,10 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         """
         return cls(
             params=params,
-            dataset=cls.get_dataset(seed_data, dataset_generator_config),
-            evaluator=evaluator,
-            metric_name=metric_name,
+            datasets=cls.get_dataset(seed_data, dataset_generator_config).split_dataset(splits, ["train", "test"]),
+            optim_evaluator=optim_evaluator,
+            optim_metric_name=optim_metric_name,
+            test_evaluators=test_evaluators,
             config_space=config_space,
             prompt_config=prompt_config,
             sampler=sampler,
@@ -230,8 +241,27 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :rtype: optuna.Study:
         """
 
-    @abstractmethod
-    def objective(self, trial: optuna.trial.BaseTrial, eval_mode: EvalMode = EvalMode.TRAIN) -> float:
+    @overload
+    def eval_trial(
+        self,
+        trial: optuna.trial.BaseTrial,
+        evaluator: BaseEvaluator,
+        eval_mode: Literal[EvalMode.TEST],
+    ) -> dict[str, Metric]: ...
+    @overload
+    def eval_trial(
+        self,
+        trial: optuna.trial.BaseTrial,
+        evaluator: EvaluatorType,
+        eval_mode: Literal[EvalMode.TRAIN] = EvalMode.TRAIN,
+    ) -> float: ...
+
+    def eval_trial(
+        self,
+        trial: optuna.trial.BaseTrial,
+        evaluator: EvaluatorType | BaseEvaluator,
+        eval_mode: EvalMode = EvalMode.TRAIN,
+    ) -> float | dict[str, Metric]:
         """Evaluate a RAG config on the dataset made by dataset_generator.
 
         :param trial: the RAG config to test
@@ -239,6 +269,36 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :return: the dictionary containing the metrics
         :rtype: float
         """
+        dataset = self.datasets[eval_mode]
+        return self._eval_trial(trial, dataset, evaluator, eval_mode)
+
+    @abstractmethod
+    def _eval_trial(
+        self,
+        trial: optuna.trial.BaseTrial,
+        dataset: RAGDataset,
+        evaluator: EvaluatorType | BaseEvaluator,
+        eval_mode: EvalMode = EvalMode.TRAIN,
+    ) -> float | dict[str, Metric]: ...
+    def _should_prune(self, trial: optuna.Trial, score: float, eval_mode: EvalMode) -> bool:
+        return eval_mode == EvalMode.TRAIN and trial.should_prune() and score < self.manager.best_trial.value
+
+    def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> RAG:
+        """Sample RAG from trial.
+
+        :param trial: Trial to use to sample the rag
+        :type trial: optuna.trial.BaseTrial
+        :return: The sampled RAG
+        :rtype: RAG
+        """
+        config = self.config_space.sample(trial)
+        self.logger.debug("[PROCESS] Current RAG Configuration Candidate: %s", config)
+        rag_candidate = RAG.make(
+            rag_config=config,
+            prompt_config=self.prompt_config,
+            inputs_chunks=[doc.text for doc in dataset.corpus.values()],
+        )
+        return rag_candidate
 
     def load_results(self) -> optuna.study.Study:
         """Load the results of the optimization.
@@ -288,11 +348,13 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self.logger.info("[PROCESS] Evaluating best trial on test set...")
         best_trial = self.manager.best_trial
         config = self.config_space.sample(best_trial)
-        best_rag_test_score = self.objective(best_trial, eval_mode=EvalMode.TEST)
+        test_results: dict[str, Metric] = {}
+        for evaluator in self.test_evaluators:
+            test_results = test_results | self.eval_trial(best_trial, evaluator=evaluator, eval_mode=EvalMode.TEST)
         best_rag_results = RAGCandidateResult(
             config=config,
             train_score=best_trial.value,
-            test_score=best_rag_test_score,
+            test_eval=test_results,
         )
         DataObject.save_to_json(best_rag_results, f"experiments/{self.params.experiment_name}/best_rag_results.json")
         return best_rag_results

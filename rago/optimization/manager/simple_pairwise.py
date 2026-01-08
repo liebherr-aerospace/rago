@@ -9,6 +9,7 @@ import numpy as np
 import optuna
 
 from rago.data_objects import RAGOutput
+from rago.eval import BaseEvaluator
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
@@ -16,16 +17,16 @@ if TYPE_CHECKING:
 
     import optuna
 
-    from rago.data_objects import Metric, RAGOutput
+    from rago.data_objects import RAGOutput
     from rago.data_objects.eval_sample import EvalSample
     from rago.dataset import RAGDataset
     from rago.optimization.search_space.rag_config_space import RAGConfigSpace
-from rago.data_objects import PromptTemplate
+from rago.data_objects import Metric
 from rago.eval import BaseLLMEvaluator, EvalPrompts, SimpleLLMEvaluator
 from rago.model.wrapper.llm_agent import LangchainLLMAgent
 from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager.base import BaseOptunaManager, EvalMode, OptimParams
-from rago.prompts import DEFAULT_EVAL_PROMPT, DEFAULT_REFERENCE_EVAL_PROMPT
+from rago.prompts import DEFAULT_REFERENCE_EVAL_PROMPT
 
 
 class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
@@ -38,15 +39,15 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self,
         *,
         params: Optional[OptimParams] = None,
-        dataset: RAGDataset,
-        evaluator: Optional[BaseLLMEvaluator] = None,
-        metric_name: str = "correctness",
+        datasets: dict[str, RAGDataset],
+        optim_evaluator: BaseLLMEvaluator,
+        optim_metric_name: str,
+        test_evaluators: list[BaseEvaluator],
         config_space: Optional[RAGConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
         num_initial_rags: int = 2,
-        test_prompt: str = DEFAULT_EVAL_PROMPT,
     ) -> None:
         """Initialize the Simple Direct Optimization Manager from seed data to generate dataset.
 
@@ -54,10 +55,12 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :type params: Optional[OptimParams], optional
         :param dataset: Dataset on which rag configs will be evaluated.
         :type dataset: RAGDataset
-        :param evaluator: Evaluator used to evaluate RAG outputs, defaults to None.
-        :type evaluator: Optional[BaseLLMEvaluator], optional
-        :param metric_name: Name of the metric to optimize if the evaluator returns a dict, defaults to None
-        :type metric_name: Optional[str], optional
+        :param optim_evaluator: Evaluator used to evaluate RAG outputs.
+        :type optim_evaluator: BaseLLMEvaluator
+        :param optim_metric_name: Name of the metric to optimize if the evaluator returns a dict.
+        :type optim_metric_name: str
+        :param test_evaluators: Evaluators used in test, if None evaluator is used for tests, defaults to None.
+        :type test_evaluators: Optional[list[EvaluatorType]] = None
         :param config_space: The space of RAG config to search in, defaults to None
         :type config_space: Optional[RAGConfigSpace], optional
         :param prompt_config: Configuration of the prompt used by the reader of each RAG.
@@ -68,26 +71,19 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :type pruner: Optional[optuna.pruners.BasePruner], optional
         :param num_initial_rags: Num of RAG to test initially (must be compatible with the evaluator's pairwise prompt).
         :type num_initial_rags: int = 2
-        :param test_prompt: Prompt to use for testing, defaults to DEFAULT_EVAL_PROMPT.
-        :type test_prompt: str
         """
         self.num_initial_trials = num_initial_rags
-        self.test_prompt = PromptTemplate(test_prompt).get_partially_formatted_prompt_template(
-            min_score=str(self.evaluator.min_score),
-            max_score=str(self.evaluator.max_score),
-        )
-        if evaluator is None:
-            evaluator = SimpleLLMEvaluator(
+        if optim_evaluator is None:
+            optim_evaluator = SimpleLLMEvaluator(
                 judge=LangchainLLMAgent.make_from_backend(),
                 eval_prompts=EvalPrompts(DEFAULT_REFERENCE_EVAL_PROMPT),
             )
-
-        self.train_prompt = self.evaluator.eval_prompt
         super().__init__(
             params=params,
-            dataset=dataset,
-            evaluator=evaluator,
-            metric_name=metric_name,
+            datasets=datasets,
+            optim_evaluator=optim_evaluator,
+            optim_metric_name=optim_metric_name,
+            test_evaluators=test_evaluators,
             config_space=config_space,
             prompt_config=prompt_config,
             sampler=sampler,
@@ -102,7 +98,10 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         """
         self.logger.info("[PROCESS] Starting Optimization...")
         self.run_initial_trials()
-        self.manager.optimize(self.objective, self.params.n_iter)
+        self.manager.optimize(
+            lambda trial: self._eval_trial(trial, self.datasets["train"], self.optim_evaluator),
+            self.params.n_iter,
+        )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
         return self.manager
 
@@ -111,15 +110,16 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
     ) -> None:
         """Initialize the optimization by getting the first best RAG configuration."""
         self.logger.info("[INIT OPTIM] Run First Round of the Battle RAG...")
+        dataset = self.datasets["train"]
         rags, trials = self.instantiate_simple_rags()
         answers_candidates: list[list[str]] = [[] for _ in range(self.num_initial_trials)]
         scores: list[list[float]] = [[] for _ in range(self.num_initial_trials)]
-        for n, test_sample in enumerate(self.dataset.samples):
+        for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[INIT OPTIM] Iteration %s", n)
             if test_sample.context is not None:
                 self.logger.debug("[INIT OPTIM] Test Eval Sample: %s", test_sample)
                 rag_outputs = [rag_cand.get_rag_output(test_sample.query) for rag_cand in rags]
-                evaluations = self.evaluator.evaluate_n_wise(
+                evaluations = self.optim_evaluator.evaluate_n_wise(
                     rag_outputs,
                     test_sample,
                 )
@@ -139,14 +139,13 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self.logger.info("[INIT OPTIM] Best Score: %s", best_scores)
         self.logger.debug(
             "[INIT OPTIM] Eval Sample Before Update: %s",
-            self.dataset.samples,
+            dataset.samples,
         )
         if (best_answer is not None) and (best_scores is not None):
-            self.dataset.samples = self.update_eval_sample_reference(
+            self.update_eval_sample_reference(
                 best_answer,
                 best_scores,
             )
-            self.logger.debug("[INIT OPTIM] Eval Sample Updated: %s", self.dataset.samples)
             mean_best_score = np.mean(best_scores)
             self.manager.tell(best_trial, float(mean_best_score))
 
@@ -162,16 +161,14 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
             trials.append(self.manager.ask())
             config = self.config_space.sample(trials[-1])
             self.logger.info("[PROCESS] Current Config: %s", config)
-            rags.append(RAG.make(rag_config=config, prompt_config=self.prompt_config, inputs_chunks=self.chunks))
+            rags.append(
+                RAG.make(
+                    rag_config=config,
+                    prompt_config=self.prompt_config,
+                    inputs_chunks=[doc.text for doc in self.datasets["train"].corpus.values()],
+                ),
+            )
         return (rags, trials)
-
-    def _get_score(self, evaluation: dict[str, Metric]) -> float:
-        if self.metric_name is None:
-            raise ValueError
-        score = evaluation[self.metric_name].score
-        if score is None:
-            raise ValueError
-        return score
 
     def update_answers_scores(
         self,
@@ -197,9 +194,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
             if out.answer is not None:
                 answers[idx].append(out.answer)
             self.logger.debug("[INIT OPTIM] Candidate All Answers: %s", answers)
-            score_to_add = self._get_score(e)
-            if score_to_add is not None:
-                scores[idx].append(score_to_add)
+            scores[idx].append(e[self.optim_metric_name].score)
             self.logger.debug("[INIT OPTIM] Candidate All Scores: %s", scores)
         return answers, scores
 
@@ -227,28 +222,8 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self,
         answers: Sequence[str | None],
         scores: Sequence[float | None],
-    ) -> list[EvalSample]:
-        """Update the eval sample answer and scores references.
-
-        :param answers: The list of answers to populate the answer reference of the eval samples.
-        :type answers: list[Optional[str]],
-        :param scores: The list of scores to populate the reference score of the eval samples.
-        :type scores: list[Optional[float]]
-        :return: The list of populated Sample instances.
-        :rtype: list[Sample]
-        """
-        for sample, answer, score in zip(self.dataset.samples, answers, scores, strict=False):
-            sample.reference_answer = answer
-            sample.reference_score = score
-        return self.dataset.samples
-
-    def check_update_eval_sample_reference(
-        self,
-        answers: Sequence[str | None],
-        scores: Sequence[float | None],
-        score: float,
-        trial: optuna.Trial,
-    ) -> list[EvalSample]:
+        score: Optional[float] = None,
+    ) -> None:
         """Check and update the eval sample answer and scores references if current candidate is better.
 
         :param answers: The list of answers to populate the answer reference of the eval samples.
@@ -257,21 +232,19 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :type scores: list[Optional[float]]
         :param score: The current score
         :type score: float
-        :param trial: The RAG config to test.
-        :type trial: optuna.Trial
-        :return: The list of populated Sample instances.
-        :rtype: list[Sample]
         """
-        if (score > self.manager.best_trial.values[0]) and (trial.number > 0.0):
-            self.update_eval_sample_reference(answers, scores)
-            self.logger.debug("[PROCESS] Eval Sample Update: %s", self.dataset.samples)
-        return self.dataset.samples
+        if score is None or (score > self.manager.best_trial.values[0]):
+            for idx, (answer, s) in enumerate(zip(answers, scores, strict=False)):
+                self.datasets["train"].samples[idx].reference_answer = answer
+                self.datasets["train"].samples[idx].reference_score = s
+            self.logger.debug("[PROCESS] Eval Sample Update: %s", self.datasets["train"].samples)
 
     def get_current_score_answer(
         self,
+        evaluator: BaseEvaluator,
         eval_sample: EvalSample,
         rag_candidate: RAG,
-    ) -> tuple[str, float]:
+    ) -> tuple[str, dict[str, Metric]]:
         """Get the current score and answer.
 
         :param eval_sample: The dataset for the evaluation.
@@ -285,64 +258,51 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
         if eval_sample.context is not None:
             candidate = rag_candidate.get_rag_output(eval_sample.query)
-            answer = candidate.answer
-            evaluation = self.evaluator.evaluate(candidate, eval_sample)
+            evaluation = evaluator.evaluate(candidate, eval_sample)
             self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
-            score_eval = self._get_score(evaluation)
-            if (score_eval is not None) and (answer is not None):
-                return answer, score_eval
+            if candidate.answer is not None:
+                return candidate.answer, evaluation
         msg_error = "None values found."
         raise ValueError(msg_error)
 
-    def objective(self, trial: optuna.Trial, eval_mode: EvalMode = EvalMode.TRAIN) -> float:
-        """Objective function for Optuna to optimize.
-
-        :param trial: The RAG config to test.
-        :type trial: optuna.Trial
-        :return: The mean score.
-        :rtype: float
-        """
-        self.prepare_evaluation_prompt()
-        config = self.config_space.sample(trial)
-        rag_candidate = RAG.make(rag_config=config, prompt_config=self.prompt_config, inputs_chunks=self.chunks)
+    def _eval_trial(
+        self,
+        trial: optuna.trial.BaseTrial,
+        dataset: RAGDataset,
+        evaluator: BaseEvaluator,
+        eval_mode: EvalMode = EvalMode.TRAIN,
+    ) -> float | dict[str, Metric]:
+        rag_candidate = self.sample_rag(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
-
         if trial.number > 0:
             self.logger.info(
                 "[PROCESS] Best is trial %s",
                 self.manager.best_trial.number,
             )
             self.logger.info("[PROCESS] Best Value: %s", self.manager.best_trial.values)
-        self.logger.info("[PROCESS] Current Config: %s", config)
-        score = 0.0
-        score_list = []
+        trial_eval: dict[str, Metric] = {}
+        score_list: list[float] = []
         answer_list = []
-        for n, test_sample in enumerate(self.dataset.samples):
+        for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration %s", n)
-            answer_eval, score_eval = self.get_current_score_answer(test_sample, rag_candidate)
-            answer_list.append(answer_eval)
-            score_list.append(score_eval)
+            answer_eval, single_eval = self.get_current_score_answer(evaluator, test_sample, rag_candidate)
             if eval_mode == EvalMode.TRAIN:
-                trial.report(score_eval, n)
-            score = self.evaluator.update_avg_score(score, score_eval, n)
-            if eval_mode == EvalMode.TRAIN and trial.should_prune():
+                single_score = single_eval[self.optim_metric_name].score
+                answer_list.append(answer_eval)
+                score_list.append(single_score)
+                trial.report(single_score, n)
+            trial_eval = {
+                name: Metric(evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
+                for name, metric in single_eval.items()
+            }
+            if self._should_prune(trial, trial_eval[self.optim_metric_name].score, eval_mode):
+                score = trial_eval[self.optim_metric_name].score
                 self.logger.debug("[PROCESS] Pruning... return mean score: %s", score)
-                self.check_update_eval_sample_reference(answer_list, score_list, score, trial)
                 gc.collect()
                 return score
             self.logger.debug("[PROCESS] Mean score: %s", score)
         if eval_mode == EvalMode.TRAIN:
-            self.check_update_eval_sample_reference(answer_list, score_list, score, trial)
+            score = trial_eval[self.optim_metric_name].score
+            self.update_eval_sample_reference(answer_list, score_list, score)
         gc.collect()
-        return score
-
-    def prepare_evaluation_prompt(self, eval_mode: EvalMode = EvalMode.TRAIN) -> None:
-        """Set the the eval prompt corresponding to the eval_mode.
-
-        :param eval_mode: Mode of the evaluation, defaults to EvalMode.TRAIN
-        :type eval_mode: EvalMode, optional
-        """
-        if eval_mode is EvalMode.TRAIN:
-            self.evaluator.eval_prompt = self.train_prompt
-        else:
-            self.evaluator.eval_prompt = self.test_prompt
+        return trial_eval if eval_mode == EvalMode.TEST else trial_eval[self.optim_metric_name].score

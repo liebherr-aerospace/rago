@@ -62,13 +62,13 @@ def test_relevancy_pairwise_score_equal_individual_score() -> None:
         [Document("Thomas is 12."), Document("Thomas was born 12 years ago.")],
     )
 
-    output_1 = RAGOutput(retrieved_context=[RetrievedContext("Thomas is 12.")])
-    output_2 = RAGOutput(retrieved_context=[RetrievedContext("Thomas is 13.")])
+    outputs = [
+        RAGOutput(retrieved_context=[RetrievedContext("Thomas is 12.")]),
+        RAGOutput(retrieved_context=[RetrievedContext("Thomas is 13.")]),
+    ]
 
-    eval_result_1 = evaluator.evaluate(output_1, eval_sample)
-    eval_result_2 = evaluator.evaluate(output_2, eval_sample)
+    results = [evaluator.evaluate(o, eval_sample) for o in outputs]
 
-    pairwise_eval_result_1, pairwise_eval_result_2 = evaluator.evaluate_pairwise(output_1, output_2, eval_sample)
-
-    assert eval_result_1["relevancy"].score == pairwise_eval_result_1["relevancy"].score
-    assert eval_result_2["relevancy"].score == pairwise_eval_result_2["relevancy"].score
+    n_wise_results = evaluator.evaluate_n_wise(outputs, eval_sample)
+    assert len(results) == len(n_wise_results)
+    assert all(r["relevancy"].score == n_r["relevancy"].score for r, n_r in zip(results, n_wise_results, strict=False))

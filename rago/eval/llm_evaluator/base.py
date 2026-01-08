@@ -154,6 +154,8 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         )
         evaluation = self.judge.query(eval_prompt)
         scores = self.get_pairwise_evaluation_result_from_evaluation(evaluation, num_candidates)
+        if len(scores) != num_candidates:
+            raise JudgeError(evaluation)
         inverse_shuffle_mapping = {shuffled_ids[i]: i for i in range(num_candidates)}
         aligned_scores = [scores[inverse_shuffle_mapping[idx]] for idx in range(num_candidates)]
         return aligned_scores
@@ -218,13 +220,14 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         source_context_prompt = self.get_filled_source_context_prompt(source_context_content)
         prompt = self.pairwise_eval_prompt.get_filled_prompt(
             **{
-                f"candidate_answer_{idx}": cand_out.answer
+                f"candidate_answer_{idx + 1}": cand_out.answer
                 for idx, cand_out in enumerate(candidates_outputs)
                 if cand_out.answer is not None
             },
             query=eval_sample.query,
             source_context_prompt=source_context_prompt,
         )
+
         return prompt
 
     def get_evaluation_result_from_evaluation(self, evaluation: str) -> dict[str, Metric]:
