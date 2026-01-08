@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Literal, Optional, overload
+from typing import TYPE_CHECKING, Literal, Optional, Self, overload
 
 import optuna
 from pydantic.dataclasses import dataclass
@@ -125,7 +125,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         params: Optional[OptimParams] = None,
         seed_data: SeedDataType,
         dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
-        splits: tuple[int, int],
+        splits: tuple[float, float],
         optim_evaluator: EvaluatorType,
         optim_metric_name: str,
         test_evaluators: list[BaseEvaluator],
@@ -133,7 +133,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
-    ) -> BaseOptunaManager:
+    ) -> Self:
         """Initialize the Simple Direct Optimization Manager from seed data to generate dataset.
 
         :param params: Parameters of the optimization, defaults to None.
