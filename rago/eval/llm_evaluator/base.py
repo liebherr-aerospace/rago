@@ -322,7 +322,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
     @classmethod
     def make(
         cls,
-        config: LLMEvaluatorConfig,
+        config: Optional[LLMEvaluatorConfig] = None,
     ) -> BaseLLMEvaluator:
         """Build method to create an instance of a LLM Evaluator.
 
@@ -331,6 +331,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         :return: LLM Evaluator
         :rtype: BaseLLMEvaluator
         """
+        config = config if config is not None else LLMEvaluatorConfig()
         llm = LLMAgentFactory.make(config.judge) if config.judge is not None else LangchainLLMAgent.make_from_backend()
         return cls(
             judge=llm,

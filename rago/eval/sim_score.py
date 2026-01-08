@@ -8,18 +8,18 @@ from sentence_transformers import SentenceTransformer
 
 from rago.data_objects import EvalSample, Metric, RAGOutput
 
-from .base import BaseEvaluator, register_evaluator
+from .base import BaseIndependentEvaluator, register_evaluator
 
 
 @register_evaluator("similarity")
-class SimilarityScore(BaseEvaluator[RAGOutput]):
+class SimilarityScore(BaseIndependentEvaluator[RAGOutput]):
     """Defines a evaluator that evaluates the similarity between generated answer and reference answer."""
 
     metrics: ClassVar[list[str]] = ["similarity"]
 
     def __init__(
         self,
-        model_name: str,
+        model_name: str = "Qwen/Qwen3-Embedding-0.6B",
     ) -> None:
         """Create an instance of the SimilarityScore class.
 

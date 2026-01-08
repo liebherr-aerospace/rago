@@ -7,7 +7,7 @@ import urllib3
 from optuna.samplers import TPESampler
 
 from rago.dataset import QADatasetLoader, RAGDataset
-from rago.eval import BertScore
+from rago.eval import BertScore, SimilarityScore, SimpleLLMEvaluator
 from rago.experiment.base import Experiment
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.llm_config_space import OllamaLLMConfigSpace
@@ -35,6 +35,7 @@ class OptimExperiment(Experiment):
             QADatasetLoader.load_dataset(RAGDataset, "crag"),
         ).split_dataset([0.1, 0.9], split_names=["train", "valid"], seed=0)
         self.evaluator = BertScore()
+        self.test_evaluators = [self.evaluator, SimilarityScore(), SimpleLLMEvaluator.make()]
         config_space = RAGConfigSpace(
             retriever_space=RetrieverConfigSpace(
                 retriever_type_name=CategoricalParamSpace(choices=["VectorIndexRetriever", "BM25Retriever"]),
@@ -49,13 +50,14 @@ class OptimExperiment(Experiment):
         )
         self.optimizer = SimpleDirectOptunaManager(
             params=params,
-            dataset=self.datasets_dict["train"],
-            evaluator=self.evaluator,
-            metric_name="bert_score_f1",
+            datasets=self.datasets_dict,
+            optim_evaluator=self.evaluator,
+            optim_metric_name="bert_score_f1",
+            test_evaluators=self.test_evaluators,
             config_space=config_space,
             sampler=sampler,
         )
-        self.optimizer.optimize()
+        self.optimizer.run_experiment()
 
 
 def main() -> None:
