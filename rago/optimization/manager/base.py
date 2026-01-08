@@ -59,7 +59,7 @@ class OptimParams:
     experiment_name: str = "experiment_001"
     log_to_file: bool = True
     n_startup_trials: int = 50
-    n_iter: int | None = None
+    n_iter: Optional[int] = None
     show_progress_bar: bool = True
 
 
@@ -118,9 +118,9 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
     def from_seed_data(
         cls,
         *,
-        params: OptimParams | None = None,
+        params: Optional[OptimParams] = None,
         seed_data: SeedDataType,
-        dataset_generator_config: DatasetGeneratorConfig | None = None,
+        dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
         evaluator: EvaluatorType,
         metric_name: str,
         config_space: Optional[RAGConfigSpace] = None,
@@ -164,7 +164,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
     def get_dataset(
         cls,
         seed_data: Optional[SeedDataType] = None,
-        dataset_generator_config: DatasetGeneratorConfig | None = None,
+        dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
     ) -> RAGDataset:
         """Get the dataset to use for optimization.
 

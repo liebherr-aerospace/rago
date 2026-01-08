@@ -6,7 +6,7 @@ import copy
 import os
 import random
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, Self, TypeVar
+from typing import TYPE_CHECKING, Any, Optional, Self, TypeVar
 
 from pydantic.dataclasses import dataclass
 
@@ -37,9 +37,9 @@ class QADataset(DataObject):
     @classmethod
     def load_dataset(
         cls,
-        name: str | None = None,
-        dataset_path: str | None = None,
-        cache_dir: str | None = None,
+        name: Optional[str] = None,
+        dataset_path: Optional[str] = None,
+        cache_dir: Optional[str] = None,
     ) -> Self | dict[str, Self]:
         """Load a dataset, either from cache or by processing raw data.
 
@@ -160,7 +160,7 @@ class QADataset(DataObject):
         """
         self.samples += samples
 
-    def sample(self, size: float, seed: int | None = None, **kwargs: Any) -> QADataset:  # noqa: ARG002, ANN401
+    def sample(self, size: float, seed: Optional[int] = None, **kwargs: Any) -> QADataset:  # noqa: ARG002, ANN401
         """Return a sampled subset of the dataset.
 
         :param size: Fraction or number of samples to select.
@@ -212,7 +212,7 @@ class QADataset(DataObject):
     def _split_samples(
         self,
         splits: Sequence[float],
-        split_names: list[str] | None = None,
+        split_names: Optional[list[str]] = None,
     ) -> dict[str, list[EvalSample]]:
         split_names = QADataset.get_default_split_names(splits) if split_names is None else split_names
         samples_splits: dict[str, list[EvalSample]] = {}
@@ -227,8 +227,8 @@ class QADataset(DataObject):
     def split_dataset(
         self,
         splits: Sequence[float],
-        split_names: list[str] | None = None,
-        seed: int | None = None,
+        split_names: Optional[list[str]] = None,
+        seed: Optional[int] = None,
     ) -> dict[str, Self]:
         """Split dataset into multiple parts.
 

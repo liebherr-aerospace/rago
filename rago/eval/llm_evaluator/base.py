@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import StrEnum
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import Field
 from pydantic.dataclasses import dataclass
@@ -26,7 +26,7 @@ class LLMEvaluatorConfig:
 
     min_score: float = 0
     max_score: float = 5
-    judge: LLMConfig | None = None
+    judge: Optional[LLMConfig] = None
 
 
 class PolicyOnError(StrEnum):
@@ -78,10 +78,10 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
 
     def __init__(
         self,
-        judge: LLMAgent | None = None,
+        judge: Optional[LLMAgent] = None,
         min_score: float = 0,
         max_score: float = 5,
-        eval_prompts: EvalPrompts | None = None,
+        eval_prompts: Optional[EvalPrompts] = None,
         policy_on_errors: PolicyOnError = PolicyOnError.MIN_SCORE,
     ) -> None:
         """Create an instance of the BaseLLMEvaluator class.

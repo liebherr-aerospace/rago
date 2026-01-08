@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, override
+from typing import TYPE_CHECKING, Optional, override
 
 from pydantic import Field
 from pydantic.dataclasses import dataclass
@@ -48,8 +48,8 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
         min_score: float,
         max_score: float,
         policy_on_errors: PolicyOnError,
-        eval_prompts: EvalPrompts | None = None,
-        eval_output_tags: EvalOutputTags | None = None,
+        eval_prompts: Optional[EvalPrompts] = None,
+        eval_output_tags: Optional[EvalOutputTags] = None,
     ) -> None:
         """Create a CoT LM evaluator to evaluate RAG outputs.
 
