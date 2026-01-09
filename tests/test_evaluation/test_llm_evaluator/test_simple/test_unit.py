@@ -167,11 +167,9 @@ def test_pairwise_evaluation_in_interval_scores_with_min_score_policy(lm: MagicM
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
     eval_sample = EvalSample(query="How old is thomas")
-    rag_output_1 = RAGOutput("Thomas is 12.")
-    rag_output_2 = RAGOutput("Thomas is 12.")
-    eval_result_1, eval_result_2 = evaluator.evaluate_pairwise(rag_output_1, rag_output_2, eval_sample)
-    assert eval_result_1["correctness"].score == 1
-    assert eval_result_2["correctness"].score == 1
+    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
+    assert all(e["correctness"].score == 1 for e in eval_results)
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -190,11 +188,9 @@ def test_pairwise_evaluation_out_interval_scores_with_min_score_policy(lm: Magic
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
     eval_sample = EvalSample(query="How old is thomas")
-    rag_output_1 = RAGOutput("Thomas is 12.")
-    rag_output_2 = RAGOutput("Thomas is 12.")
-    eval_result_1, eval_result_2 = evaluator.evaluate_pairwise(rag_output_1, rag_output_2, eval_sample)
-    assert eval_result_1["correctness"].score == 0
-    assert eval_result_2["correctness"].score == 0
+    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
+    assert [e["correctness"].score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -213,11 +209,9 @@ def test_pairwise_evaluation_float_scores_with_min_score_policy(lm: MagicMock) -
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
     eval_sample = EvalSample(query="How old is thomas")
-    rag_output_1 = RAGOutput("Thomas is 12.")
-    rag_output_2 = RAGOutput("Thomas is 12.")
-    eval_result_1, eval_result_2 = evaluator.evaluate_pairwise(rag_output_1, rag_output_2, eval_sample)
-    assert eval_result_1
-    assert eval_result_2["correctness"].score == 0
+    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
+    assert [e["correctness"].score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -236,11 +230,9 @@ def test_pairwise_evaluation_too_many_scores_with_min_score_policy(lm: MagicMock
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
     eval_sample = EvalSample(query="How old is thomas")
-    rag_output_1 = RAGOutput("Thomas is 12.")
-    rag_output_2 = RAGOutput("Thomas is 12.")
-    eval_result_1, eval_result_2 = evaluator.evaluate_pairwise(rag_output_1, rag_output_2, eval_sample)
-    assert eval_result_1["correctness"].score == 0
-    assert eval_result_2["correctness"].score == 0
+    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
+    assert [e["correctness"].score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -259,11 +251,9 @@ def test_pairwise_evaluation_not_enough_scores_with_min_score_policy(lm: MagicMo
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
     eval_sample = EvalSample(query="How old is thomas")
-    rag_output_1 = RAGOutput("Thomas is 12.")
-    rag_output_2 = RAGOutput("Thomas is 12.")
-    eval_result_1, eval_result_2 = evaluator.evaluate_pairwise(rag_output_1, rag_output_2, eval_sample)
-    assert eval_result_1["correctness"].score == 0
-    assert eval_result_2["correctness"].score == 0
+    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
+    assert [e["correctness"].score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -282,8 +272,6 @@ def test_pairwise_evaluation_too_many_score_with_min_score_policy(lm: MagicMock)
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
     eval_sample = EvalSample(query="How old is thomas")
-    rag_output_1 = RAGOutput("Thomas is 12.")
-    rag_output_2 = RAGOutput("Thomas is 12.")
-    eval_result_1, eval_result_2 = evaluator.evaluate_pairwise(rag_output_1, rag_output_2, eval_sample)
-    assert eval_result_1["correctness"].score == 0
-    assert eval_result_2["correctness"].score == 0
+    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
+    assert [e["correctness"].score == 0 for e in eval_results]

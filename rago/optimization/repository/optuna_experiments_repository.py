@@ -7,7 +7,10 @@ from pathlib import Path
 
 import optuna
 
-from rago.data_objects.rag_config import RAGConfig, RAGParam
+import rago.data_objects
+import rago.data_objects.rag_config
+import rago.model.wrapper.rag.base
+from rago.data_objects.rag_config import RAGParam
 
 
 class OptunaExperimentRepository:
@@ -75,7 +78,7 @@ class OptunaExperimentRepository:
         )
         return sorted_trials[:number]
 
-    def convert_trial_to_rag_config(self, trial: optuna.trial.FrozenTrial) -> RAGConfig:
+    def convert_trial_to_rag_config(self, trial: optuna.trial.FrozenTrial) -> rago.data_objects.rag_config.RAGConfig:
         """Convert an Optuna trial to a RAGConfig object.
 
         :param trial: The Optuna trial to convert.
@@ -84,4 +87,4 @@ class OptunaExperimentRepository:
         :rtype: RAGConfig
         """
         params = {RAGParam(name, value) for name, value in trial.params.items()}
-        return RAGConfig(params=params)
+        return rago.data_objects.rag_config.RAGConfig(params=params)

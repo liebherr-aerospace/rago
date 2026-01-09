@@ -2,7 +2,9 @@
 
 from pydantic.dataclasses import dataclass
 
+from rago.data_objects import DataObject
+
 
 @dataclass
-class Config:
+class Config(DataObject):
     """Configuration Parameters."""

@@ -71,6 +71,21 @@ Your evaluation must be a score between {min_score} and {max_score}.
 Only output the two scores on separate lines without comments before or after.
 Generate the score in the same order as the queries.
 """
+
+DEFAULT_REFERENCE_EVAL_PROMPT = """
+You need to evaluate the second answer to the following query:
+{query}
+{source_context_prompt}
+The candidate answer 1 is:
+{reference_answer}
+The candidate answer 2 is:
+{candidate_answer}
+The score of answer 1 is:
+{reference_score}
+You must evaluate answer 2.
+Your evaluation must be a score between {min_score} and {max_score}.
+Only output a score without comments before or after.
+"""
 ## CoT ##
 DEFAULT_EXPLANATION_TAG = """Reasoning:"""
 
@@ -98,9 +113,8 @@ Finally it is important to use the exact same template as it will be parsed auto
 """
 
 # Pairwise
-DEFAULT_SCORE_1_TAG = """Correctness answer 1:"""
+DEFAULT_SCORE_I_TAG_TEMPLATE = """Correctness answer {i}:"""
 
-DEFAULT_SCORE_2_TAG = """Correctness answer 2:"""
 
 DEFAULT_COT_PAIRWISE_EVAL_PROMPT = """
 You need to Evaluate two answers to the following query:
@@ -121,6 +135,32 @@ Use the following template to answer:
 Your reasoning here.
 {score_1_tag}
 A single digit score between for answer 1 between {min_score} and {max_score}.
+{score_2_tag}
+A single digit score between for answer 2 between {min_score} and {max_score}.
+It is important to only write a single digit in answers'score section without any comments.
+Both answers should always be scored.
+Finally it is important to use the exact same template as it will be parsed automatically.
+"""
+
+DEFAULT_COT_REFERENCE_EVAL_PROMPT = """
+You need to Evaluate two answers to the following query:
+{query}
+This question is ambiguous this means it has multiple interpretations.
+You need to evaluate out of all the answers to the different interpretations
+the amount that are correct in each answers.
+If the answer is out of scope or bad it should receive a bad score.
+{source_context_prompt}
+The candidate answer 1 is:
+{reference_answer}
+The candidate answer 2 is:
+{candidate_answer}
+The score of answer 1 is:
+{reference_score}
+Your evaluation must be a score between {min_score} and {max_score}.
+Give your reasoning before answering.
+Use the following template to answer:
+{explanation_tag}
+Your reasoning here.
 {score_2_tag}
 A single digit score between for answer 2 between {min_score} and {max_score}.
 It is important to only write a single digit in answers'score section without any comments.

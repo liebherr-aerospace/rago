@@ -1,7 +1,5 @@
 """Test the llm evaluator."""
 
-# ruff: noqa: D103, S101
-
 from rago.data_objects import Document, EvalSample, RAGOutput
 from rago.eval import PolicyOnError, SimpleLLMEvaluator
 from rago.model.wrapper.llm_agent.langchain import LangchainLLMAgent
@@ -35,10 +33,7 @@ def test_pairwise_evaluation_in_interval_scores_with_min_score_policy(langchain_
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
     eval_sample = EvalSample(query="How old is thomas")
-    rag_output_1 = RAGOutput("Thomas is 12.")
-    rag_output_2 = RAGOutput("Thomas is 13.")
-    eval_result_1, eval_result_2 = evaluator.evaluate_pairwise(rag_output_1, rag_output_2, eval_sample)
-    assert eval_result_1["correctness"].score is not None
-    assert eval_result_2["correctness"].score is not None
-    assert min_score <= eval_result_1["correctness"].score <= max_score
-    assert min_score <= eval_result_2["correctness"].score <= max_score
+    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 13.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
+    assert all(e["correctness"].score is not None for e in eval_results)
+    assert all(min_score <= e["correctness"].score <= max_score for e in eval_results)
