@@ -33,7 +33,7 @@ class OptimExperiment(Experiment):
         self.datasets_dict = cast(
             "RAGDataset",
             QADatasetLoader.load_dataset(RAGDataset, "crag"),
-        ).split_dataset([0.1, 0.9], split_names=["train", "valid"], seed=0)
+        ).split_dataset([0.1, 0.9], split_names=["train", "test"], seed=0)
         self.evaluator = BertScore()
         self.test_evaluators = [self.evaluator, SimilarityScore(), SimpleLLMEvaluator.make()]
         config_space = RAGConfigSpace(
