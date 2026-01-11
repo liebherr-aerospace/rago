@@ -39,7 +39,7 @@ class EvalMode(StrEnum):
     """Eval mode of the current evaluation."""
 
     TRAIN = "train"
-    TEST = "Test"
+    TEST = "test"
 
 
 @dataclass
