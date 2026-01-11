@@ -82,18 +82,18 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration: %s", n)
             single_eval = self.single_eval(evaluator, test_sample, rag)
-            if eval_mode == EvalMode.TRAIN:
-                trial.report(single_eval[self.optim_metric_name].score, n)
             trial_eval = {
                 metric_name: Metric(evaluator.update_avg_score(trial_eval[metric_name].score, metric.score, n))
                 for metric_name, metric in single_eval.items()
             }
-            if self._should_prune(trial, trial_eval[self.optim_metric_name].score, eval_mode):
-                score = trial_eval[self.optim_metric_name].score
-                self.logger.debug("[PROCESS] Pruning... return mean score: %s", score)
-                gc.collect()
-                return score
-            self.logger.debug("[PROCESS] Mean score for current iteration: %s", score)
-        self.logger.debug("[PROCESS] Final Mean score: %s", score)
+            if eval_mode == EvalMode.TRAIN:
+                score = single_eval[self.optim_metric_name].score
+                self.logger.debug("[PROCESS] Mean score for current iteration: %s", score)
+                trial.report(single_eval[self.optim_metric_name].score, n)
+                if self._should_prune(trial, score, eval_mode):
+                    score = trial_eval[self.optim_metric_name].score
+                    self.logger.debug("[PROCESS] Pruning... return mean score: %s", score)
+                    gc.collect()
+                    return score
         gc.collect()
         return trial_eval if eval_mode == EvalMode.TEST else trial_eval[self.optim_metric_name].score

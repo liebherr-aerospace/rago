@@ -286,21 +286,22 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration %s", n)
             answer_eval, single_eval = self.get_current_score_answer(evaluator, test_sample, rag_candidate)
+            trial_eval = {
+                name: Metric(evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
+                for name, metric in single_eval.items()
+            }
             if eval_mode == EvalMode.TRAIN:
                 single_score = single_eval[self.optim_metric_name].score
                 answer_list.append(answer_eval)
                 score_list.append(single_score)
                 trial.report(single_score, n)
-            trial_eval = {
-                name: Metric(evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
-                for name, metric in single_eval.items()
-            }
-            if self._should_prune(trial, trial_eval[self.optim_metric_name].score, eval_mode):
-                score = trial_eval[self.optim_metric_name].score
-                self.logger.debug("[PROCESS] Pruning... return mean score: %s", score)
-                gc.collect()
-                return score
-            self.logger.debug("[PROCESS] Mean score: %s", score)
+                self.logger.debug("[PROCESS] Mean score: %s", score)
+                if self._should_prune(trial, trial_eval[self.optim_metric_name].score, eval_mode):
+                    score = trial_eval[self.optim_metric_name].score
+                    self.logger.debug("[PROCESS] Pruning... return mean score: %s", score)
+                    gc.collect()
+                    return score
+            
         if eval_mode == EvalMode.TRAIN:
             score = trial_eval[self.optim_metric_name].score
             self.update_eval_sample_reference(answer_list, score_list, score)

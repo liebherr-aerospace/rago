@@ -280,8 +280,9 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         evaluator: EvaluatorType | BaseEvaluator,
         eval_mode: EvalMode = EvalMode.TRAIN,
     ) -> float | dict[str, Metric]: ...
+    
     def _should_prune(self, trial: optuna.Trial, score: float, eval_mode: EvalMode) -> bool:
-        return eval_mode == EvalMode.TRAIN and trial.should_prune() and score < self.manager.best_trial.value
+        return trial.should_prune() and score < self.manager.best_trial.value
 
     def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> RAG:
         """Sample RAG from trial.
