@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import gc
+from collections import defaultdict
 from typing import TYPE_CHECKING, Optional
 
 import numpy as np
@@ -280,7 +281,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
                 self.manager.best_trial.number,
             )
             self.logger.info("[PROCESS] Best Value: %s", self.manager.best_trial.values)
-        trial_eval: dict[str, Metric] = {}
+        trial_eval: dict[str, Metric] = defaultdict(Metric)
         score_list: list[float] = []
         answer_list = []
         for n, test_sample in enumerate(dataset.samples):

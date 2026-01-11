@@ -18,6 +18,6 @@ class Metric(DataObject):
     :type explanation: Optional[str]
     """
 
-    score: float
+    score: float  = Field(default = 0)
 
     explanation: Optional[str] = Field(default=None)

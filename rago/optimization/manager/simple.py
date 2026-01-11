@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import gc
 from typing import TYPE_CHECKING
+from collections import defaultdict
 
 if TYPE_CHECKING:
     import optuna
@@ -78,7 +79,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
                 self.manager.best_trial.number,
             )
             self.logger.info("[PROCESS] Best value: %s", self.manager.best_trial.values)
-        trial_eval: dict[str, Metric] = {}
+        trial_eval: dict[str, Metric] = defaultdict(Metric)
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration: %s", n)
             single_eval = self.single_eval(evaluator, test_sample, rag)
