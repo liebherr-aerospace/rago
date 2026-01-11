@@ -23,11 +23,12 @@ from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
-    from rago.data_objects import Metric, RAGOutput
+    from rago.data_objects import RAGOutput
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
-    from rago.model.wrapper.rag.base import RAGConfig
 
+from rago.data_objects import Metric
+from rago.model.wrapper.rag.base import RAGConfig
 from enum import StrEnum
 
 from rago.data_objects import DataObject
