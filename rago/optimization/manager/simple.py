@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import gc
-from typing import TYPE_CHECKING
 from collections import defaultdict
+from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
     import optuna
@@ -91,7 +91,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
                 score = single_eval[self.optim_metric_name].score
                 self.logger.debug("[PROCESS] Mean score for current iteration: %s", score)
                 trial.report(single_eval[self.optim_metric_name].score, n)
-                if self._should_prune(trial, score, eval_mode):
+                if self._should_prune(trial, score):
                     score = trial_eval[self.optim_metric_name].score
                     self.logger.debug("[PROCESS] Pruning... return mean score: %s", score)
                     gc.collect()

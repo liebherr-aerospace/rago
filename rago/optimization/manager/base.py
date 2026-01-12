@@ -27,12 +27,10 @@ if TYPE_CHECKING:
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
 
-from rago.data_objects import Metric
-from rago.model.wrapper.rag.base import RAGConfig
 from enum import StrEnum
 
-from rago.data_objects import DataObject
-from rago.model.wrapper.rag.base import RAG
+from rago.data_objects import DataObject, Metric
+from rago.model.wrapper.rag.base import RAG, RAGConfig
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
 
@@ -281,8 +279,8 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         evaluator: EvaluatorType | BaseEvaluator,
         eval_mode: EvalMode = EvalMode.TRAIN,
     ) -> float | dict[str, Metric]: ...
-    
-    def _should_prune(self, trial: optuna.Trial, score: float, eval_mode: EvalMode) -> bool:
+
+    def _should_prune(self, trial: optuna.Trial, score: float) -> bool:
         return trial.should_prune() and score < self.manager.best_trial.value
 
     def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> RAG:
