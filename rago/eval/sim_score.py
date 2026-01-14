@@ -1,9 +1,7 @@
 """Define a evaluator that evaluates the similarity between generated answer and reference answer."""
 
-from collections.abc import Sequence
 from typing import ClassVar
 
-import numpy as np
 from sentence_transformers import SentenceTransformer
 
 from rago.data_objects import EvalSample, Metric, RAGOutput
@@ -39,16 +37,12 @@ class SimilarityScore(BaseIndependentEvaluator[RAGOutput]):
         :rtype: EvalOutputType
         """
         predictions = self.get_predictions(candidate_output)
-        if eval_sample.reference_answer is None:
-            raise ValueError
         references = self.get_targets(eval_sample)
         embeddings_1 = self.model.encode(predictions, normalize_embeddings=True)
         embeddings_2 = self.model.encode(references, normalize_embeddings=True)
-        scores = (embeddings_1 * embeddings_2).sum(axis=1)
-
-        mean_scores = np.mean(scores).item()
+        score = (embeddings_1 * embeddings_2).sum().item()
         return {
-            "similarity": Metric(mean_scores),
+            "similarity": Metric(score),
         }
 
     def get_predictions(self, outputs: RAGOutput) -> list[str]:
@@ -63,7 +57,7 @@ class SimilarityScore(BaseIndependentEvaluator[RAGOutput]):
             raise ValueError
         return [outputs.answer]
 
-    def get_targets(self, eval_samples: EvalSample | Sequence[EvalSample]) -> list[str]:
+    def get_targets(self, eval_samples: EvalSample) -> list[str]:
         """Get the eval samples ref answer.
 
         :param eval_samples: _description_
@@ -72,10 +66,7 @@ class SimilarityScore(BaseIndependentEvaluator[RAGOutput]):
         :return: _description_
         :rtype: list[str]
         """
-        eval_samples = eval_samples if isinstance(eval_samples, Sequence) else [eval_samples]
-        references: list[str] = []
-        for sample in eval_samples:
-            if sample.reference_answer is None:
-                raise ValueError
-            references.append(sample.reference_answer)
-        return references
+        if eval_samples.reference_answer is None:
+            raise ValueError
+
+        return [eval_samples.reference_answer]

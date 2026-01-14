@@ -12,8 +12,10 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Literal, Optional, Self, overload
+from collections import defaultdict
+from typing import TYPE_CHECKING, Optional, Self
 
+import numpy as np
 import optuna
 from pydantic.dataclasses import dataclass
 
@@ -23,7 +25,7 @@ from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
-    from rago.data_objects import RAGOutput
+    from rago.data_objects import EvalSample, RAGOutput
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
 
@@ -42,12 +44,13 @@ class EvalMode(StrEnum):
 
 
 @dataclass
-class RAGCandidateResult(DataObject):
+class RAGCandidateEval(DataObject):
     """Performance and config of a rag on train and test set."""
 
     config: RAGConfig
     train_score: float
-    test_eval: dict[str, Metric]
+    mean_evals: dict[str, float]
+    full_evals: dict[str, list[float]]
 
 
 @dataclass
@@ -240,27 +243,12 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :rtype: optuna.Study:
         """
 
-    @overload
+    @abstractmethod
     def eval_trial(
         self,
         trial: optuna.trial.BaseTrial,
-        evaluator: BaseEvaluator,
-        eval_mode: Literal[EvalMode.TEST],
-    ) -> dict[str, Metric]: ...
-    @overload
-    def eval_trial(
-        self,
-        trial: optuna.trial.BaseTrial,
-        evaluator: EvaluatorType,
-        eval_mode: Literal[EvalMode.TRAIN] = EvalMode.TRAIN,
-    ) -> float: ...
-
-    def eval_trial(
-        self,
-        trial: optuna.trial.BaseTrial,
-        evaluator: EvaluatorType | BaseEvaluator,
-        eval_mode: EvalMode = EvalMode.TRAIN,
-    ) -> float | dict[str, Metric]:
+        dataset: RAGDataset,
+    ) -> float:
         """Evaluate a RAG config on the dataset made by dataset_generator.
 
         :param trial: the RAG config to test
@@ -268,17 +256,6 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :return: the dictionary containing the metrics
         :rtype: float
         """
-        dataset = self.datasets[eval_mode]
-        return self._eval_trial(trial, dataset, evaluator, eval_mode)
-
-    @abstractmethod
-    def _eval_trial(
-        self,
-        trial: optuna.trial.BaseTrial,
-        dataset: RAGDataset,
-        evaluator: EvaluatorType | BaseEvaluator,
-        eval_mode: EvalMode = EvalMode.TRAIN,
-    ) -> float | dict[str, Metric]: ...
 
     def _should_prune(self, trial: optuna.Trial, score: float) -> bool:
         return trial.should_prune() and score < self.manager.best_trial.value
@@ -329,7 +306,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         best_trials = self.get_n_best_trials(number)
         return [self.config_space.sample(trial) for trial in best_trials]
 
-    def run_experiment(self) -> tuple[optuna.Study, RAGCandidateResult]:
+    def run_experiment(self) -> tuple[optuna.Study, RAGCandidateEval]:
         """Carry out the optimization and test the result.
 
         :return: The optimization and best result evaluation.
@@ -339,22 +316,66 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         best_candidate_result = self.test()
         return self.manager, best_candidate_result
 
-    def test(self) -> RAGCandidateResult:
-        """Eval the best candidate of the optimization on the test set.
+    def single_eval(
+        self,
+        evaluator: BaseEvaluator,
+        eval_sample: EvalSample,
+        rag_candidate: RAG,
+    ) -> dict[str, Metric]:
+        """Calculate and return the current score.
+
+        :param evaluator: Evaluator used to evaluate output on sample.
+        :type evaluator: BaseEvaluator
+        :param eval_sample: The dataset for the evaluation.
+        :type eval_sample: EvalSample
+        :param rag_candidate: The RAG candidate.
+        :type rag_candidate: RAG
+        :return: The score of the current evaluation.
+        :rtype: float
+        :raise ValueError if the given context or the evaluation score is None.
+        """
+        self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
+        self.logger.debug("[PROCESS] Query: %s", eval_sample.query)
+        candidate = rag_candidate.get_rag_output(eval_sample.query)
+        evaluation = evaluator.evaluate(candidate, eval_sample)
+        self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
+        return evaluation
+
+    def test(self) -> RAGCandidateEval:
+        """Eval the best candidate of the optimization on the test set and save the result.
 
         :return: The config and score on train and test set.
-        :rtype: RAGCandidateResult
+        :rtype: RAGCandidateEval
         """
-        self.logger.info("[PROCESS] Evaluating best trial on test set...")
         best_trial = self.manager.best_trial
-        config = self.config_space.sample(best_trial)
-        test_results: dict[str, Metric] = {}
-        for evaluator in self.test_evaluators:
-            test_results = test_results | self.eval_trial(best_trial, evaluator=evaluator, eval_mode=EvalMode.TEST)
-        best_rag_results = RAGCandidateResult(
-            config=config,
-            train_score=best_trial.value,
-            test_eval=test_results,
-        )
+        best_rag_results = self.test_trial(best_trial)
         DataObject.save_to_json(best_rag_results, f"experiments/{self.params.experiment_name}/best_rag_results.json")
         return best_rag_results
+
+    def test_trial(self, trial: optuna.trial.FrozenTrial) -> RAGCandidateEval:
+        """Eval a trial on the test set.
+
+        :return: The config and scores on train and test set.
+        :rtype: RAGCandidateEval
+        """
+        self.logger.info("[PROCESS] Evaluating best trial on test set...")
+        test_dataset = self.datasets["test"]
+        config = self.config_space.sample(trial)
+        rag = RAG.make(
+            rag_config=config,
+            prompt_config=self.prompt_config,
+            inputs_chunks=[doc.text for doc in test_dataset.corpus.values()],
+        )
+        test_results: dict[str, list[float]] = defaultdict(list[float])
+        for evaluator in self.test_evaluators:
+            for test_sample in test_dataset.samples:
+                single_eval = self.single_eval(evaluator, test_sample, rag)
+                for metric_name, metric_value in single_eval.items():
+                    test_results[metric_name].append(metric_value.score)
+
+        return RAGCandidateEval(
+            config=config,
+            train_score=trial.value,
+            mean_evals={m_name: np.mean(values).item() for m_name, values in test_results.items()},
+            full_evals=test_results,
+        )

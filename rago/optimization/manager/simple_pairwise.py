@@ -26,7 +26,7 @@ from rago.data_objects import Metric
 from rago.eval import BaseLLMEvaluator, EvalPrompts, SimpleLLMEvaluator
 from rago.model.wrapper.llm_agent import LangchainLLMAgent
 from rago.model.wrapper.rag.base import RAG
-from rago.optimization.manager.base import BaseOptunaManager, EvalMode, OptimParams
+from rago.optimization.manager.base import BaseOptunaManager, OptimParams
 from rago.prompts import DEFAULT_REFERENCE_EVAL_PROMPT
 
 
@@ -100,7 +100,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self.logger.info("[PROCESS] Starting Optimization...")
         self.run_initial_trials()
         self.manager.optimize(
-            lambda trial: self._eval_trial(trial, self.datasets["train"], self.optim_evaluator),
+            lambda trial: self.eval_trial(trial, self.datasets["train"]),
             self.params.n_iter,
         )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
@@ -266,13 +266,18 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         msg_error = "None values found."
         raise ValueError(msg_error)
 
-    def _eval_trial(
+    def eval_trial(
         self,
         trial: optuna.trial.BaseTrial,
         dataset: RAGDataset,
-        evaluator: BaseEvaluator,
-        eval_mode: EvalMode = EvalMode.TRAIN,
-    ) -> float | dict[str, Metric]:
+    ) -> float:
+        """Evaluate a RAG config on the dataset made by dataset_generator.
+
+        :param trial: the RAG config to test
+        :type trial: optuna.trial.BaseTrial
+        :return: the dictionary containing the metrics
+        :rtype: float
+        """
         rag_candidate = self.sample_rag(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
         if trial.number > 0:
@@ -286,25 +291,26 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         answer_list = []
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration %s", n)
-            answer_eval, single_eval = self.get_current_score_answer(evaluator, test_sample, rag_candidate)
+            answer_eval, single_eval = self.get_current_score_answer(self.optim_evaluator, test_sample, rag_candidate)
             trial_eval = {
-                name: Metric(evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
+                name: Metric(self.optim_evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
                 for name, metric in single_eval.items()
             }
-            if eval_mode == EvalMode.TRAIN:
-                single_score = single_eval[self.optim_metric_name].score
-                answer_list.append(answer_eval)
-                score_list.append(single_score)
-                trial.report(single_score, n)
-                score = trial_eval[self.optim_metric_name].score
-                self.logger.debug("[PROCESS] Mean score: %s", score)
-                if self._should_prune(trial, score):
-                    self.logger.debug("[PROCESS] Pruning... return mean score: %s", score)
-                    gc.collect()
-                    return score
+            single_score = single_eval[self.optim_metric_name].score
+            answer_list.append(answer_eval)
+            score_list.append(single_score)
+            trial.report(single_score, n)
+            mean_score = trial_eval[self.optim_metric_name].score
+            self.logger.debug("[PROCESS] Mean score for current iteration: %s", mean_score)
+            if self._should_prune(trial, mean_score):
+                self.logger.debug("[PROCESS] Pruning...")
+                trial_scores = {m_name: m_value.score for m_name, m_value in trial_eval.items()}
+                trial.user_attrs = trial.user_attrs | trial_scores
+                gc.collect()
+                return mean_score
 
-        if eval_mode == EvalMode.TRAIN:
-            score = trial_eval[self.optim_metric_name].score
-            self.update_eval_sample_reference(answer_list, score_list, score)
+        trial_scores = {m_name: m_value.score for m_name, m_value in trial_eval.items()}
+        trial.user_attrs = trial.user_attrs | trial_scores
+        self.update_eval_sample_reference(answer_list, score_list, mean_score)
         gc.collect()
-        return trial_eval if eval_mode == EvalMode.TEST else trial_eval[self.optim_metric_name].score
+        return mean_score
