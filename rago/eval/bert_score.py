@@ -39,7 +39,7 @@ class BertScore(BaseIndependentEvaluator[RAGOutput]):
         references = self.get_targets(eval_samples)
         results = self.bert_metrics.compute(predictions=[predictions], references=[references], lang="en")
         results.pop("hashcode")
-        results = cast(dict[str, list[float]], results)
+        results = cast("dict[str, list[float]]", results)
         return self.get_evaluations(results)
 
     def get_predictions(self, outputs: RAGOutput) -> str:
@@ -73,7 +73,7 @@ class BertScore(BaseIndependentEvaluator[RAGOutput]):
         :return: The dictionary of metrics.
         :rtype: dict[str, Evaluation] | list[dict[str, Evaluation]]
         """
-        scores = cast(dict[str, list[float]], results)
+        scores = cast("dict[str, list[float]]", results)
         mean_scores = {
             "bert_score_" + metric_name: Metric(np.mean(metrics).item()) for metric_name, metrics in scores.items()
         }

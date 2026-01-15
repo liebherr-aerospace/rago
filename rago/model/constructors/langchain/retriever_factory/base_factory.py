@@ -96,7 +96,10 @@ class RetrieverFactory:
             encoder=encoder,
             similarity_function=config.similarity_function,
         )
-        vectorstore_from_client.add_documents(input_chunks)
+        batch_size = 5000
+        for i in range(0, len(input_chunks), batch_size):
+            batch = input_chunks[i:i + batch_size]
+            vectorstore_from_client.add_documents(batch)
         return vectorstore_from_client.as_retriever(search_type=config.search_type, search_kwargs=config.search_kwargs)
 
     @staticmethod

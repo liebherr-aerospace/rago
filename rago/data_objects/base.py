@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, TypeVar, overload
+from typing import TYPE_CHECKING, Any, ClassVar, Literal, Optional, Self, TypeVar, overload
 
 from pydantic.dataclasses import dataclass
 
@@ -118,21 +118,21 @@ class DataObject:
     def load_from_dict(
         cls: type[TypeDataObject],
         dict_content: dict[str, Any] | list[dict[str, Any]],
-        is_list: Literal[None] = None,
+        is_list: None = None,
     ) -> TypeDataObject | list[TypeDataObject]: ...
     @overload
     @classmethod
     def load_from_dict(
         cls: type[TypeDataObject],
         dict_content: dict[str, Any] | list[dict[str, Any]],
-        is_list: Optional[bool] = None,
+        is_list: Optional[bool] = None,  # noqa: FBT001
     ) -> TypeDataObject | list[TypeDataObject]: ...
     @classmethod
     def load_from_dict(
-        cls: type[TypeDataObject],
+        cls,
         dict_content: dict[str, Any] | list[dict[str, Any]],
-        is_list: Optional[bool] = None,
-    ) -> TypeDataObject | list[TypeDataObject]:
+        is_list: Optional[bool] = None,  # noqa: FBT001
+    ) -> Self | list[Self]:
         """Convert one or multiple dictionary dictionaries to one or multiple corresponding `DataObject` instances.
 
         :param cls: The class `DataObject` to convert the dictionaries to.
@@ -181,15 +181,15 @@ class DataObject:
     def load_from_json(
         cls: type[TypeDataObject],
         json_file_path: str,
-        is_list: Literal[None] = None,
+        is_list: None = None,
     ) -> TypeDataObject | list[TypeDataObject]: ...
 
     @classmethod
     def load_from_json(
-        cls: type[TypeDataObject],
+        cls,
         json_file_path: str,
-        is_list: Optional[bool] = None,
-    ) -> TypeDataObject | list[TypeDataObject]:
+        is_list: Optional[bool] = None,  # noqa: FBT001
+    ) -> Self | list[Self]:
         """Get one or many `DataObject` instances from a json file.
 
         :param cls: The `DataObject` class to convert the content of the json file to.

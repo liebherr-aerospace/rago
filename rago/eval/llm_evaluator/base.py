@@ -11,7 +11,6 @@ from pydantic.dataclasses import dataclass
 
 from rago.data_objects import EvalSample, Metric, PromptTemplate, RAGOutput
 from rago.eval.base import BaseDependentEvaluator
-from rago.eval.order import Order
 from rago.model.configs.llm_config.base import LLMConfig  # noqa: TC001
 from rago.model.wrapper.llm_agent import LangchainLLMAgent, LLMAgent
 from rago.model.wrapper.llm_agent.llm_agent_factory import LLMAgentFactory
@@ -132,36 +131,34 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         scores = self.get_evaluation_result_from_evaluation(evaluation)
         return scores
 
-    def evaluate_pairwise(
+    def evaluate_n_wise(
         self,
-        candidate_output_1: RAGOutput,
-        candidate_output_2: RAGOutput,
+        candidate_outputs: list[RAGOutput],
         eval_sample: EvalSample,
-    ) -> tuple[dict[str, Metric], dict[str, Metric]]:
-        """Evaluate the two candidate outputs using the eval_sample information by passing them to the judge LM.
+    ) -> list[dict[str, Metric]]:
+        """Evaluate the list of candidate outputs using the eval_sample information by passing them to the judge LM.
 
-        :param candidate_output_1: The first candidate output to evaluate.
-        :type candidate_output_1: RAGOutput
-        :param candidate_output_2: The second candidate output to evaluate.
-        :type candidate_output_2: RAGOutput
+        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
+        :type candidate_outputs: list[RAGOutput]
         :param eval_sample: The sample to evaluate the candidate answer on.
         :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for both outputs.
-        :rtype: dict[str, Metric]
+        :return: The evaluation results containing the eventual scores and explanations for each outputs.
+        :rtype: list[dict[str, Metric]]
         """
-        order = self.shuffle_answers()
-        if order == Order.REVERSED:
-            candidate_output_1, candidate_output_2 = candidate_output_2, candidate_output_1
-        eval_prompt = self.get_filled_pairwise_eval_prompt(
-            candidate_output_1=candidate_output_1,
-            candidate_output_2=candidate_output_2,
+        num_candidates = len(candidate_outputs)
+        shuffled_ids = self.shuffle_answers(num_candidates)
+        shuffled_candidates_outputs: list[RAGOutput] = [candidate_outputs[idx] for idx in shuffled_ids]
+        eval_prompt = self.get_filled_n_wise_eval_prompt(
+            candidates_outputs=shuffled_candidates_outputs,
             eval_sample=eval_sample,
         )
         evaluation = self.judge.query(eval_prompt)
-        score1, score2 = self.get_pairwise_evaluation_result_from_evaluation(evaluation)
-        if order == Order.REVERSED:
-            score1, score2 = score2, score1
-        return score1, score2
+        scores = self.get_pairwise_evaluation_result_from_evaluation(evaluation, num_candidates)
+        if len(scores) != num_candidates:
+            raise JudgeError(evaluation)
+        inverse_shuffle_mapping = {shuffled_ids[i]: i for i in range(num_candidates)}
+        aligned_scores = [scores[inverse_shuffle_mapping[idx]] for idx in range(num_candidates)]
+        return aligned_scores
 
     def get_filled_eval_prompt(self, candidate_output: RAGOutput, eval_sample: EvalSample) -> str:
         """Get the prompt used by the judge language model to evaluate the output filled with the necessary information.
@@ -186,7 +183,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         )
         return prompt
 
-    def get_filled_source_context_prompt(self, source_context: Optional[list[str]]) -> str:
+    def get_filled_source_context_prompt(self, source_context: list[str] | None) -> str:
         """Return the filled source context prompt with source context if source context is not None.
 
         If the source context is None return an empty string.
@@ -203,18 +200,15 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
             source_context_prompt = ""
         return source_context_prompt
 
-    def get_filled_pairwise_eval_prompt(
+    def get_filled_n_wise_eval_prompt(
         self,
-        candidate_output_1: RAGOutput,
-        candidate_output_2: RAGOutput,
+        candidates_outputs: list[RAGOutput],
         eval_sample: EvalSample,
     ) -> str:
         """Get the filled prompt used by the judge LM for pairwise evaluation.
 
-        :param candidate_output_1: The first RAG output evaluated.
-        :type candidate_output_1: RAGOutput
-        :param candidate_output_2: The second RAG output evaluated.
-        :type candidate_output_2: RAGOutput
+        :param candidate_output_1: The list of RAG outputs evaluated.
+        :type candidate_output_1: list[RAGOutput]
         :param eval_sample: The sample to evaluate the candidate answer on.
         :type eval_sample: EvalSample
         :return: The prompt with the place holders filled.
@@ -224,17 +218,16 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
             [context.text for context in eval_sample.context] if eval_sample.context is not None else None
         )
         source_context_prompt = self.get_filled_source_context_prompt(source_context_content)
-        if candidate_output_1.answer is None:
-            raise ValueError(candidate_output_1.answer)
-        if candidate_output_2.answer is None:
-            raise ValueError(candidate_output_2.answer)
-
         prompt = self.pairwise_eval_prompt.get_filled_prompt(
-            candidate_answer_1=candidate_output_1.answer,
-            candidate_answer_2=candidate_output_2.answer,
+            **{
+                f"candidate_answer_{idx + 1}": cand_out.answer
+                for idx, cand_out in enumerate(candidates_outputs)
+                if cand_out.answer is not None
+            },
             query=eval_sample.query,
             source_context_prompt=source_context_prompt,
         )
+
         return prompt
 
     def get_evaluation_result_from_evaluation(self, evaluation: str) -> dict[str, Metric]:
@@ -254,36 +247,39 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
     def get_pairwise_evaluation_result_from_evaluation(
         self,
         evaluation: str,
-    ) -> tuple[dict[str, Metric], dict[str, Metric]]:
+        num_candidates: int,
+    ) -> list[dict[str, Metric]]:
         """Get the evaluation results for both answers from the judge output's evaluation string.
 
         :param evaluation: The pairwise evaluation output string from the judge.
         :type evaluation: str
-        :return: The evaluation results of both answers.
-        :rtype: tuple[dict[str, Metric], dict[str, Metric]]
+        :param num_candidates: The number of candidates evaluated.
+        :type num_candidates: int
+        :return: The evaluation results of each candidate answers.
+        :rtype: list[dict[str, Metric]]
         """
         try:
-            score_1, score_2 = self.parse_pairwise_evaluation(evaluation)
+            scores = self.parse_n_wise_evaluation(evaluation, num_candidates)
         except (JudgeError, ValueError) as e:
             score = self.process_error(e, evaluation)
-            score_1 = score
-            score_2 = score
-
-        return score_1, score_2
+            scores = num_candidates * [score]
+        return scores
 
     @abstractmethod
-    def parse_pairwise_evaluation(self, evaluation: str) -> tuple[dict[str, Metric], dict[str, Metric]]:
-        """Parse the judge LM output evaluation string and return the results for both outputs.
+    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> list[dict[str, Metric]]:
+        """Parse the judge LM output evaluation string and return the results for each outputs.
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
         :type evaluation: str
+        :param expected_number_of_score: Expected number of score in the evaluation.
+        :type expected_number_of_score: int
         :raises JudgeError: The Judge did not respect the guidelines.
         This can be because:
             - the judge outputs a score outside allowed interval.
             - it does not follow evaluation template.
-        :raises ValueError: Any of the two scores' string in the evaluation can not be converted to a float.
-        :return: The evaluation results of both answers.
-        :rtype: tuple[dict[str, Metric], dict[str, Metric]]
+        :raises ValueError: Any of the scores' string in the evaluation can not be converted to a float.
+        :return: The evaluation results of each answers.
+        :rtype: list[dict[str, Metric]]
         """
 
     @abstractmethod
@@ -326,7 +322,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
     @classmethod
     def make(
         cls,
-        config: LLMEvaluatorConfig,
+        config: Optional[LLMEvaluatorConfig] = None,
     ) -> BaseLLMEvaluator:
         """Build method to create an instance of a LLM Evaluator.
 
@@ -335,6 +331,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         :return: LLM Evaluator
         :rtype: BaseLLMEvaluator
         """
+        config = config if config is not None else LLMEvaluatorConfig()
         llm = LLMAgentFactory.make(config.judge) if config.judge is not None else LangchainLLMAgent.make_from_backend()
         return cls(
             judge=llm,

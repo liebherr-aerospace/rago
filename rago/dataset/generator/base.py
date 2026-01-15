@@ -6,7 +6,7 @@ The Dataset is made of EvalSample. An EvalSample contains all the information ne
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING, Literal, Optional, TypeVar, overload
+from typing import TYPE_CHECKING, Optional, Self, TypeVar, overload
 
 from rago.dataset import QADataset, QADatasetLoader
 
@@ -77,7 +77,7 @@ class BaseDatasetGenerator[DataType, DatasetType: QADataset]:
     def generate_and_save_dataset(
         self,
         name: str,
-        dataset_path: Literal[None] = None,
+        dataset_path: None = None,
         cache_dir: Optional[str] = None,
         seed_data: Optional[DataType] = None,
     ) -> DatasetType: ...
@@ -85,9 +85,9 @@ class BaseDatasetGenerator[DataType, DatasetType: QADataset]:
     @overload
     def generate_and_save_dataset(
         self,
-        name: Literal[None],
+        name: None,
         dataset_path: str,
-        cache_dir: Literal[None],
+        cache_dir: None,
         seed_data: Optional[DataType] = None,
     ) -> DatasetType: ...
 
@@ -126,9 +126,9 @@ class BaseDatasetGenerator[DataType, DatasetType: QADataset]:
 
     @classmethod
     def make(
-        cls: type[DatasetGeneratorType],
+        cls,
         config: Optional[DatasetGeneratorConfig] = None,
-    ) -> DatasetGeneratorType:
+    ) -> Self:
         """Make a dataset Generator from its configuration parameters and repository.
 
         :param config: The configuration parameters of the dataset generator to make.

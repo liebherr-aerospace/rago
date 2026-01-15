@@ -31,31 +31,23 @@ class SequentialEvaluator(BaseEvaluator):
         }
         return result
 
-    def evaluate_pairwise(
+    def evaluate_n_wise(
         self,
-        candidate_output_1: RAGOutput,
-        candidate_output_2: RAGOutput,
+        candidate_outputs: list[RAGOutput],
         eval_sample: EvalSample,
-    ) -> tuple[dict[str, Metric], dict[str, Metric]]:
-        """Evaluate the two candidate outputs using the eval_sample information with all the evaluators.
+    ) -> list[dict[str, Metric]]:
+        """Evaluate the candidate outputs using the eval_sample information with all the evaluators.
 
-        :param candidate_output_1: The first candidate output to evaluate.
-        :type candidate_output_1: RagOutput
-        :param candidate_output_2: The second candidate output to evaluate.
-        :type candidate_output_2: RagOutput
+        :param candidate_output: The candidate outputs to evaluate.
+        :type candidate_output_1: list[RAGOutput]
         :param eval_sample: The sample to evaluate the candidate answer on.
         :type eval_sample: EvalSample
         :return: The evaluation results containing the eventual scores and explanations for both outputs.
-        :rtype: dict[str, Metric]
+        :rtype:  list[dict[str, Metric]]
         """
-        result_1 = {}
-        result_2 = {}
+        results: list[dict[str, Metric]] = [{} for _ in range(len(candidate_outputs))]
         for metric_name, metric in self.evaluators.items():
-            result_metric_1, result_metric_2 = metric.evaluate_pairwise(
-                candidate_output_1,
-                candidate_output_2,
-                eval_sample,
-            )
-            result_1[metric_name] = result_metric_1[metric_name]
-            result_2[metric_name] = result_metric_2[metric_name]
-        return result_1, result_2
+            results_metric = metric.evaluate_n_wise(candidate_outputs, eval_sample)
+            for idx in range(len(candidate_outputs)):
+                results[idx][metric_name] = results_metric[idx][metric_name]
+        return results
