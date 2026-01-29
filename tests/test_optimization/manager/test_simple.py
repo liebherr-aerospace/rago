@@ -56,13 +56,15 @@ def simple_manager(
     retriever_space = RetrieverConfigSpace()
     reader_space = LangchainReaderConfigSpace()
     rag_config_space = RAGConfigSpace(retriever_space=retriever_space, reader_space=reader_space)
-    simple_direct_manager = SimpleDirectOptunaManager(
+    simple_direct_manager = SimpleDirectOptunaManager.from_seed_data(
         params=params,
         config_space=rag_config_space,
-        dataset_generator_config=dataset_generator_config,
-        evaluator=evaluator,
-        metric_name="correctness",
+        optim_evaluator=evaluator,
+        optim_metric_name="correctness",
+        test_evaluators=[evaluator],
         seed_data=SEED_DATASET,
+        splits=(0.5, 0.5),
+        dataset_generator_config=dataset_generator_config,
         sampler=optuna.samplers.TPESampler(),
         pruner=optuna.pruners.MedianPruner(),
     )

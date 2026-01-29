@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-import random
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, TypeVar, Union
+from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+
+import numpy as np
 
 from rago.data_objects import DataObject, EvalSample, Metric
-from rago.eval.order import Order
 
 if TYPE_CHECKING:
     from collections.abc import Callable
@@ -102,22 +102,19 @@ class BaseEvaluator[OutputType: DataObject](ABC):
         """
 
     @abstractmethod
-    def evaluate_pairwise(
+    def evaluate_n_wise(
         self,
-        candidate_output_1: OutputType,
-        candidate_output_2: OutputType,
+        candidate_outputs: list[OutputType],
         eval_sample: EvalSample,
-    ) -> tuple[dict[str, Metric], dict[str, Metric]]:
-        """Compare and evaluate two candidate outputs using the eval_sample information.
+    ) -> list[dict[str, Metric]]:
+        """Compare and evaluate the list of candidate outputs using the eval_sample.
 
-        :param candidate_output_1: The first candidate output to evaluate.
-        :type candidate_output_1: OutputType
-        :param candidate_output_2: The second candidate output to evaluate.
-        :type candidate_output_2: OutputType
+        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
+        :type candidate_outputs: list[OutputType]
         :param eval_sample: The sample to evaluate the candidate output on.
         :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for both outputs.
-        :rtype: tuple[EvalOutputType, EvalOutputType]
+        :return: The evaluation results containing the eventual scores and explanations for each outputs.
+        :rtype: list[dict[str, Metric]]
         """
 
     @classmethod
@@ -140,35 +137,31 @@ class BaseEvaluator[OutputType: DataObject](ABC):
 class BaseIndependentEvaluator[OutputType: DataObject](BaseEvaluator[OutputType]):
     """Abstract Class for the evaluators that can not evaluate two answers at the same time."""
 
-    def evaluate_pairwise(
+    def evaluate_n_wise(
         self,
-        candidate_output_1: OutputType,
-        candidate_output_2: OutputType,
+        candidate_outputs: list[OutputType],
         eval_sample: EvalSample,
-    ) -> tuple[dict[str, Metric], dict[str, Metric]]:
-        """Compare and evaluate two candidate outputs using the eval_sample.
+    ) -> list[dict[str, Metric]]:
+        """Compare and evaluate the list of candidate outputs using the eval_sample.
 
-        :param candidate_output_1: The first candidate output to evaluate.
-        :type candidate_output_1: OutputType
-        :param candidate_output_2: The second candidate output to evaluate.
-        :type candidate_output_2: OutputType
+        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
+        :type candidate_outputs: list[OutputType]
         :param eval_sample: The sample to evaluate the candidate output on.
         :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for both outputs.
-        :rtype: tuple[EvalOutputType, EvalOutputType]
+        :return: The evaluation results containing the eventual scores and explanations for each outputs.
+        :rtype: list[dict[str, Metric]]
         """
-        results_candidate_answer_1 = self.evaluate(candidate_output_1, eval_sample)
-        results_candidate_answer_2 = self.evaluate(candidate_output_2, eval_sample)
-        return results_candidate_answer_1, results_candidate_answer_2
+        results_candidate_answer = [self.evaluate(out, eval_sample) for out in candidate_outputs]
+        return results_candidate_answer
 
 
 class BaseDependentEvaluator[OutputType: DataObject](BaseEvaluator[OutputType]):
     """Abstract class for evaluators that produce different results when the outputs are evaluated pairwise."""
 
-    def shuffle_answers(self) -> Order:
+    def shuffle_answers(self, num_answers: int) -> list[int]:
         """Decide whether the answers should be shuffled before being given to the LLM.
 
         :return: Enum indicating whether the answer should be shuffled
         :rtype: Order
         """
-        return Order(value=random.choice(list(Order.__members__.values())))
+        return cast("list[int]", np.random.permutation(num_answers).tolist())  # noqa: NPY002

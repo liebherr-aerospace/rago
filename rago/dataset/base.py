@@ -36,11 +36,11 @@ class QADataset(DataObject):
 
     @classmethod
     def load_dataset(
-        cls: type[DatasetType],
+        cls,
         name: Optional[str] = None,
         dataset_path: Optional[str] = None,
         cache_dir: Optional[str] = None,
-    ) -> DatasetType | dict[str, DatasetType]:
+    ) -> Self | dict[str, Self]:
         """Load a dataset, either from cache or by processing raw data.
 
         :param name: Dataset name, defaults to None.
@@ -52,15 +52,15 @@ class QADataset(DataObject):
         :return: Loaded dataset or a dict of split datasets.
         :rtype: DatasetType | dict[str, DatasetType]
         """
-        from .dataloader import QADatasetLoader
+        from .dataloader import QADatasetLoader  # noqa: PLC0415
 
         return QADatasetLoader.load_dataset(cls, name, dataset_path, cache_dir)
 
     @classmethod
     def get_dataset_dict(
-        cls: type[DatasetType],
+        cls,
         path_dataset: str,
-    ) -> dict[str, DatasetType]:
+    ) -> dict[str, Self]:
         """Load multiple dataset splits from a directory.
 
         :param path_dataset: Path containing split datasets.
@@ -68,10 +68,10 @@ class QADataset(DataObject):
         :return: Mapping of split name to dataset.
         :rtype: dict[str, DatasetType]
         """
-        dataset_dict: dict[str, DatasetType] = {}
-        for split_name in os.listdir(path_dataset):
+        dataset_dict: dict[str, Self] = {}
+        for split_name in Path(path_dataset).iterdir():
             split_path = str(Path(path_dataset, split_name))
-            dataset_dict[split_name.replace(".json", "")] = cls.load_from_json(split_path, is_list=False)
+            dataset_dict[str(split_name).replace(".json", "")] = cls.load_from_json(split_path, is_list=False)
         return dataset_dict
 
     @classmethod
@@ -87,8 +87,8 @@ class QADataset(DataObject):
 
     @classmethod
     def save_to_disk(
-        cls: type[DatasetType],
-        processed_data: DatasetType | dict[str, DatasetType],
+        cls,
+        processed_data: Self | dict[str, Self],
         path_dataset: str,
     ) -> None:
         """Save processed dataset to disk.
@@ -109,8 +109,8 @@ class QADataset(DataObject):
 
     @classmethod
     def _save_dataset_dict_to_disk(
-        cls: type[DatasetType],
-        processed_data_dict: dict[str, DatasetType],
+        cls,
+        processed_data_dict: dict[str, Self],
         path_dataset: str,
     ) -> None:
         """Save dataset dictionary to disk.
@@ -249,7 +249,7 @@ class QADataset(DataObject):
         }
         return dataset_splits
 
-    def map_samples(self: DatasetType, map_function: Callable[[EvalSample], EvalSample]) -> DatasetType:
+    def map_samples(self, map_function: Callable[[EvalSample], EvalSample]) -> Self:
         """Apply `map_function` to all the the samples in the dataset and return the modified dataset.
 
         :param self: The source dataset.
