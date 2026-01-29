@@ -6,7 +6,7 @@ from typing import cast
 import urllib3
 from optuna.samplers import TPESampler
 
-from rago.dataset import QADatasetLoader, RAGDataset
+from rago.dataset import RAGDataset
 from rago.eval import BertScore, SimilarityScore, SimpleLLMEvaluator
 from rago.experiment.base import Experiment
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
@@ -30,10 +30,8 @@ class OptimExperiment(Experiment):
             n_iter=1000,
         )
         sampler = TPESampler(n_startup_trials=params.n_startup_trials)
-        self.datasets_dict = cast(
-            "RAGDataset",
-            QADatasetLoader.load_dataset(RAGDataset, "crag"),
-        ).split_dataset([0.1, 0.9], split_names=["train", "test"], seed=0)
+        crag_dataset = cast("RAGDataset", RAGDataset.load_dataset("crag"))
+        self.datasets_dict = crag_dataset.split_dataset([0.1, 0.9], split_names=["train", "test"], seed=0)
         self.evaluator = BertScore()
         self.test_evaluators = [self.evaluator, SimilarityScore(), SimpleLLMEvaluator.make()]
         config_space = RAGConfigSpace(

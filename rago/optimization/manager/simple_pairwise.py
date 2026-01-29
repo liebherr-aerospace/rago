@@ -280,7 +280,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         """
         rag_candidate = self.sample_rag(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
-        if trial.number > 0:
+        if len(self.manager.best_trials) > 0:
             self.logger.info(
                 "[PROCESS] Best is trial %s",
                 self.manager.best_trial.number,
@@ -304,8 +304,8 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
             self.logger.debug("[PROCESS] Mean score for current iteration: %s", mean_score)
             if self._should_prune(trial, mean_score):
                 self.logger.debug("[PROCESS] Pruning...")
-                trial_scores = {m_name: m_value.score for m_name, m_value in trial_eval.items()}
-                trial.user_attrs = trial.user_attrs | trial_scores
+                for m_name, m_value in trial_eval.items():
+                    trial.user_attrs = trial.set_user_attr(m_name, m_value.score)
                 gc.collect()
                 return mean_score
 

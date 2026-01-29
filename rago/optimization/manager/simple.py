@@ -51,7 +51,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         """
         rag = self.sample_rag(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
-        if trial.number > 0:
+        if len(self.manager.best_trials) > 0:
             self.logger.info(
                 "[PROCESS] Best is trial %s",
                 self.manager.best_trial.number,
@@ -71,9 +71,9 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
             self.logger.debug("[PROCESS] Mean score for current iteration: %s", mean_score)
             trial.report(single_eval[self.optim_metric_name].score, n)
             if self._should_prune(trial, mean_score):
-                trial_scores = {m_name: m_value.score for m_name, m_value in trial_eval.items()}
-                trial.user_attrs = trial.user_attrs | trial_scores
                 self.logger.debug("[PROCESS] Pruning...")
+                for m_name, m_value in trial_eval.items():
+                    trial.user_attrs = trial.set_user_attr(m_name, m_value.score)
                 gc.collect()
                 return mean_score
 
