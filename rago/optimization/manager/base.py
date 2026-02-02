@@ -258,7 +258,30 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         """
 
     def _should_prune(self, trial: optuna.Trial, score: float) -> bool:
+        """Determine if a trial should be pruned based on its current score.
+
+        A trial is pruned if Optuna's pruner suggests it AND the current score
+        is worse than the best trial's score.
+
+        :param trial: The trial to evaluate for pruning.
+        :type trial: optuna.Trial
+        :param score: The current score of the trial.
+        :type score: float
+        :return: True if the trial should be pruned, False otherwise.
+        :rtype: bool
+        """
         return trial.should_prune() and score < self.manager.best_trial.value
+
+    def _save_trial_metrics(self, trial: optuna.trial.BaseTrial, trial_eval: dict[str, Metric]) -> None:
+        """Save all metrics from trial evaluation as user attributes.
+
+        :param trial: The trial to save metrics to.
+        :type trial: optuna.trial.BaseTrial
+        :param trial_eval: Dictionary of metric names to Metric objects.
+        :type trial_eval: dict[str, Metric]
+        """
+        for m_name, m_value in trial_eval.items():
+            trial.set_user_attr(m_name, m_value.score)
 
     def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> RAG:
         """Sample RAG from trial.
