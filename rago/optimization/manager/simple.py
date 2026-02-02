@@ -72,12 +72,10 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
             trial.report(single_eval[self.optim_metric_name].score, n)
             if self._should_prune(trial, mean_score):
                 self.logger.debug("[PROCESS] Pruning...")
-                for m_name, m_value in trial_eval.items():
-                    trial.user_attrs = trial.set_user_attr(m_name, m_value.score)
+                self._save_trial_metrics(trial, trial_eval)
                 gc.collect()
                 return mean_score
 
         gc.collect()
-        trial_scores = {m_name: m_value.score for m_name, m_value in trial_eval.items()}
-        trial.user_attrs = trial.user_attrs | trial_scores
+        self._save_trial_metrics(trial, trial_eval)
         return mean_score
