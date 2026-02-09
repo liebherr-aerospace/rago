@@ -31,6 +31,7 @@ dependencies = [
     "numpy>=2.3.5",
     "pre-commit>=4.5.1",
     "ipykernel>=7.1.0",
+    "seaborn>=0.13.2",
 ]
 
 [tool.hatch.build.targets.wheel]
@@ -46,6 +47,12 @@ dev = [
     "mypy>=1.17.0",
     "pre-commit>=4.3.0",
     "ipykernel>=6.29.5",
+]
+docs = [
+    "mkdocs>=1.5.3",
+    "mkdocs-material>=9.5.0",
+    "mkdocstrings[python]>=0.24.0",
+    "pymdown-extensions>=10.7.0",
 ]
 
 [build-system]
