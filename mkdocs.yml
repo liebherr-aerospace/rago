@@ -3,6 +3,14 @@ site_description: Retrieval-Augmented Generation Optimization framework
 site_author: Liebherr Aerospace
 repo_name: liebherr-aerospace/rago
 repo_url: https://github.com/liebherr-aerospace/rago
+site_url: https://liebherr-aerospace.github.io/rago/
+docs_dir: docs
+site_dir: site
+
+# Exclude README from docs
+exclude_docs: |
+  README.md
+  /README.md
 
 theme:
   name: material
@@ -22,15 +30,20 @@ theme:
         icon: material/brightness-4
         name: Switch to light mode
   features:
-    - navigation.tabs
     - navigation.sections
     - navigation.expand
     - navigation.top
     - navigation.tracking
+    - navigation.indexes
+    - navigation.footer
+    - toc.follow
+    - toc.integrate
     - search.suggest
     - search.highlight
+    - search.share
     - content.code.copy
     - content.code.annotate
+    - content.tabs.link
   icon:
     repo: fontawesome/brands/github
 
@@ -71,10 +84,17 @@ nav:
       - Elasticsearch: installation/elasticsearch.md
       - Ollama: installation/ollama.md
   - Usage Guide:
-      - Dataset: usage_guide/dataset/
-      - Evaluation: usage_guide/evaluation/
-      - Optimization: usage_guide/optimization/
+      - Dataset:
+          - Data Loader: usage_guide/dataset/data_loader.md
+          - Generator: usage_guide/dataset/generator.md
+      - Evaluation:
+          - Evaluators: usage_guide/evaluation/evaluator.md
+          - Metrics: usage_guide/evaluation/metrics.md
+      - Optimization:
+          - Run Experiment: usage_guide/optimization/run_experiment.md
+          - TPE: usage_guide/optimization/tpe.md
       - RAG:
+          - Concepts: usage_guide/rag/rag_concepts.md
           - Configuration: usage_guide/rag/rag_configuration.md
           - Reader: usage_guide/rag/reader.md
           - Retriever: usage_guide/rag/retriever.md

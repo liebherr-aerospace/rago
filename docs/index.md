@@ -31,43 +31,29 @@ Welcome to the RAGO (Retrieval Augmented Generation Optimizer) documentation!
 
 ## 🎯 Quick Navigation
 
-<table>
-<tr>
-<td width="50%" valign="top">
-
 ### 🚀 Getting Started
+
 - **[Installation](installation/ollama.md)** - Setup & ollama configuration
 - **[Quick Start](usage_guide/optimization/run_experiment.md)** - Your first optimization
 
-</td>
-<td width="50%" valign="top">
-
 ### 📖 Core Documentation
+
 - **[RAG Concepts](usage_guide/rag/rag_concepts.md)** - Understanding RAG
 - **[RAG Configuration](usage_guide/rag/rag_configuration.md)** - Parameters & search space
 - **[Retriever](usage_guide/rag/retriever.md)** - Retrieval methods
 - **[Reader](usage_guide/rag/reader.md)** - Generation strategies
 
-</td>
-</tr>
-<tr>
-<td width="50%" valign="top">
-
 ### ⚙️ Optimization
+
 - **[Run Optimization](usage_guide/optimization/run_experiment.md)** - Optimization parameters and strategies
-- **[TPE Algorithm](usage_guide/optimization/tree_parzen_estimator.md)** - Bayesian optimization theory
+- **[TPE Algorithm](usage_guide/optimization/tpe.md)** - Bayesian optimization theory
 
-</td>
-<td width="50%" valign="top">
+### 🔧 Evaluation & Datasets
 
-### 🔧 Advanced
-- **[Dataset Loader & Format](usage_guide/dataset/data_loader.md)** - Dataset Loading and format
-- **[Dataset Generator](usage_guide/dataset/generator.md)** - Dataset Generators
-- **[Evaluation](usage_guide/evaluation/metrics.md)** - Metrics & evaluators
-
-</td>
-</tr>
-</table>
+- **[Evaluators](usage_guide/evaluation/evaluator.md)** - Evaluators overview (BertScore, SimilarityScore, LLM-as-Judge)
+- **[Metrics](usage_guide/evaluation/metrics.md)** - Evaluation metrics
+- **[Dataset Loader](usage_guide/dataset/data_loader.md)** - Dataset loading and format
+- **[Dataset Generator](usage_guide/dataset/generator.md)** - Dataset generators
 
 ---
 
