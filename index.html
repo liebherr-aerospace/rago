@@ -90,7 +90,9 @@
     
       
 
-<header class="md-header" data-md-component="header">
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
   <nav class="md-header__inner md-grid" aria-label="Header">
     <a href="." title="RAGO Documentation" class="md-header__button md-logo" aria-label="RAGO Documentation" data-md-component="logo">
       
@@ -169,6 +171,11 @@
       </label>
       <nav class="md-search__options" aria-label="Search">
         
+          <a href="javascript:void(0)" class="md-search__icon md-icon" title="Share" aria-label="Share" data-clipboard data-clipboard-text="" data-md-component="search-share" tabindex="-1">
+            
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M18 16.08c-.76 0-1.44.3-1.96.77L8.91 12.7c.05-.23.09-.46.09-.7s-.04-.47-.09-.7l7.05-4.11c.54.5 1.25.81 2.04.81a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3c0 .24.04.47.09.7L8.04 9.81C7.5 9.31 6.79 9 6 9a3 3 0 0 0-3 3 3 3 0 0 0 3 3c.79 0 1.5-.31 2.04-.81l7.12 4.15c-.05.21-.08.43-.08.66 0 1.61 1.31 2.91 2.92 2.91s2.92-1.3 2.92-2.91A2.92 2.92 0 0 0 18 16.08"/></svg>
+          </a>
+        
         <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
           
           <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
@@ -214,112 +221,6 @@
       
         
           
-            
-<nav class="md-tabs" aria-label="Tabs" data-md-component="tabs">
-  <div class="md-grid">
-    <ul class="md-tabs__list">
-      
-        
-  
-  
-  
-    
-  
-  
-    <li class="md-tabs__item md-tabs__item--active">
-      <a href="." class="md-tabs__link">
-        
-  
-  
-    
-  
-  Home
-
-      </a>
-    </li>
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="installation/elasticsearch/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Installation
-
-        </a>
-      </li>
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="usage_guide/dataset/data_loader/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Usage Guide
-
-        </a>
-      </li>
-    
-  
-
-    
-  
-
-      
-        
-  
-  
-  
-  
-    
-    
-      <li class="md-tabs__item">
-        <a href="code_architecture/overview/" class="md-tabs__link">
-          
-  
-  
-    
-  
-  Code Architecture
-
-        </a>
-      </li>
-    
-  
-
-      
-    </ul>
-  </div>
-</nav>
-          
         
       
       <main class="md-main" data-md-component="main">
@@ -333,10 +234,10 @@
                     
 
 
+
   
 
-
-<nav class="md-nav md-nav--primary md-nav--lifted" aria-label="Navigation" data-md-level="0">
+<nav class="md-nav md-nav--primary md-nav--integrated" aria-label="Navigation" data-md-level="0">
   <label class="md-nav__title" for="__drawer">
     <a href="." title="RAGO Documentation" class="md-nav__button md-logo" aria-label="RAGO Documentation" data-md-component="logo">
       
@@ -447,6 +348,56 @@
     </span>
   </a>
   
+    <nav class="md-nav" aria-label="🎯 Quick Navigation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#getting-started" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🚀 Getting Started
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#core-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        📖 Core Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#optimization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        ⚙️ Optimization
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#evaluation-datasets" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔧 Evaluation &amp; Datasets
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
 </li>
       
         <li class="md-nav__item">
@@ -535,12 +486,12 @@
     
     
       
-      
+        
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -549,7 +500,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_2" >
         
           
-          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
             
   
   
@@ -662,12 +613,12 @@
     
     
       
-      
+        
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -676,7 +627,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_3" >
         
           
-          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
             
   
   
@@ -721,9 +672,6 @@
     
     
     
-      
-      
-        
       
     
     
@@ -846,9 +794,6 @@
     
     
       
-      
-        
-      
     
     
     <li class="md-nav__item md-nav__item--nested">
@@ -969,9 +914,6 @@
     
     
     
-      
-      
-        
       
     
     
@@ -1097,9 +1039,6 @@
     
     
     
-      
-      
-        
       
     
     
@@ -1283,12 +1222,12 @@
     
     
       
-      
+        
         
       
     
     
-    <li class="md-nav__item md-nav__item--nested">
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
       
         
         
@@ -1297,7 +1236,7 @@
         <input class="md-nav__toggle md-toggle md-toggle--indeterminate" type="checkbox" id="__nav_4" >
         
           
-          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="0">
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
             
   
   
@@ -1368,115 +1307,6 @@
               </div>
             
             
-              
-              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
-                <div class="md-sidebar__scrollwrap">
-                  <div class="md-sidebar__inner">
-                    
-
-<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
-  
-  
-  
-    
-  
-  
-    <label class="md-nav__title" for="__toc">
-      <span class="md-nav__icon md-icon"></span>
-      Table of contents
-    </label>
-    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
-      
-        <li class="md-nav__item">
-  <a href="#documentation-structure" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        📚 Documentation Structure
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#quick-navigation" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🎯 Quick Navigation
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#core-concepts" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        🔬 Core Concepts
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#external-resources" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        📖 External Resources
-      
-    </span>
-  </a>
-  
-    <nav class="md-nav" aria-label="📖 External Resources">
-      <ul class="md-nav__list">
-        
-          <li class="md-nav__item">
-  <a href="#research-papers" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Research Papers
-      
-    </span>
-  </a>
-  
-</li>
-        
-          <li class="md-nav__item">
-  <a href="#related-projects" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Related Projects
-      
-    </span>
-  </a>
-  
-</li>
-        
-      </ul>
-    </nav>
-  
-</li>
-      
-        <li class="md-nav__item">
-  <a href="#need-help" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        💡 Need Help?
-      
-    </span>
-  </a>
-  
-</li>
-      
-    </ul>
-  
-</nav>
-                  </div>
-                </div>
-              </div>
-            
           
           
             <div class="md-content" data-md-component="content">
@@ -1516,46 +1346,30 @@
 </span></code></pre></div>
 <hr />
 <h2 id="quick-navigation">🎯 Quick Navigation<a class="headerlink" href="#quick-navigation" title="Permanent link">&para;</a></h2>
-<div class="grid cards">
+<h3 id="getting-started">🚀 Getting Started<a class="headerlink" href="#getting-started" title="Permanent link">&para;</a></h3>
 <ul>
-<li>
-<p>:rocket: <strong>Getting Started</strong></p>
-<hr />
+<li><strong><a href="installation/ollama/">Installation</a></strong> - Setup &amp; ollama configuration</li>
+<li><strong><a href="usage_guide/optimization/run_experiment/">Quick Start</a></strong> - Your first optimization</li>
+</ul>
+<h3 id="core-documentation">📖 Core Documentation<a class="headerlink" href="#core-documentation" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="installation/ollama/">Installation</a> - Setup &amp; ollama configuration</li>
-<li><a href="usage_guide/optimization/run_experiment/">Quick Start</a> - Your first optimization</li>
+<li><strong><a href="usage_guide/rag/rag_concepts/">RAG Concepts</a></strong> - Understanding RAG</li>
+<li><strong><a href="usage_guide/rag/rag_configuration/">RAG Configuration</a></strong> - Parameters &amp; search space</li>
+<li><strong><a href="usage_guide/rag/retriever/">Retriever</a></strong> - Retrieval methods</li>
+<li><strong><a href="usage_guide/rag/reader/">Reader</a></strong> - Generation strategies</li>
 </ul>
-</li>
-<li>
-<p>:books: <strong>Core Documentation</strong></p>
-<hr />
+<h3 id="optimization">⚙️ Optimization<a class="headerlink" href="#optimization" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="usage_guide/rag/rag_concepts/">RAG Concepts</a> - Understanding RAG</li>
-<li><a href="usage_guide/rag/rag_configuration/">RAG Configuration</a> - Parameters &amp; search space</li>
-<li><a href="usage_guide/rag/retriever/">Retriever</a> - Retrieval methods</li>
-<li><a href="usage_guide/rag/reader/">Reader</a> - Generation strategies</li>
+<li><strong><a href="usage_guide/optimization/run_experiment/">Run Optimization</a></strong> - Optimization parameters and strategies</li>
+<li><strong><a href="usage_guide/optimization/tpe/">TPE Algorithm</a></strong> - Bayesian optimization theory</li>
 </ul>
-</li>
-<li>
-<p>:gear: <strong>Optimization</strong></p>
-<hr />
+<h3 id="evaluation-datasets">🔧 Evaluation &amp; Datasets<a class="headerlink" href="#evaluation-datasets" title="Permanent link">&para;</a></h3>
 <ul>
-<li><a href="usage_guide/optimization/run_experiment/">Run Optimization</a> - Optimization parameters and strategies</li>
-<li><a href="usage_guide/optimization/tpe/">TPE Algorithm</a> - Bayesian optimization theory</li>
+<li><strong><a href="usage_guide/evaluation/evaluator/">Evaluators</a></strong> - Evaluators overview (BertScore, SimilarityScore, LLM-as-Judge)</li>
+<li><strong><a href="usage_guide/evaluation/metrics/">Metrics</a></strong> - Evaluation metrics</li>
+<li><strong><a href="usage_guide/dataset/data_loader/">Dataset Loader</a></strong> - Dataset loading and format</li>
+<li><strong><a href="usage_guide/dataset/generator/">Dataset Generator</a></strong> - Dataset generators</li>
 </ul>
-</li>
-<li>
-<p>:wrench: <strong>Advanced</strong></p>
-<hr />
-<ul>
-<li><a href="usage_guide/dataset/data_loader/">Dataset Loader &amp; Format</a> - Dataset Loading and format</li>
-<li><a href="usage_guide/dataset/generator/">Dataset Generator</a> - Dataset Generators</li>
-<li><a href="usage_guide/evaluation/evaluator/">Evaluators</a> - Evaluators overview</li>
-<li><a href="usage_guide/evaluation/metrics/">Metrics</a> - Evaluation metrics</li>
-</ul>
-</li>
-</ul>
-</div>
 <hr />
 <h2 id="core-concepts">🔬 Core Concepts<a class="headerlink" href="#core-concepts" title="Permanent link">&para;</a></h2>
 <p><strong>RAG (Retrieval Augmented Generation)</strong> combines:
@@ -1687,7 +1501,7 @@
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.tabs", "navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.footer", "search.suggest", "search.highlight", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": ".", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
       <script src="assets/javascripts/bundle.79ae519e.min.js"></script>
