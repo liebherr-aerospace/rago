@@ -39,14 +39,18 @@ The manager orchestrates the optimization process:
 ```python
 from rago.optimization.manager import SimpleDirectOptunaManager
 
-optimizer = SimpleDirectOptunaManager.from_dataset(
+# Split dataset into train/test
+datasets = {"train": train_ds, "test": test_ds}
+
+optimizer = SimpleDirectOptunaManager(
     params=params,
-    dataset=ds,
-    evaluator=evaluator,
-    metric_name="bert_score_f1",
+    datasets=datasets,              # Dictionary with 'train' and 'test' splits
+    optim_evaluator=evaluator,      # Evaluator for optimization
+    optim_metric_name="bert_score_f1",  # Metric to optimize
+    test_evaluators=[evaluator],    # Evaluators for final test
     config_space=config_space,
-    sampler=None,      # Optional: custom sampler (default: TPE)
-    pruner=None,       # Optional: custom pruner (default: MedianPruner)
+    sampler=None,                   # Optional: custom sampler (default: TPE)
+    pruner=None,                    # Optional: custom pruner (default: MedianPruner)
 )
 ```
 
@@ -84,11 +88,15 @@ custom_pruner = optuna.pruners.MedianPruner(
     n_warmup_steps=3,       # Don't prune until 3 evaluations
 )
 
-optimizer = SimpleDirectOptunaManager.from_dataset(
+# Split dataset into train/test
+datasets = {"train": train_ds, "test": test_ds}
+
+optimizer = SimpleDirectOptunaManager(
     params=params,
-    dataset=ds,
-    evaluator=evaluator,
-    metric_name="bert_score_f1",
+    datasets=datasets,
+    optim_evaluator=evaluator,
+    optim_metric_name="bert_score_f1",
+    test_evaluators=[evaluator],
     config_space=config_space,
     sampler=custom_sampler,
     pruner=custom_pruner,
@@ -114,25 +122,30 @@ params = OptimParams(
 )
 
 # 2. Load dataset and evaluator
-ds = QADatasetLoader.load_dataset(RAGDataset, "crag").sample(10, 0, 50)
+full_ds = QADatasetLoader.load_dataset(RAGDataset, "crag").sample(10, 0, 50)
 evaluator = BertScore()
 
-# 3. Define search space
+# 3. Split dataset into train/test (e.g., 80/20 split)
+datasets = full_ds.split_dataset([0.8], split_names=["train", "test"], seed=42)
+
+# 4. Define search space
 config_space = RAGConfigSpace()
 
-# 4. Instantiate the optimizer (uses TPE sampler + no pruner by default)
-optimizer = SimpleDirectOptunaManager.from_dataset(
+# 5. Instantiate the optimizer (uses TPE sampler + no pruner by default)
+optimizer = SimpleDirectOptunaManager(
     params=params,
-    dataset=ds,
-    evaluator=evaluator,
-    metric_name="bert_score_f1",
+    datasets=datasets,
+    optim_evaluator=evaluator,
+    optim_metric_name="bert_score_f1",
+    test_evaluators=[evaluator],
     config_space=config_space,
 )
 
-# 5. Start optimization
-study = optimizer.optimize()
+# 6. Start optimization
+optimizer.optimize()
 
-# 6. Get best configuration
+# 7. Get best configuration
+study = optimizer.manager  # Access the Optuna study
 print(f"Best score: {study.best_value}")
 print(f"Best config: {study.best_params}")
 ```
@@ -159,7 +172,7 @@ params = OptimParams(
 
 # 2. Get corpus data and evaluator
 corpus = cast(RAGDataset, QADatasetLoader.load_dataset(RAGDataset, "crag")).corpus_docs[:200]
-evaluator = SimpleLLMEvaluator()
+evaluator = SimpleLLMEvaluator.make()
 
 # 3. Define search space
 config_space = RAGConfigSpace(
@@ -168,17 +181,19 @@ config_space = RAGConfigSpace(
     ),
 )
 
-# 4. Instantiate the optimizer (uses TPE sampler + no pruner by default)
+# 4. Instantiate the optimizer from seed data (generates synthetic Q&A pairs)
 optimizer = SimpleDirectOptunaManager.from_seed_data(
-            params= params,
-            seed_data= corpus,
-            evaluator=evaluator,
-            metric_name="correctness",
-            config_space = config_space,
-        )
+    params=params,
+    seed_data=corpus,
+    splits=(0.8, 0.2),                  # Train/test split
+    optim_evaluator=evaluator,
+    optim_metric_name="correctness",
+    test_evaluators=[evaluator],
+    config_space=config_space,
+)
 
 # 5. Start optimization
-study = optimizer.optimize()
+optimizer.optimize()
 ```
 > You can also replace the `LlamaIndexReaderConfigSpace` by `LangchainReaderConfigSpace` to run the langchain reader. However, in addition to generation via the LLM, the `LlamaIndexReaderConfigSpace` provides more advanced capabilities, such as 'refine', 'compact', and 'summarize' methods, which process chunks and may involve multiple LLM calls.
 
