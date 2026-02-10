@@ -71,6 +71,8 @@ markdown_extensions:
   - pymdownx.tabbed:
       alternate_style: true
   - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
   - admonition
   - attr_list
   - md_in_html
@@ -105,5 +107,13 @@ extra:
   social:
     - icon: fontawesome/brands/github
       link: https://github.com/liebherr-aerospace/rago
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://unpkg.com/katex@0.16.9/dist/katex.min.js
+  - https://unpkg.com/katex@0.16.9/dist/contrib/auto-render.min.js
+
+extra_css:
+  - https://unpkg.com/katex@0.16.9/dist/katex.min.css
 
 copyright: Copyright &copy; 2025 Liebherr Aerospace
