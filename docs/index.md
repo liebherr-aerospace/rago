@@ -2,6 +2,8 @@
 
 Welcome to the RAGO (Retrieval Augmented Generation Optimizer) documentation!
 
+[:fontawesome-brands-github: View on GitHub](https://github.com/liebherr-aerospace/rago){ .md-button }
+
 ## 📚 Documentation Structure
 
 ```

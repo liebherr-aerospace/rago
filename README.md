@@ -14,6 +14,9 @@
     <a href="">
       <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License: Apache 2.0"/>
     </a>
+    <a href="https://liebherr-aerospace.github.io/rago/">
+      <img src="https://img.shields.io/badge/Documentation-online-brightgreen.svg" alt="Documentation"/>
+    </a>
   </p>
 
   <p><b>Automatically optimize your RAG system using intelligent Bayesian search</b></p>
