@@ -57,6 +57,8 @@
     
       <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="https://unpkg.com/katex@0.16.9/dist/katex.min.css">
+    
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -1437,16 +1439,16 @@
 <hr />
 <h2 id="bayesian-optimization-framework">🧠 Bayesian Optimization Framework<a class="headerlink" href="#bayesian-optimization-framework" title="Permanent link">&para;</a></h2>
 <h3 id="the-mathematical-problem">The Mathematical Problem<a class="headerlink" href="#the-mathematical-problem" title="Permanent link">&para;</a></h3>
-<p><strong>Goal</strong>: Find configuration $x^*$ that maximizes objective function $f(x)$</p>
-<p>$$x^* = \arg\max_{x} f(x)$$</p>
+<p><strong>Goal</strong>: Find configuration <span class="arithmatex">\(x^*\)</span> that maximizes objective function <span class="arithmatex">\(f(x)\)</span></p>
+<div class="arithmatex">\[x^* = \arg\max_{x} f(x)\]</div>
 <p>Where:
-- $x$ = RAG configuration (retriever type, embeddings, LLM params, etc.)
-- $f(x)$ = performance score (BERTScore, LLM-as-Judge, etc.)</p>
-<p><strong>Challenge</strong>: $f(x)$ is <strong>expensive to evaluate</strong> (requires running RAG + evaluation on full dataset)</p>
+- <span class="arithmatex">\(x\)</span> = RAG configuration (retriever type, embeddings, LLM params, etc.)
+- <span class="arithmatex">\(f(x)\)</span> = performance score (BERTScore, LLM-as-Judge, etc.)</p>
+<p><strong>Challenge</strong>: <span class="arithmatex">\(f(x)\)</span> is <strong>expensive to evaluate</strong> (requires running RAG + evaluation on full dataset)</p>
 <h3 id="the-bayesian-approach">The Bayesian Approach<a class="headerlink" href="#the-bayesian-approach" title="Permanent link">&para;</a></h3>
 <p>Instead of blindly testing configurations, Bayesian optimization:</p>
 <ol>
-<li><strong>Builds a surrogate model</strong> $\hat{f}(x)$ that approximates $f(x)$</li>
+<li><strong>Builds a surrogate model</strong> <span class="arithmatex">\(\hat{f}(x)\)</span> that approximates <span class="arithmatex">\(f(x)\)</span></li>
 <li><strong>Uses the model</strong> to decide where to evaluate next (acquisition function)</li>
 <li><strong>Updates the model</strong> with new results</li>
 <li><strong>Repeats</strong> until convergence</li>
@@ -1477,8 +1479,8 @@
 <h3 id="acquisition-functions">Acquisition Functions<a class="headerlink" href="#acquisition-functions" title="Permanent link">&para;</a></h3>
 <p><strong>Question</strong>: How do we decide where to evaluate next?</p>
 <p><strong>Expected Improvement (EI)</strong>: A common acquisition function</p>
-<p>$$\text{EI}(x) = \mathbb{E}[\max(f(x) - f(x^+), 0)]$$</p>
-<p>Where $f(x^+)$ is the <strong>best value found so far</strong>.</p>
+<div class="arithmatex">\[\text{EI}(x) = \mathbb{E}[\max(f(x) - f(x^+), 0)]\]</div>
+<p>Where <span class="arithmatex">\(f(x^+)\)</span> is the <strong>best value found so far</strong>.</p>
 <p><strong>Interpretation</strong>: "How much improvement do we expect at this point?"</p>
 <p><strong>Trade-off</strong>:
 - <strong>Exploitation</strong>: Try configs similar to current best (high expected score)
@@ -1487,12 +1489,12 @@
 <h2 id="tree-structured-parzen-estimator-tpe">🌲 Tree-structured Parzen Estimator (TPE)<a class="headerlink" href="#tree-structured-parzen-estimator-tpe" title="Permanent link">&para;</a></h2>
 <p>RAGO uses <strong>TPE</strong> by default, a powerful Bayesian optimization algorithm designed for hyperparameter tuning.</p>
 <h3 id="how-tpe-works">How TPE Works<a class="headerlink" href="#how-tpe-works" title="Permanent link">&para;</a></h3>
-<p><strong>Key Insight</strong>: Instead of modeling $P(\text{score}|\text{config})$ directly, TPE models two distributions:</p>
+<p><strong>Key Insight</strong>: Instead of modeling <span class="arithmatex">\(P(\text{score}|\text{config})\)</span> directly, TPE models two distributions:</p>
 <ol>
-<li>$l(x)$ = $P(\text{config} | \text{score} \geq y^*)$ → "good" configurations</li>
-<li>$g(x)$ = $P(\text{config} | \text{score} &lt; y^*)$ → "bad" configurations</li>
+<li><span class="arithmatex">\(l(x)\)</span> = <span class="arithmatex">\(P(\text{config} | \text{score} \geq y^*)\)</span> → "good" configurations</li>
+<li><span class="arithmatex">\(g(x)\)</span> = <span class="arithmatex">\(P(\text{config} | \text{score} &lt; y^*)\)</span> → "bad" configurations</li>
 </ol>
-<p>Where $y^*$ is a threshold (e.g., top 25% of scores).</p>
+<p>Where <span class="arithmatex">\(y^*\)</span> is a threshold (e.g., top 25% of scores).</p>
 <h3 id="tpe-algorithm-steps">TPE Algorithm Steps<a class="headerlink" href="#tpe-algorithm-steps" title="Permanent link">&para;</a></h3>
 <div class="language-text highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>1. Separate trials into &quot;good&quot; and &quot;bad&quot; based on threshold y*
 </span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>
@@ -1537,21 +1539,21 @@
 </table>
 <h3 id="mathematical-formulation">Mathematical Formulation<a class="headerlink" href="#mathematical-formulation" title="Permanent link">&para;</a></h3>
 <p>TPE maximizes the <strong>Expected Improvement</strong> using:</p>
-<p>$$\text{EI}(x) \propto \frac{l(x)}{g(x)}$$</p>
+<div class="arithmatex">\[\text{EI}(x) \propto \frac{l(x)}{g(x)}\]</div>
 <p><strong>Why this works</strong>:
-- High $l(x)$: Config $x$ appears often in successful trials
-- Low $g(x)$: Config $x$ appears rarely in failed trials
+- High <span class="arithmatex">\(l(x)\)</span>: Config <span class="arithmatex">\(x\)</span> appears often in successful trials
+- Low <span class="arithmatex">\(g(x)\)</span>: Config <span class="arithmatex">\(x\)</span> appears rarely in failed trials
 - High ratio → high probability of improvement</p>
 <h3 id="exploration-vs-exploitation">Exploration vs. Exploitation<a class="headerlink" href="#exploration-vs-exploitation" title="Permanent link">&para;</a></h3>
 <p>Good optimization balances two strategies:</p>
 <ul>
-<li><strong>Exploitation</strong>: Focus on areas known to work well, <em>i.e.</em> high $l(x)$</li>
-<li><strong>Exploration</strong>: Try new areas to avoid missing better solutions, <em>i.e.</em> high uncertainty in $g(x)$</li>
+<li><strong>Exploitation</strong>: Focus on areas known to work well, <em>i.e.</em> high <span class="arithmatex">\(l(x)\)</span></li>
+<li><strong>Exploration</strong>: Try new areas to avoid missing better solutions, <em>i.e.</em> high uncertainty in <span class="arithmatex">\(g(x)\)</span></li>
 </ul>
 <p>TPE naturally balances both through:
-1. <strong>Startup trials</strong> ($n_{\text{startup}}$): Pure random exploration
-2. <strong>Probabilistic modeling</strong>: Uncertainty in $l(x)$ and $g(x)$ encourages exploration
-3. <strong>Threshold $y^*$</strong>: Controls exploration-exploitation trade-off</p>
+1. <strong>Startup trials</strong> (<span class="arithmatex">\(n_{\text{startup}}\)</span>): Pure random exploration
+2. <strong>Probabilistic modeling</strong>: Uncertainty in <span class="arithmatex">\(l(x)\)</span> and <span class="arithmatex">\(g(x)\)</span> encourages exploration
+3. <strong>Threshold <span class="arithmatex">\(y^*\)</span></strong>: Controls exploration-exploitation trade-off</p>
 <h3 id="tpe-vs-other-methods">TPE vs. Other Methods<a class="headerlink" href="#tpe-vs-other-methods" title="Permanent link">&para;</a></h3>
 <table>
 <thead>
@@ -1597,7 +1599,7 @@
 <p><strong>TPE vs Random Search</strong>: While Random Search explores uniformly across the entire parameter space, TPE <strong>learns from previous trials</strong> to focus exploration on promising regions. Random Search needs many more trials to find good configurations by chance, whereas TPE achieves better results with fewer trials by modeling which parameter combinations lead to success. For RAG optimization with expensive evaluations (each trial requires running inference on the full dataset), TPE's sample efficiency—typically finding good configurations in 30-50 trials vs 100+ for Random Search—translates to significant time savings.</p>
 <p><strong>Why TPE for RAG optimization?</strong>
 - Handles <strong>categorical</strong> parameters (retriever type, embedding model)
-- Handles <strong>conditional</strong> parameters (BM25 params only when using BM25, LLM params $\eta$ and $\tau$ if mirostat not None)
+- Handles <strong>conditional</strong> parameters (BM25 params only when using BM25, LLM params <span class="arithmatex">\(\eta\)</span> and <span class="arithmatex">\(\tau\)</span> if mirostat not None)
 - <strong>Fast</strong> even with many parameters
 - <strong>Proven</strong> on hyperparameter tuning tasks</p>
 <h3 id="convergence">Convergence<a class="headerlink" href="#convergence" title="Permanent link">&para;</a></h3>
@@ -1746,6 +1748,12 @@
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../javascripts/katex.js"></script>
+      
+        <script src="https://unpkg.com/katex@0.16.9/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
       
     
   </body>

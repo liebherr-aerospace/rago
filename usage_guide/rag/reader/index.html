@@ -57,6 +57,8 @@
     
       <link rel="stylesheet" href="../../../assets/_mkdocstrings.css">
     
+      <link rel="stylesheet" href="https://unpkg.com/katex@0.16.9/dist/katex.min.css">
+    
     <script>__md_scope=new URL("../../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
     
       
@@ -1455,48 +1457,48 @@
 <h1 id="reader-methods-and-strategies">Reader Methods and strategies<a class="headerlink" href="#reader-methods-and-strategies" title="Permanent link">&para;</a></h1>
 <h2 id="language-model-parameters">🎲 Language Model Parameters<a class="headerlink" href="#language-model-parameters" title="Permanent link">&para;</a></h2>
 <h3 id="definition">Definition<a class="headerlink" href="#definition" title="Permanent link">&para;</a></h3>
-<p>The LLM computes the probability distribution over the vocabulary for the next token, given the previously generated tokens. During inference, we sample the next token $x_t$ according to this distribution.</p>
-<p>For a sequence $x_1, \ldots, x_{t-1}$ and a candidate token $w_i$ from vocabulary $V$:</p>
-<p>$$P(x_t = w_i \mid x_1, \ldots, x_{t-1}) = \frac{\exp(z_i / T)}{\sum_{j=1}^{|V|} \exp(z_j / T)}$$</p>
+<p>The LLM computes the probability distribution over the vocabulary for the next token, given the previously generated tokens. During inference, we sample the next token <span class="arithmatex">\(x_t\)</span> according to this distribution.</p>
+<p>For a sequence <span class="arithmatex">\(x_1, \ldots, x_{t-1}\)</span> and a candidate token <span class="arithmatex">\(w_i\)</span> from vocabulary <span class="arithmatex">\(V\)</span>:</p>
+<div class="arithmatex">\[P(x_t = w_i \mid x_1, \ldots, x_{t-1}) = \frac{\exp(z_i / T)}{\sum_{j=1}^{|V|} \exp(z_j / T)}\]</div>
 <p>where:
-- $x_1, \ldots, x_{t-1}$: Previously generated tokens (context)
-- $x_t$: Next token to generate
-- $w_i$: The $i$-th token in vocabulary $V$ (candidate)
-- $z_i = f_\theta(x_1, \ldots, x_{t-1})_i$: Logit (raw score) for token $w_i$ from the model
-- $T$: Temperature parameter controlling randomness
-- $|V|$: Vocabulary size</p>
+- <span class="arithmatex">\(x_1, \ldots, x_{t-1}\)</span>: Previously generated tokens (context)
+- <span class="arithmatex">\(x_t\)</span>: Next token to generate
+- <span class="arithmatex">\(w_i\)</span>: The <span class="arithmatex">\(i\)</span>-th token in vocabulary <span class="arithmatex">\(V\)</span> (candidate)
+- <span class="arithmatex">\(z_i = f_\theta(x_1, \ldots, x_{t-1})_i\)</span>: Logit (raw score) for token <span class="arithmatex">\(w_i\)</span> from the model
+- <span class="arithmatex">\(T\)</span>: Temperature parameter controlling randomness
+- <span class="arithmatex">\(|V|\)</span>: Vocabulary size</p>
 <p>The parameter of the models are described in the following subsections.</p>
 <h3 id="temperature">Temperature<a class="headerlink" href="#temperature" title="Permanent link">&para;</a></h3>
 <ul>
 <li>
-<p>The idea of the temperature parameter $T$ is to modify the next token distribution probability describe in (1).</p>
+<p>The idea of the temperature parameter <span class="arithmatex">\(T\)</span> is to modify the next token distribution probability describe in (1).</p>
 </li>
 <li>
-<p>As $T$ increases $∀ x ∈ R^{d_{model}}$, $\frac{x}{T}$ converge to $0$. This means the distribution converge to the uniform distribution as $T$ goes to infinity.</p>
+<p>As <span class="arithmatex">\(T\)</span> increases <span class="arithmatex">\(∀ x ∈ R^{d_{model}}\)</span>, <span class="arithmatex">\(\frac{x}{T}\)</span> converge to <span class="arithmatex">\(0\)</span>. This means the distribution converge to the uniform distribution as <span class="arithmatex">\(T\)</span> goes to infinity.</p>
 </li>
 <li>
-<p>Therefore, higher is the Temperature parameter the more noise it adds; When $T$ goes to $0$ the distribution becomes deterministic and gives all the density to the word with the highest probability. In this case we will always choose,</p>
+<p>Therefore, higher is the Temperature parameter the more noise it adds; When <span class="arithmatex">\(T\)</span> goes to <span class="arithmatex">\(0\)</span> the distribution becomes deterministic and gives all the density to the word with the highest probability. In this case we will always choose,</p>
 </li>
 </ul>
-<p>$$j^* = argmax_{j=1}^{|V|} z_j$$</p>
+<div class="arithmatex">\[j^* = argmax_{j=1}^{|V|} z_j\]</div>
 <h3 id="top-k-sampling">Top-k Sampling<a class="headerlink" href="#top-k-sampling" title="Permanent link">&para;</a></h3>
-<p>$top_k$ allow to sample only from the $k$ most likely next tokens.</p>
+<p><span class="arithmatex">\(top_k\)</span> allow to sample only from the <span class="arithmatex">\(k\)</span> most likely next tokens.</p>
 <blockquote>
-<p>⚠️ $k$ is fixed
-- When model is confident: $k$ might be too large
-- When model is uncertain: $k$ might be too small</p>
+<p>⚠️ <span class="arithmatex">\(k\)</span> is fixed
+- When model is confident: <span class="arithmatex">\(k\)</span> might be too large
+- When model is uncertain: <span class="arithmatex">\(k\)</span> might be too small</p>
 </blockquote>
 <h3 id="top-p-sampling-nucleus-sampling">Top-p Sampling (Nucleus Sampling)<a class="headerlink" href="#top-p-sampling-nucleus-sampling" title="Permanent link">&para;</a></h3>
 <ul>
-<li>$top_p$ allow to sample from the smallest set of tokens whose cumulative probability exceeds $p$.</li>
-<li>Indeed the next token is also sampled from a restricted set of token. This sets corresponds to the $top_k$ token such that $\sum_{i=1}^k p_i=top_p$.</li>
-<li>The advantage of this method compared to $top_k$ is that the size of the set $k$ the next token is sampled from depends on the distribution. Therefore it leverages more information learned by the LLM.</li>
+<li><span class="arithmatex">\(top_p\)</span> allow to sample from the smallest set of tokens whose cumulative probability exceeds <span class="arithmatex">\(p\)</span>.</li>
+<li>Indeed the next token is also sampled from a restricted set of token. This sets corresponds to the <span class="arithmatex">\(top_k\)</span> token such that <span class="arithmatex">\(\sum_{i=1}^k p_i=top_p\)</span>.</li>
+<li>The advantage of this method compared to <span class="arithmatex">\(top_k\)</span> is that the size of the set <span class="arithmatex">\(k\)</span> the next token is sampled from depends on the distribution. Therefore it leverages more information learned by the LLM.</li>
 </ul>
 <h3 id="mirostat">Mirostat<a class="headerlink" href="#mirostat" title="Permanent link">&para;</a></h3>
 <p>Advanced sampling algorithm that maintains target <strong>perplexity</strong> (uncertainty).</p>
 <p><strong>Parameters</strong>:
-- $\tau$: Target perplexity
-- $\eta$: Learning rate for adjustment</p>
+- <span class="arithmatex">\(\tau\)</span>: Target perplexity
+- <span class="arithmatex">\(\eta\)</span>: Learning rate for adjustment</p>
 <p><strong>Benefit</strong>: More consistent output quality across different prompts</p>
 <h3 id="repetition-penalty">Repetition Penalty<a class="headerlink" href="#repetition-penalty" title="Permanent link">&para;</a></h3>
 <p>One issue with LLM is that tend to repeat themselves. A method to reduce repetition is to penalize token that have already been used.
@@ -1743,6 +1745,12 @@ See 👉 <a href="../../../rago/optimization/search_space/llm_config_space.py">D
     
     
       <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+        <script src="../../../javascripts/katex.js"></script>
+      
+        <script src="https://unpkg.com/katex@0.16.9/dist/katex.min.js"></script>
+      
+        <script src="https://unpkg.com/katex@0.16.9/dist/contrib/auto-render.min.js"></script>
       
     
   </body>
