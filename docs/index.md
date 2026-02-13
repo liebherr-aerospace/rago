@@ -66,7 +66,7 @@ Welcome to the RAGO (Retrieval Augmented Generation Optimizer) documentation!
 2. **Augment** LLM prompt with context
 3. **Generate** informed answers
 
-**RAG Optimization** automatically finds the best configuration (retriever, embeddings, LLM params) for your use case using **Bayesian Optimization**.
+**RAG Optimization** automatically finds the best configuration (retriever, embeddings, LLM params) for your use case using the **Optuna optimization framework** (Bayesian method by default).
 
 → **Learn more**: [RAG Concepts](usage_guide/rag/rag_concepts.md) | [Config Space](usage_guide/rag/rag_configuration.md)
 
@@ -80,7 +80,7 @@ Welcome to the RAGO (Retrieval Augmented Generation Optimizer) documentation!
 - [BERTScore](https://arxiv.org/abs/1904.09675) - Semantic evaluation metrics
 - [LLM-as-a-Judge](https://arxiv.org/abs/2411.15594) - Using LLMs for evaluation
 
-### Related Projects
+### Dependencies
 - [Optuna](https://optuna.org/) - Hyperparameter optimization framework
 - [LangChain](https://www.langchain.com/) - LLM application framework
 - [LlamaIndex](https://www.llamaindex.ai/) - Data framework for LLMs

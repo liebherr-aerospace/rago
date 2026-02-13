@@ -112,8 +112,6 @@ The Output in this case is 0.5 because the output has retrieved 1 out of the 2 s
 
 ## Independent vs Dependent Evaluators
 
-## Independent vs Dependent Evaluators
-
 The relevancy evaluator is an `IndependentEvaluator`.
 This means evaluating two outputs with `pairwise_evaluation` is the same as evaluating both outputs independently:
 ```python
@@ -137,9 +135,31 @@ assert eval_result_2["relevancy"].score == pairwise_eval_result_2["relevancy"].s
 More generally, any Evaluator in RAGO is either an independent evaluator or a dependent evaluator:
 
 - **Independent evaluators** inherit from `BaseIndependentEvaluator`. This implies that the pairwise evaluation is just two sequential direct evaluations. This is why the example above is true.
+
+  **Mathematical property (symmetry):** For an independent evaluator $e$, the evaluation function satisfies:
+
+  $$e(x, y) = e(y, x)$$
+
+  This means that evaluating output $x$ against output $y$ gives the same result as evaluating $y$ against $x$. More precisely, for independent evaluators:
+
+  $$e(x, y) = (e_{\text{individual}}(x), e_{\text{individual}}(y))$$
+
+  where $e_{\text{individual}}$ is the individual evaluation function applied to each output separately.
+
   - Examples: `BertScore`, `SimilarityScore`, `RelevancyEvaluator`
 
 - **Dependent evaluators** inherit from `BaseDependentEvaluator`. This means that the example above would not hold (pairwise evaluation produces different results than individual evaluations).
+
+  **Mathematical property (asymmetry):** For a dependent evaluator $e$, the evaluation function does **not** satisfy symmetry:
+
+  $$e(x, y) \neq e(y, x)$$
+
+  This is because the evaluator considers the *relative* comparison between outputs. For instance, an LLM judge may score output $x$ higher when compared directly to output $y$, but the absolute scores can differ from individual evaluations:
+
+  $$e(x, y) \neq (e_{\text{individual}}(x), e_{\text{individual}}(y))$$
+
+  The order matters: which output is presented first can influence the judgment.
+
   - Examples: `SimpleLLMEvaluator`, `CoTLLMEvaluator`
 
 

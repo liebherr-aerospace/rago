@@ -142,7 +142,7 @@ export OPENSEARCH_INDEX_NAME="<your-index-name>"
 Optimize a RAG system with default reader and retriever methods in just a few lines:
 
 ```python
-from rago.dataset import QADatasetLoader, RAGDataset
+from rago.dataset import RAGDataset
 from rago.eval import BertScore
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
@@ -156,7 +156,7 @@ params = OptimParams(
 )
 
 # Load dataset and evaluator
-full_ds = QADatasetLoader.load_dataset(RAGDataset, "crag").sample(5, 0, 10)
+full_ds = RAGDataset.load_dataset("crag").sample(5, 0, 10)
 evaluator = BertScore()
 
 # Split dataset into train/test
