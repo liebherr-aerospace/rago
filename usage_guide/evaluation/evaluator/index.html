@@ -799,17 +799,6 @@
 </li>
       
         <li class="md-nav__item">
-  <a href="#independent-vs-dependent-evaluators_1" class="md-nav__link">
-    <span class="md-ellipsis">
-      
-        Independent vs Dependent Evaluators
-      
-    </span>
-  </a>
-  
-</li>
-      
-        <li class="md-nav__item">
   <a href="#llm-as-judge-evaluators" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1412,7 +1401,6 @@ The Output in this case is 0.5 because the output has retrieved 1 out of the 2 s
 - Independent evaluator
 - Requires <code>context</code> in the <code>EvalSample</code></p>
 <h2 id="independent-vs-dependent-evaluators">Independent vs Dependent Evaluators<a class="headerlink" href="#independent-vs-dependent-evaluators" title="Permanent link">&para;</a></h2>
-<h2 id="independent-vs-dependent-evaluators_1">Independent vs Dependent Evaluators<a class="headerlink" href="#independent-vs-dependent-evaluators_1" title="Permanent link">&para;</a></h2>
 <p>The relevancy evaluator is an <code>IndependentEvaluator</code>.
 This means evaluating two outputs with <code>pairwise_evaluation</code> is the same as evaluating both outputs independently:
 <div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.utils</span><span class="w"> </span><span class="kn">import</span> <span class="n">Document</span><span class="p">,</span> <span class="n">RAGOutput</span>
@@ -1434,12 +1422,26 @@ This means evaluating two outputs with <code>pairwise_evaluation</code> is the s
 <p>More generally, any Evaluator in RAGO is either an independent evaluator or a dependent evaluator:</p>
 <ul>
 <li><strong>Independent evaluators</strong> inherit from <code>BaseIndependentEvaluator</code>. This implies that the pairwise evaluation is just two sequential direct evaluations. This is why the example above is true.</li>
+</ul>
+<p><strong>Mathematical property (symmetry):</strong> For an independent evaluator <span class="arithmatex">\(e\)</span>, the evaluation function satisfies:</p>
+<p>$<span class="arithmatex">\(e(x, y) = e(y, x)\)</span>$</p>
+<p>This means that evaluating output <span class="arithmatex">\(x\)</span> against output <span class="arithmatex">\(y\)</span> gives the same result as evaluating <span class="arithmatex">\(y\)</span> against <span class="arithmatex">\(x\)</span>. More precisely, for independent evaluators:</p>
+<p>$<span class="arithmatex">\(e(x, y) = (e_{\text{individual}}(x), e_{\text{individual}}(y))\)</span>$</p>
+<p>where <span class="arithmatex">\(e_{\text{individual}}\)</span> is the individual evaluation function applied to each output separately.</p>
+<ul>
 <li>
 <p>Examples: <code>BertScore</code>, <code>SimilarityScore</code>, <code>RelevancyEvaluator</code></p>
 </li>
 <li>
 <p><strong>Dependent evaluators</strong> inherit from <code>BaseDependentEvaluator</code>. This means that the example above would not hold (pairwise evaluation produces different results than individual evaluations).</p>
 </li>
+</ul>
+<p><strong>Mathematical property (asymmetry):</strong> For a dependent evaluator <span class="arithmatex">\(e\)</span>, the evaluation function does <strong>not</strong> satisfy symmetry:</p>
+<p>$<span class="arithmatex">\(e(x, y) \neq e(y, x)\)</span>$</p>
+<p>This is because the evaluator considers the <em>relative</em> comparison between outputs. For instance, an LLM judge may score output <span class="arithmatex">\(x\)</span> higher when compared directly to output <span class="arithmatex">\(y\)</span>, but the absolute scores can differ from individual evaluations:</p>
+<p>$<span class="arithmatex">\(e(x, y) \neq (e_{\text{individual}}(x), e_{\text{individual}}(y))\)</span>$</p>
+<p>The order matters: which output is presented first can influence the judgment.</p>
+<ul>
 <li>Examples: <code>SimpleLLMEvaluator</code>, <code>CoTLLMEvaluator</code></li>
 </ul>
 <h2 id="llm-as-judge-evaluators">LLM-as-Judge Evaluators<a class="headerlink" href="#llm-as-judge-evaluators" title="Permanent link">&para;</a></h2>
