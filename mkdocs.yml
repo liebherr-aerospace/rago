@@ -1,0 +1,122 @@
+site_name: RAGO Documentation
+site_description: Retrieval-Augmented Generation Optimization framework
+site_author: Liebherr Aerospace
+repo_name: liebherr-aerospace/rago
+repo_url: https://github.com/liebherr-aerospace/rago
+site_url: https://liebherr-aerospace.github.io/rago/
+docs_dir: docs
+site_dir: site
+
+# Exclude README from docs
+exclude_docs: |
+  README.md
+  /README.md
+
+theme:
+  name: material
+  palette:
+    # Light mode
+    - scheme: default
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-7
+        name: Switch to dark mode
+    # Dark mode
+    - scheme: slate
+      primary: indigo
+      accent: indigo
+      toggle:
+        icon: material/brightness-4
+        name: Switch to light mode
+  features:
+    - navigation.sections
+    - navigation.expand
+    - navigation.top
+    - navigation.tracking
+    - navigation.indexes
+    - navigation.footer
+    - toc.follow
+    - toc.integrate
+    - search.suggest
+    - search.highlight
+    - search.share
+    - content.code.copy
+    - content.code.annotate
+    - content.tabs.link
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          options:
+            show_source: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_symbol_type_heading: true
+            show_symbol_type_toc: true
+            heading_level: 3
+
+markdown_extensions:
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.snippets
+  - pymdownx.superfences
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.details
+  - pymdownx.arithmatex:
+      generic: true
+  - pymdownx.emoji:
+      emoji_index: !!python/name:material.extensions.emoji.twemoji
+      emoji_generator: !!python/name:material.extensions.emoji.to_svg
+  - admonition
+  - attr_list
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+
+nav:
+  - Home: index.md
+  - Installation:
+      - Elasticsearch: installation/elasticsearch.md
+      - Ollama: installation/ollama.md
+  - Usage Guide:
+      - Dataset:
+          - Data Loader: usage_guide/dataset/data_loader.md
+          - Generator: usage_guide/dataset/generator.md
+      - Evaluation:
+          - Evaluators: usage_guide/evaluation/evaluator.md
+          - Metrics: usage_guide/evaluation/metrics.md
+      - Optimization:
+          - Run Experiment: usage_guide/optimization/run_experiment.md
+          - TPE: usage_guide/optimization/tpe.md
+      - RAG:
+          - Concepts: usage_guide/rag/rag_concepts.md
+          - Configuration: usage_guide/rag/rag_configuration.md
+          - Reader: usage_guide/rag/reader.md
+          - Retriever: usage_guide/rag/retriever.md
+  - Code Architecture:
+      - Overview: code_architecture/overview.md
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/liebherr-aerospace/rago
+
+extra_javascript:
+  - javascripts/katex.js
+  - https://unpkg.com/katex@0.16.9/dist/katex.min.js
+  - https://unpkg.com/katex@0.16.9/dist/contrib/auto-render.min.js
+
+extra_css:
+  - https://unpkg.com/katex@0.16.9/dist/katex.min.css
+
+copyright: Copyright &copy; 2025 Liebherr Aerospace

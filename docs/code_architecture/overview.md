@@ -486,10 +486,15 @@ class MyEvaluator(BaseEvaluator):
         )
 
 # 2. Use in optimization
-optimizer = SimpleDirectOptunaManager.from_dataset(
-    evaluator=MyEvaluator(),  # ← Your evaluator
-    metric_name="my_metric",
-    # ...
+datasets = {"train": train_ds, "test": test_ds}
+
+optimizer = SimpleDirectOptunaManager(
+    params=OptimParams(...),
+    datasets=datasets,
+    optim_evaluator=MyEvaluator(),  # ← Your evaluator
+    optim_metric_name="my_metric",
+    test_evaluators=[MyEvaluator()],
+    config_space=RAGConfigSpace(),
 )
 ```
 

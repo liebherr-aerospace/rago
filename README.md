@@ -14,6 +14,9 @@
     <a href="">
       <img src="https://img.shields.io/badge/License-Apache_2.0-blue.svg" alt="License: Apache 2.0"/>
     </a>
+    <a href="https://liebherr-aerospace.github.io/rago/">
+      <img src="https://img.shields.io/badge/Documentation-online-brightgreen.svg" alt="Documentation"/>
+    </a>
   </p>
 
   <p><b>Automatically optimize your RAG system using intelligent Bayesian search</b></p>
@@ -98,7 +101,7 @@ RAGO uses **Optimization Methods** (Bayesian methods for instance) to automatica
 
 **Prerequisites**
 - Python ≥ 3.12
-- [Ollama](docs/installation/ollama.md) for local LLM inference
+- [Ollama](https://liebherr-aerospace.github.io/rago/installation/ollama/) for local LLM inference
 
 ```bash
 # 1. Clone the repository
@@ -128,7 +131,9 @@ export OPENSEARCH_URL="<your-opensearch-endpoint>"
 export OPENSEARCH_INDEX_NAME="<your-index-name>"
 ```
 
-📖 See [Ollama Installation Guide](docs/installation/ollama.md) for detailed instructions on Ollama set-up or [Elastic Installation Guide](docs/installation/elasticsearch.md) on Elastic installation.
+📖 See [Ollama Installation Guide](https://liebherr-aerospace.github.io/rago/installation/ollama/) for detailed instructions on Ollama set-up or [Elastic Installation Guide](https://liebherr-aerospace.github.io/rago/installation/elasticsearch/) on Elastic installation.
+
+> 📘 **Full Documentation**: Visit our comprehensive documentation at [https://liebherr-aerospace.github.io/rago/](https://liebherr-aerospace.github.io/rago/)
 
 ---
 
@@ -137,7 +142,7 @@ export OPENSEARCH_INDEX_NAME="<your-index-name>"
 Optimize a RAG system with default reader and retriever methods in just a few lines:
 
 ```python
-from rago.dataset import QADatasetLoader, RAGDataset
+from rago.dataset import RAGDataset
 from rago.eval import BertScore
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
@@ -150,62 +155,67 @@ params = OptimParams(
     n_iter=1000,
 )
 
-# Load dataset, evaluator
-ds = QADatasetLoader.load_dataset(RAGDataset, "crag").sample(5, 0, 10)
+# Load dataset and evaluator
+full_ds = RAGDataset.load_dataset("crag").sample(5, 0, 10)
 evaluator = BertScore()
+
+# Split dataset into train/test
+datasets = full_ds.split_dataset([0.8], split_names=["train", "test"], seed=42)
 
 # Load RAG configuration space
 config_space = RAGConfigSpace()
 
 # Run optimization
-optimizer = SimpleDirectOptunaManager.from_dataset(
+optimizer = SimpleDirectOptunaManager(
     params=params,
-    dataset=ds,
-    evaluator=evaluator,
-    metric_name="bert_score_f1",
+    datasets=datasets,
+    optim_evaluator=evaluator,
+    optim_metric_name="bert_score_f1",
+    test_evaluators=[evaluator],
     config_space=config_space,
 )
-study = optimizer.optimize()
+optimizer.optimize()
 ```
 By default, the RAGConfig space uses :
-- default encoder models choices, vector index retriever methods and parameters $top_k$ and the similarity score threshold. See more here 👉 [Retriever Methods](docs/usage_guide/rag/retriever.md)
-- default LLM choices and LLM parameters $temperature$, $top_k$, $top_p$, max_new_tokens, num_ctx, repeat_last_n, mirostat parameters. See more here 👉 [Reader Methods](docs/usage_guide/rag/reader.md)
+- default encoder models choices, vector index retriever methods and parameters $top_k$ and the similarity score threshold. See more here 👉 [Retriever Methods](https://liebherr-aerospace.github.io/rago/usage_guide/rag/retriever/)
+- default LLM choices and LLM parameters $temperature$, $top_k$, $top_p$, max_new_tokens, num_ctx, repeat_last_n, mirostat parameters. See more here 👉 [Reader Methods](https://liebherr-aerospace.github.io/rago/usage_guide/rag/reader/)
 
-📖 If you want to customize your RAG configuration space, read here [RAG Configurations](docs/usage_guide/rag/rag_configuration.md)
+📖 If you want to customize your RAG configuration space, read here [RAG Configurations](https://liebherr-aerospace.github.io/rago/usage_guide/rag/rag_configuration/)
 
 **Visualize Results:**
 
 ```bash
 optuna-dashboard sqlite:///experiments/my_experiment/study.db
 ```
-📖 **Learn more:** [Usage Guide](docs/index.md)
+
+> � **For detailed guides and API reference**, visit the full documentation at [https://liebherr-aerospace.github.io/rago/](https://liebherr-aerospace.github.io/rago/)
 
 ---
 
-## 📚 Documentation
+## 📚 Documentation Overview
 
 <table>
 <tr>
 <td width="50%" valign="top">
 
 ### Getting Started
-- 📖 [**Documentation Index**](docs/index.md) - Start here!
-- 🎓 [**Core Concepts**](docs/usage_guide/rag/rag_concepts.md) - Understand RAG concepts
-- ⚙️ [**Configuration Space**](docs/usage_guide/rag/rag_configuration.md) - RAG configuration space details
-- 🔍 [**Retriever Methods**](docs/usage_guide/rag/rag_configuration.md) - RAG configuration space details
-- 🤖 [**Reader Methods**](docs/usage_guide/rag/rag_configuration.md) - RAG configuration space details
-- 🛠️ [**Run your Optimization**](docs/usage_guide/optimization/run_experiment.md) - Detailed usage examples
+- 📖 [**Documentation Index**](https://liebherr-aerospace.github.io/rago/) - Start here!
+- 🎓 [**Core Concepts**](https://liebherr-aerospace.github.io/rago/usage_guide/rag/rag_concepts/) - Understand RAG concepts
+- ⚙️ [**Configuration Space**](https://liebherr-aerospace.github.io/rago/usage_guide/rag/rag_configuration/) - RAG configuration space details
+- 🔍 [**Retriever Methods**](https://liebherr-aerospace.github.io/rago/usage_guide/rag/retriever/) - Retrieval strategies
+- 🤖 [**Reader Methods**](https://liebherr-aerospace.github.io/rago/usage_guide/rag/reader/) - Generation strategies
+- 🛠️ [**Run your Optimization**](https://liebherr-aerospace.github.io/rago/usage_guide/optimization/run_experiment/) - Detailed usage examples
 
 </td>
 <td width="55%" valign="top">
 
 ### Advanced Topics
-- 🛠️ [**Optimization Methods**](docs/usage_guide/optimization/tpe.md) - Detailed usage examples
-- 🎯 [**Optimization Strategies**](docs/usage_guide/optimization/direct_pairwise.md) - Direct vs Pairwise
-- 📔 [**Dataset Generation**](docs/usage_guide/dataset/generator.md) - (Query, Answer, Context) dataset Generation
-- 👍 [**Evaluation Methods**](docs/usage_guide/evaluation/evaluator.md) - LLM Evaluators
-- 📊 [**Metrics**](docs/usage_guide/evaluation/metrics.md) - Metrics
-- 🏗️ [**Architecture**](docs/code_architecture/overview.md) - System design and modules
+- 🛠️ [**Optimization Methods**](https://liebherr-aerospace.github.io/rago/usage_guide/optimization/tpe/) - TPE algorithm details
+- 🎯 [**Optimization Strategies**](https://liebherr-aerospace.github.io/rago/usage_guide/optimization/direct_pairwise/) - Direct vs Pairwise
+- 📔 [**Dataset Generation**](https://liebherr-aerospace.github.io/rago/usage_guide/dataset/generator/) - (Query, Answer, Context) dataset Generation
+- 👍 [**Evaluation Methods**](https://liebherr-aerospace.github.io/rago/usage_guide/evaluation/evaluator/) - LLM Evaluators
+- 📊 [**Metrics**](https://liebherr-aerospace.github.io/rago/usage_guide/evaluation/metrics/) - Evaluation metrics
+- 🏗️ [**Architecture**](https://liebherr-aerospace.github.io/rago/code_architecture/overview/) - System design and modules
 
 </td>
 </tr>
