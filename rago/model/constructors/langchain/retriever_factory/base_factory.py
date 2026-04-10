@@ -5,7 +5,8 @@ from __future__ import annotations
 import hashlib
 import logging
 import os
-import uuid
+import shutil
+from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Optional
 
 import chromadb
@@ -13,6 +14,7 @@ from langchain_chroma import Chroma
 
 from rago.model.constructors.langchain.encoder_factory import EncoderFactory
 from rago.model.constructors.langchain.retriever_factory.bm25_factory import OpenSearchBM25Retriever
+from rago.utils import PATH_PROJECT
 
 if TYPE_CHECKING:
     from langchain.embeddings.base import Embeddings
@@ -24,6 +26,12 @@ if TYPE_CHECKING:
 
 OPENSEARCH_URL = os.getenv("OPENSEARCH_URL", "")
 OPENSEARCH_INDEX_NAME = os.getenv("OPENSEARCH_INDEX_NAME", "")
+
+#: Base directory for the persistent Chroma cache.
+#: Override via the ``RAGO_CHROMA_CACHE_DIR`` environment variable.
+CHROMA_CACHE_DIR = Path(
+    os.getenv("RAGO_CHROMA_CACHE_DIR", str(Path(PATH_PROJECT) / ".cache" / "rago" / "chroma")),
+)
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +48,18 @@ def _corpus_hash(input_chunks: list[Document]) -> str:
     for doc in input_chunks:
         h.update(doc.page_content.encode("utf-8"))
     return h.hexdigest()[:16]
+
+
+def _safe_dir_name(*parts: Optional[str]) -> str:
+    """Build a filesystem-safe directory name from arbitrary key parts.
+
+    :param parts: Strings (or None) to combine into a directory name.
+    :return: A sanitised string usable as a directory name.
+    :rtype: str
+    """
+    joined = "_".join(str(p) if p is not None else "none" for p in parts)
+    # Replace any character that could be problematic in a path
+    return joined.replace("/", "--").replace("\\", "--").replace(":", "-")
 
 
 class RetrieverFactory:
@@ -129,13 +149,22 @@ class RetrieverFactory:
     ) -> VectorStoreRetriever:
         """Make a vector store retriever, reusing a cached Chroma store when possible.
 
-        The Chroma vector store (with all documents already embedded and indexed)
-        is cached by ``(encoder_model_name, similarity_function, corpus_hash)``.
-        Only the lightweight retriever wrapper (with trial-specific ``search_type``
-        and ``search_kwargs``) is created each time.
+        Caching strategy (two levels):
+
+        1. **In-memory** - the ``_vectorstore_cache`` dict keeps a reference to
+           the ``Chroma`` object so that subsequent trials in the *same process*
+           pay zero cost.
+        2. **On-disk** - each unique ``(encoder, similarity, corpus)`` combination
+           is persisted under ``CHROMA_CACHE_DIR`` via
+           ``chromadb.PersistentClient``.  When a *new process* starts, the
+           factory detects the existing collection and skips re-embedding /
+           re-indexing entirely.
+
+        Only the lightweight retriever wrapper (with trial-specific
+        ``search_type`` and ``search_kwargs``) is created each time.
 
         :param config: The config of the vector store retriever to create.
-        :type config: dict
+        :type config: LangchainRetrieverConfig
         :param input_chunks: The chunks retrieved by the vector store retriever to create.
         :type input_chunks: list[Document]
         :param encoder: The encoder used by the retriever to convert queries and chunks to embeddings.
@@ -147,54 +176,83 @@ class RetrieverFactory:
         c_hash = _corpus_hash(input_chunks)
         cache_key = (encoder_name, config.similarity_function, c_hash)
 
+        # --- Level 1: in-memory hit (same process) ---
         if cache_key in RetrieverFactory._vectorstore_cache:
             logger.debug(
-                "[CACHE HIT] Reusing Chroma vectorstore (encoder=%s, sim=%s)",
+                "[CACHE HIT · memory] Reusing Chroma vectorstore (encoder=%s, sim=%s)",
                 encoder_name,
                 config.similarity_function,
             )
             vectorstore = RetrieverFactory._vectorstore_cache[cache_key]
         else:
-            logger.info(
-                "[CACHE MISS] Building Chroma vectorstore (encoder=%s, sim=%s, %d chunks)",
-                encoder_name,
-                config.similarity_function,
-                len(input_chunks),
-            )
-            vectorstore = RetrieverFactory.make_chroma(
-                collection_name=str(uuid.uuid4()),
-                encoder=encoder,
-                similarity_function=config.similarity_function,
-            )
-            batch_size = 5000
-            for i in range(0, len(input_chunks), batch_size):
-                batch = input_chunks[i : i + batch_size]
-                vectorstore.add_documents(batch)
+            # Build the persistent path: .cache/rago/chroma/<encoder>_<sim>_<hash>/
+            persist_dir = CHROMA_CACHE_DIR / _safe_dir_name(encoder_name, config.similarity_function, c_hash)
+            collection_name = "default"
+
+            # --- Level 2: on-disk hit (new process, same corpus) ---
+            if persist_dir.exists():
+                logger.info(
+                    "[CACHE HIT · disk] Loading Chroma from %s (encoder=%s, sim=%s)",
+                    persist_dir,
+                    encoder_name,
+                    config.similarity_function,
+                )
+                vectorstore = RetrieverFactory._make_persistent_chroma(
+                    persist_dir=str(persist_dir),
+                    collection_name=collection_name,
+                    encoder=encoder,
+                    similarity_function=config.similarity_function,
+                )
+            else:
+                # --- Full miss: embed + index + persist ---
+                logger.info(
+                    "[CACHE MISS] Building & persisting Chroma vectorstore (encoder=%s, sim=%s, %d chunks) → %s",
+                    encoder_name,
+                    config.similarity_function,
+                    len(input_chunks),
+                    persist_dir,
+                )
+                persist_dir.mkdir(parents=True, exist_ok=True)
+                vectorstore = RetrieverFactory._make_persistent_chroma(
+                    persist_dir=str(persist_dir),
+                    collection_name=collection_name,
+                    encoder=encoder,
+                    similarity_function=config.similarity_function,
+                )
+                batch_size = 5000
+                for i in range(0, len(input_chunks), batch_size):
+                    batch = input_chunks[i : i + batch_size]
+                    vectorstore.add_documents(batch)
+
+            # Store in memory for subsequent trials in this process
             RetrieverFactory._vectorstore_cache[cache_key] = vectorstore
 
         # The retriever is cheap to create — only search_kwargs change between trials
         return vectorstore.as_retriever(search_type=config.search_type, search_kwargs=config.search_kwargs)
 
     @staticmethod
-    def make_chroma(
+    def _make_persistent_chroma(
+        persist_dir: str,
         collection_name: str,
         similarity_function: Optional[str],
         encoder: Embeddings,
     ) -> VectorStore:
-        """Create a chroma index.
+        """Create a Chroma index backed by a persistent on-disk store.
 
-        :param collection_name: The name of the collection in the chroma index.
+        :param persist_dir: Path to the directory where Chroma persists data.
+        :type persist_dir: str
+        :param collection_name: The name of the collection in the Chroma index.
         :type collection_name: str
-        :param similarity_function: Used by the chroma Index to determine similarity between a query and its elements.
-        :type similarity_function: str
-        :param encoder: Used by the chroma to encode input chunks and query into embeddings, defaults to None.s
-        :type encoder: Embeddings, optional
-        :return: The create chroma index.
+        :param similarity_function: HNSW space used by Chroma (e.g. ``"cosine"``).
+        :type similarity_function: Optional[str]
+        :param encoder: Embedding function for documents and queries.
+        :type encoder: Embeddings
+        :return: The created (or reopened) Chroma vector store.
         :rtype: VectorStore
         """
-        ephemeral_client = chromadb.EphemeralClient()
+        client = chromadb.PersistentClient(path=persist_dir)
         return Chroma(
-            client=ephemeral_client,
+            client=client,
             collection_name=collection_name,
             embedding_function=encoder,
             collection_metadata={"hnsw:space": similarity_function},
@@ -242,8 +300,19 @@ class RetrieverFactory:
         return retriever
 
     @staticmethod
-    def clear_cache() -> None:
-        """Clear all cached vector stores and BM25 indexes."""
+    def clear_cache(*, include_disk: bool = False) -> None:
+        """Clear all cached vector stores and BM25 indexes.
+
+        :param include_disk: If ``True``, also delete the persistent Chroma
+            directories under ``CHROMA_CACHE_DIR``.  Defaults to ``False``
+            (memory-only clear).
+        :type include_disk: bool
+        """
         RetrieverFactory._vectorstore_cache.clear()
         RetrieverFactory._bm25_cache.clear()
+
+        if include_disk and CHROMA_CACHE_DIR.exists():
+            shutil.rmtree(CHROMA_CACHE_DIR)
+            logger.info("[CACHE] Deleted persistent Chroma cache at %s", CHROMA_CACHE_DIR)
+
         logger.info("[CACHE] Langchain retriever factory cache cleared")
