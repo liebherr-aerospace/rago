@@ -4,6 +4,7 @@ from rago.model.configs.retriever_config.base import RetrieverConfig
 from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
 from rago.model.wrapper.retriever.base import Retriever
+from rago.model.wrapper.retriever.hybrid_langchain_retriever import HybridLangchainRetrieverWrapper
 from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
 from rago.model.wrapper.retriever.llama_index_retriever import LlamaIndexRetrieverWrapper
 
@@ -25,6 +26,8 @@ class RetrieverWrapperFactory:
         match config:
             case LlamaIndexRetrieverConfig():
                 return LlamaIndexRetrieverWrapper.make(config, input_chunks)
+            case LangchainRetrieverConfig() if config.type == "HybridRetriever":
+                return HybridLangchainRetrieverWrapper.make(config, input_chunks)
             case LangchainRetrieverConfig():
                 return LangchainRetrieverWrapper.make(config, input_chunks)
             case _:

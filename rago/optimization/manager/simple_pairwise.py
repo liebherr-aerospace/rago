@@ -292,6 +292,14 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration %s", n)
             answer_eval, single_eval = self.get_current_score_answer(self.optim_evaluator, test_sample, rag_candidate)
+            self.logger.info(
+                "[PROCESS] Trial %s | Sample %s | Query: %s | Generated response: %s | Scores: %s",
+                trial.number,
+                n,
+                test_sample.query,
+                answer_eval,
+                single_eval,
+            )
             trial_eval = {
                 name: Metric(self.optim_evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
                 for name, metric in single_eval.items()

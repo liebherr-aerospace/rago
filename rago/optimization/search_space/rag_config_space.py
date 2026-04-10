@@ -8,7 +8,6 @@ from typing import TYPE_CHECKING, Optional
 if TYPE_CHECKING:
     import optuna
 
-    from rago.model.configs.reader_config.base import ReaderConfig
     from rago.model.configs.retriever_config.base import RetrieverConfig
 
 from rago.model.wrapper.rag.base import RAGConfig
@@ -17,12 +16,27 @@ from rago.optimization.search_space.reader_config_space import LangchainReaderCo
 from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
 
 
+class _NoReader:
+    """Sentinel value to explicitly disable reader sampling in RAGConfigSpace.
+
+    Use ``RAGConfigSpace(reader_space=NO_READER)`` to optimize only the retriever.
+    """
+
+
+NO_READER = _NoReader()
+"""Sentinel to pass as ``reader_space`` to disable reader optimization."""
+
+
 @dataclass
 class RAGConfigSpace(ConfigSpace):
-    """Define the RAG Config space."""
+    """Define the RAG Config space.
+
+    When ``reader_space`` is ``None`` (default), a ``LangchainReaderConfigSpace`` is used.
+    When ``reader_space`` is ``NO_READER``, the reader is disabled and only the retriever is optimized.
+    """
 
     retriever_space: Optional[RetrieverConfigSpace] = None
-    reader_space: Optional[ReaderConfigSpace] = None
+    reader_space: Optional[ReaderConfigSpace | _NoReader] = None
 
     def sample(self, trial: optuna.trial.BaseTrial) -> RAGConfig:
         """Sample a RAG configuration from configuration spaces.
@@ -32,12 +46,19 @@ class RAGConfigSpace(ConfigSpace):
         :return: The sampled RAG configuration.
         :rtype: RAGConfig
         """
-        if self.reader_space is None:
-            self.reader_space = LangchainReaderConfigSpace()
-        reader_config: ReaderConfig = self.reader_space.sample(trial)
+        # Reader
+        if isinstance(self.reader_space, _NoReader):
+            reader_config = None
+        else:
+            if self.reader_space is None:
+                self.reader_space = LangchainReaderConfigSpace()
+            reader_config = self.reader_space.sample(trial)
+
+        # Retriever
         if self.retriever_space is None:
             self.retriever_space = RetrieverConfigSpace()
         retriever_config: RetrieverConfig = self.retriever_space.sample(trial)
+
         return RAGConfig(
             reader=reader_config,
             retriever=retriever_config,

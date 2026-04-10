@@ -13,7 +13,7 @@ To get all the available evaluators simply run:
 from rago.eval.base import BaseEvaluator
 
 BaseEvaluator.list_available_evaluators()
-# Returns: ['bert_score', 'similarity']
+# Returns: ['bert_score', 'context_recall', 'similarity']
 ```
 
 To load a specific evaluator simply call `load` from the BaseEvaluator with the evaluator name:
@@ -109,6 +109,54 @@ The Output in this case is 0.5 because the output has retrieved 1 out of the 2 s
 - Evaluates retrieval quality, not answer quality
 - Independent evaluator
 - Requires `context` in the `EvalSample`
+
+### ContextRecallScore
+
+The **ContextRecallScore** evaluator measures the recall of reference context chunks among the retrieved chunks. For each reference chunk in the `EvalSample.context`, it checks whether the chunk text appears (as a substring) in any of the retrieved chunks from the `RAGOutput`.
+
+This evaluator does **not** require a generated answer — it only uses `retrieved_context` from the RAG output. This makes it ideal for **retriever-only optimization**, where no LLM reader is used.
+
+```python
+from rago.eval import ContextRecallScore
+from rago.data_objects import Document, EvalSample, RAGOutput, RetrievedContext
+
+evaluator = ContextRecallScore()
+
+eval_sample = EvalSample(
+    query="How old is Thomas?",
+    context=[
+        Document(text="Thomas is 12 years old.", id="doc1"),
+        Document(text="Thomas was born 12 years ago.", id="doc2"),
+    ],
+)
+
+# The retriever found only one of the two reference chunks
+output = RAGOutput(
+    retrieved_context=[
+        RetrievedContext(text="Thomas is 12 years old.", score=0.9),
+        RetrievedContext(text="Some unrelated text.", score=0.3),
+    ],
+)
+
+result = evaluator.evaluate(output, eval_sample)
+print(result["context_recall"].score)  # Output: 0.5  (1 out of 2 reference chunks found)
+```
+
+The score is computed as:
+
+$$\text{context\_recall} = \frac{|\text{reference chunks found in retrieved chunks}|}{|\text{reference chunks}|}$$
+
+**Special cases:**
+- No reference context in the eval sample → score = 1.0 (retrieval is trivially correct)
+- Reference context exists but retriever returns nothing → score = 0.0
+
+**Key features:**
+- Returns 1 metric: `context_recall`
+- Does **not** require a generated answer (works with `reader=None`)
+- Ideal for retriever-only optimization (no LLM needed → very fast)
+- Independent evaluator
+- Requires `context` in the `EvalSample`
+- Registered in the evaluator registry as `"context_recall"`
 
 ## Independent vs Dependent Evaluators
 
@@ -241,12 +289,13 @@ evaluator = SimpleLLMEvaluator(llm_agent)
 
 ## Summary Table
 
-| Evaluator | Type | Metrics | Requires Reference | Requires Context | Speed |
-|-----------|------|---------|-------------------|------------------|-------|
-| `BertScore` | Independent | precision, recall, f1 | ✅ | ❌ | Fast |
-| `SimilarityScore` | Independent | similarity | ✅ | ❌ | Very Fast |
-| `RelevancyEvaluator` | Independent | relevancy | ❌ | ✅ | Very Fast |
-| `SimpleLLMEvaluator` | Dependent | correctness | ❌ | ❌ | Slow (LLM) |
+| Evaluator | Type | Metrics | Requires Reference | Requires Context | Requires Answer | Speed |
+|-----------|------|---------|-------------------|------------------|-----------------|-------|
+| `BertScore` | Independent | precision, recall, f1 | ✅ | ❌ | ✅ | Fast |
+| `SimilarityScore` | Independent | similarity | ✅ | ❌ | ✅ | Very Fast |
+| `RelevancyEvaluator` | Independent | relevancy | ❌ | ✅ | ❌ | Very Fast |
+| `ContextRecallScore` | Independent | context_recall | ❌ | ✅ | ❌ | Very Fast |
+| `SimpleLLMEvaluator` | Dependent | correctness | ❌ | ❌ | ✅ | Slow (LLM) |
 
 
 ## 📚 Related Documentation

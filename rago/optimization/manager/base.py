@@ -360,6 +360,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
         self.logger.debug("[PROCESS] Query: %s", eval_sample.query)
         candidate = rag_candidate.get_rag_output(eval_sample.query)
+        self.logger.info("[PROCESS] Query: %s | Generated response: %s", eval_sample.query, candidate.answer)
         evaluation = evaluator.evaluate(candidate, eval_sample)
         self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
         return evaluation
