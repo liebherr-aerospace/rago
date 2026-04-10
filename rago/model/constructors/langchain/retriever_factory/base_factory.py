@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import hashlib
+import logging
 import os
 import uuid
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, ClassVar, Optional
 
 import chromadb
 from langchain_chroma import Chroma
@@ -23,9 +25,36 @@ if TYPE_CHECKING:
 OPENSEARCH_URL = os.getenv("OPENSEARCH_URL", "")
 OPENSEARCH_INDEX_NAME = os.getenv("OPENSEARCH_INDEX_NAME", "")
 
+logger = logging.getLogger(__name__)
+
+
+def _corpus_hash(input_chunks: list[Document]) -> str:
+    """Compute a lightweight hash of a corpus to use as a cache key component.
+
+    :param input_chunks: The corpus documents.
+    :type input_chunks: list[Document]
+    :return: A hex digest uniquely identifying the corpus content.
+    :rtype: str
+    """
+    h = hashlib.sha256()
+    for doc in input_chunks:
+        h.update(doc.page_content.encode("utf-8"))
+    return h.hexdigest()[:16]
+
 
 class RetrieverFactory:
-    """A Langchain retriever factory to make retriever with langchain."""
+    """A Langchain retriever factory to make retriever with langchain.
+
+    The factory caches vector stores and BM25 indexes so that the same corpus
+    is indexed only once per (encoder, similarity_function) or (k1, b, similarity)
+    combination, even across many Optuna trials.
+    """
+
+    # Cache: (encoder_model_name, similarity_function, corpus_hash) → indexed Chroma VectorStore
+    _vectorstore_cache: ClassVar[dict[tuple[str, Optional[str], str], VectorStore]] = {}
+
+    # Cache: (k1, b, similarity, corpus_hash) → ready-to-query OpenSearchBM25Retriever
+    _bm25_cache: ClassVar[dict[tuple[float, float, str, str], OpenSearchBM25Retriever]] = {}
 
     @staticmethod
     def make(
@@ -75,12 +104,35 @@ class RetrieverFactory:
         return EncoderFactory.make(config.encoder)
 
     @staticmethod
+    def _get_encoder_name(config: LangchainRetrieverConfig, encoder: Embeddings) -> str:
+        """Extract a stable encoder name for cache keying.
+
+        :param config: The retriever config (may contain encoder config with model_name).
+        :type config: LangchainRetrieverConfig
+        :param encoder: The encoder instance.
+        :type encoder: Embeddings
+        :return: A string identifying the encoder.
+        :rtype: str
+        """
+        if config.encoder is not None and hasattr(config.encoder, "model_name"):
+            return config.encoder.model_name
+        if hasattr(encoder, "model_name"):
+            return encoder.model_name
+        # Fallback: use object id (no caching benefit, but safe)
+        return str(id(encoder))
+
+    @staticmethod
     def make_vector_store_retriever(
         config: LangchainRetrieverConfig,
         input_chunks: list[Document],
         encoder: Embeddings,
     ) -> VectorStoreRetriever:
-        """Make a vector store retriever.
+        """Make a vector store retriever, reusing a cached Chroma store when possible.
+
+        The Chroma vector store (with all documents already embedded and indexed)
+        is cached by ``(encoder_model_name, similarity_function, corpus_hash)``.
+        Only the lightweight retriever wrapper (with trial-specific ``search_type``
+        and ``search_kwargs``) is created each time.
 
         :param config: The config of the vector store retriever to create.
         :type config: dict
@@ -91,16 +143,37 @@ class RetrieverFactory:
         :return: The created vector store retriever.
         :rtype: VectorStoreRetriever
         """
-        vectorstore_from_client = RetrieverFactory.make_chroma(
-            collection_name=str(uuid.uuid4()),
-            encoder=encoder,
-            similarity_function=config.similarity_function,
-        )
-        batch_size = 5000
-        for i in range(0, len(input_chunks), batch_size):
-            batch = input_chunks[i:i + batch_size]
-            vectorstore_from_client.add_documents(batch)
-        return vectorstore_from_client.as_retriever(search_type=config.search_type, search_kwargs=config.search_kwargs)
+        encoder_name = RetrieverFactory._get_encoder_name(config, encoder)
+        c_hash = _corpus_hash(input_chunks)
+        cache_key = (encoder_name, config.similarity_function, c_hash)
+
+        if cache_key in RetrieverFactory._vectorstore_cache:
+            logger.debug(
+                "[CACHE HIT] Reusing Chroma vectorstore (encoder=%s, sim=%s)",
+                encoder_name,
+                config.similarity_function,
+            )
+            vectorstore = RetrieverFactory._vectorstore_cache[cache_key]
+        else:
+            logger.info(
+                "[CACHE MISS] Building Chroma vectorstore (encoder=%s, sim=%s, %d chunks)",
+                encoder_name,
+                config.similarity_function,
+                len(input_chunks),
+            )
+            vectorstore = RetrieverFactory.make_chroma(
+                collection_name=str(uuid.uuid4()),
+                encoder=encoder,
+                similarity_function=config.similarity_function,
+            )
+            batch_size = 5000
+            for i in range(0, len(input_chunks), batch_size):
+                batch = input_chunks[i : i + batch_size]
+                vectorstore.add_documents(batch)
+            RetrieverFactory._vectorstore_cache[cache_key] = vectorstore
+
+        # The retriever is cheap to create — only search_kwargs change between trials
+        return vectorstore.as_retriever(search_type=config.search_type, search_kwargs=config.search_kwargs)
 
     @staticmethod
     def make_chroma(
@@ -132,7 +205,11 @@ class RetrieverFactory:
         config: LangchainRetrieverConfig,
         input_chunks: list[Document],
     ) -> BaseRetriever:
-        """Create a BM25 retriever using OpenSearch.
+        """Create a BM25 retriever using OpenSearch, reusing a cached index when possible.
+
+        The OpenSearch index is cached by ``(k1, b, similarity, corpus_hash)``
+        so that re-indexing the same corpus with the same BM25 parameters is
+        skipped on subsequent trials.
 
         :param config: The config of the vector store retriever to create.
         :type config: dict
@@ -142,12 +219,31 @@ class RetrieverFactory:
         :rtype: BaseRetriever
         """
         search_kwargs = config.search_kwargs or {}
+        k1 = search_kwargs["k1"]
+        b = search_kwargs["b"]
+        similarity = search_kwargs["similarity"]
+        c_hash = _corpus_hash(input_chunks)
+        cache_key = (k1, b, similarity, c_hash)
+
+        if cache_key in RetrieverFactory._bm25_cache:
+            logger.debug("[CACHE HIT] Reusing BM25 index (k1=%.2f, b=%.2f)", k1, b)
+            return RetrieverFactory._bm25_cache[cache_key]
+
+        logger.info("[CACHE MISS] Building BM25 index (k1=%.2f, b=%.2f, %d chunks)", k1, b, len(input_chunks))
         retriever = OpenSearchBM25Retriever.create(
             opensearch_url=OPENSEARCH_URL,
             index_name=OPENSEARCH_INDEX_NAME,
-            k1=search_kwargs["k1"],
-            b=search_kwargs["b"],
-            similarity=search_kwargs["similarity"],
+            k1=k1,
+            b=b,
+            similarity=similarity,
         )
         retriever.add_texts(input_chunks)
+        RetrieverFactory._bm25_cache[cache_key] = retriever
         return retriever
+
+    @staticmethod
+    def clear_cache() -> None:
+        """Clear all cached vector stores and BM25 indexes."""
+        RetrieverFactory._vectorstore_cache.clear()
+        RetrieverFactory._bm25_cache.clear()
+        logger.info("[CACHE] Langchain retriever factory cache cleared")
