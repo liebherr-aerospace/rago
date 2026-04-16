@@ -1,5 +1,6 @@
 
 from rago.eval.base import BaseDependentEvaluator, BaseEvaluator, BaseIndependentEvaluator
+from rago.eval.precision import PrecisionEvaluator
 from rago.eval.relevancy import RelevancyEvaluator
 from rago.eval.sim_score import SimilarityScore
 from rago.eval.llm_evaluator import BaseLLMEvaluator, CoTLLMEvaluator, SimpleLLMEvaluator, PolicyOnError, JudgeError, EvalPrompts
@@ -12,6 +13,7 @@ __all__ = [
     "BaseDependentEvaluator",
     "BaseEvaluator",
     "BaseIndependentEvaluator",
+    "PrecisionEvaluator",
     "RelevancyEvaluator",
     "BaseLLMEvaluator",
     "CoTLLMEvaluator",

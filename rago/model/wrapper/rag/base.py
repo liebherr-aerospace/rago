@@ -10,6 +10,7 @@ from rago.data_objects import RAGOutput
 from rago.model.configs.base import Config
 from rago.model.configs.reader_config.base import ReaderConfig  # noqa: TC001
 from rago.model.configs.retriever_config.base import RetrieverConfig  # noqa: TC001
+from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 from rago.model.wrapper.reader.reader_wrapper_factory import ReaderWrapperFactory
 from rago.model.wrapper.retriever.retriever_wrapper_factory import RetrieverWrapperFactory
 from rago.prompts import PromptConfig
@@ -73,11 +74,12 @@ class RAG:
             reader = None
 
         if rag_config.retriever is not None:
-            if inputs_chunks is None:
+            # Qdrant retrievers query an external collection; no local chunks needed.
+            if not isinstance(rag_config.retriever, QdrantRetrieverConfig) and inputs_chunks is None:
                 raise ValueError(inputs_chunks)
             retriever = RetrieverWrapperFactory.make(
                 config=rag_config.retriever,
-                input_chunks=inputs_chunks,
+                input_chunks=inputs_chunks or [],
             )
         else:
             retriever = None

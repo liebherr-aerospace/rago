@@ -361,6 +361,17 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self.logger.debug("[PROCESS] Query: %s", eval_sample.query)
         candidate = rag_candidate.get_rag_output(eval_sample.query)
         self.logger.info("[PROCESS] Query: %s | Generated response: %s", eval_sample.query, candidate.answer)
+
+        # Log retrieved chunks for visibility during retriever-only optimisation
+        if candidate.retrieved_context:
+            for i, ctx in enumerate(candidate.retrieved_context):
+                self.logger.info(
+                    "[RETRIEVED] #%d  score=%.4f  text=%s",
+                    i + 1,
+                    ctx.score if ctx.score is not None else 0.0,
+                    ctx.text[:200],
+                )
+
         evaluation = evaluator.evaluate(candidate, eval_sample)
         self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
         return evaluation

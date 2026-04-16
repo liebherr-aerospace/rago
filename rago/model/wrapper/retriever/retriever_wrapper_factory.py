@@ -3,10 +3,12 @@
 from rago.model.configs.retriever_config.base import RetrieverConfig
 from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
+from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 from rago.model.wrapper.retriever.base import Retriever
 from rago.model.wrapper.retriever.hybrid_langchain_retriever import HybridLangchainRetrieverWrapper
 from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
 from rago.model.wrapper.retriever.llama_index_retriever import LlamaIndexRetrieverWrapper
+from rago.model.wrapper.retriever.qdrant_retriever import QdrantRetrieverWrapper
 
 
 class RetrieverWrapperFactory:
@@ -24,6 +26,8 @@ class RetrieverWrapperFactory:
         :rtype: Retriever
         """
         match config:
+            case QdrantRetrieverConfig():
+                return QdrantRetrieverWrapper.make(config)
             case LlamaIndexRetrieverConfig():
                 return LlamaIndexRetrieverWrapper.make(config, input_chunks)
             case LangchainRetrieverConfig() if config.type == "HybridRetriever":

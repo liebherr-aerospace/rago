@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import StrEnum
-from typing import TYPE_CHECKING, Generic, Optional, TypeVar
+from typing import TYPE_CHECKING, Optional
 
 from pydantic import Field
 from pydantic.dataclasses import dataclass
@@ -17,8 +17,6 @@ if TYPE_CHECKING:
     from rago.optimization.search_space.elements import ParamSpaceElement
 
 categorical_type = None | bool | int | float | str
-
-T = TypeVar("T", bound=categorical_type)
 
 
 class ParamType(StrEnum):
@@ -74,7 +72,7 @@ class FloatParamSpace(ParamSpace):
 
 
 @dataclass
-class CategoricalParamSpace(ParamSpace, Generic[T]):
+class CategoricalParamSpace[T: (None, bool, int, float, str)](ParamSpace):
     """A space containing all the possible categorical parameters."""
 
     choices: list[T] = Field(default_factory=list)
@@ -84,6 +82,9 @@ class CategoricalParamSpace(ParamSpace, Generic[T]):
         if self.name is None:
             raise ValueError(self.name)
         sampled_param = trial.suggest_categorical(self.name, choices=self.choices)
-        if isinstance(sampled_param, type(self.choices[0])):
-            return sampled_param
+        # Check membership in choices rather than comparing against the type of
+        # choices[0]: the latter breaks when choices[0] is None and the sampled
+        # value is a non-None string (e.g. a reranker model name).
+        if sampled_param in self.choices:
+            return sampled_param  # type: ignore[return-value]
         raise ValueError(sampled_param)

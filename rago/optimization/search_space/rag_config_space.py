@@ -3,12 +3,13 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Union
 
 if TYPE_CHECKING:
     import optuna
 
     from rago.model.configs.retriever_config.base import RetrieverConfig
+    from rago.optimization.search_space.qdrant_retriever_config_space import QdrantRetrieverConfigSpace
 
 from rago.model.wrapper.rag.base import RAGConfig
 from rago.optimization.search_space.config_space import ConfigSpace
@@ -33,9 +34,12 @@ class RAGConfigSpace(ConfigSpace):
 
     When ``reader_space`` is ``None`` (default), a ``LangchainReaderConfigSpace`` is used.
     When ``reader_space`` is ``NO_READER``, the reader is disabled and only the retriever is optimized.
+
+    The ``retriever_space`` can be a :class:`RetrieverConfigSpace` (Langchain-based) or
+    a :class:`QdrantRetrieverConfigSpace` (Qdrant hybrid search).
     """
 
-    retriever_space: Optional[RetrieverConfigSpace] = None
+    retriever_space: Optional[Union[RetrieverConfigSpace, QdrantRetrieverConfigSpace]] = None
     reader_space: Optional[ReaderConfigSpace | _NoReader] = None
 
     def sample(self, trial: optuna.trial.BaseTrial) -> RAGConfig:
