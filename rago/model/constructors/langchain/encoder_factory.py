@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import TYPE_CHECKING, Any, ClassVar, Optional
 
 from langchain_huggingface.embeddings import HuggingFaceEmbeddings
@@ -18,6 +19,8 @@ if TYPE_CHECKING:
     from langchain.embeddings.base import Embeddings
 
 logger = logging.getLogger(__name__)
+
+ENCODER_CACHE_MAX_SIZE = int(os.getenv("RAGO_ENCODER_CACHE_MAX_SIZE", "0"))
 
 
 class EncoderFactory:
@@ -81,6 +84,7 @@ class EncoderFactory:
             base_url=base_url,
             client_kwargs=client_kwargs,
         )
+        EncoderFactory._evict_if_needed(EncoderFactory._ollama_cache)
         EncoderFactory._ollama_cache[cache_key] = encoder
         return encoder
 
@@ -102,8 +106,17 @@ class EncoderFactory:
 
         logger.info("[CACHE MISS] Loading HuggingFace encoder '%s'", encoder_name)
         encoder = HuggingFaceEmbeddings(model_name=encoder_name, encode_kwargs={"batch_size": batch_size})
+        EncoderFactory._evict_if_needed(EncoderFactory._hf_cache)
         EncoderFactory._hf_cache[cache_key] = encoder
         return encoder
+
+    @staticmethod
+    def _evict_if_needed(cache: dict) -> None:
+        """Evict the oldest entry from *cache* when ``ENCODER_CACHE_MAX_SIZE`` is exceeded."""
+        if ENCODER_CACHE_MAX_SIZE > 0 and len(cache) >= ENCODER_CACHE_MAX_SIZE:
+            oldest_key = next(iter(cache))
+            cache.pop(oldest_key)
+            logger.info("[CACHE EVICT] Removed oldest encoder entry (max=%d)", ENCODER_CACHE_MAX_SIZE)
 
     @staticmethod
     def clear_cache() -> None:

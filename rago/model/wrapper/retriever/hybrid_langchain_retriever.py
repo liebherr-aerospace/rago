@@ -1,4 +1,4 @@
-"""Define a hybrid retriever combining vector and BM25 retrievers."""
+"""Define a hybrid retriever combining multiple retrievers."""
 
 from __future__ import annotations
 
@@ -14,33 +14,26 @@ if TYPE_CHECKING:
 
 
 class HybridLangchainRetrieverWrapper(Retriever):
-    """A hybrid retriever that combines VectorIndex and BM25 retrievers with weighted scoring.
+    """A hybrid retriever that combines an arbitrary number of sub-retrievers with weighted scoring.
 
-    The hybrid retriever runs both sub-retrievers independently, normalizes their scores,
-    and combines them using a configurable weight parameter.
+    Each sub-retriever's results are independently normalized then multiplied by
+    its associated weight before being merged.
     """
 
     def __init__(
         self,
-        vector_retriever: LangchainRetrieverWrapper,
-        bm25_retriever: LangchainRetrieverWrapper,
-        hybrid_weight: float = 0.5,
+        retrievers: list[tuple[Retriever, float]],
         nodes_post_processors: Optional[LLamaIndexContextPostProcessorWrapper] = None,
     ) -> None:
         """Instantiate a hybrid retriever.
 
-        :param vector_retriever: The vector index retriever.
-        :type vector_retriever: LangchainRetrieverWrapper
-        :param bm25_retriever: The BM25 retriever.
-        :type bm25_retriever: LangchainRetrieverWrapper
-        :param hybrid_weight: Weight for the vector retriever score (1 - weight for BM25), defaults to 0.5.
-        :type hybrid_weight: float
+        :param retrievers: A list of ``(retriever, weight)`` pairs.
+            Weights do not need to sum to 1 — they are applied as-is.
+        :type retrievers: list[tuple[Retriever, float]]
         :param nodes_post_processors: The context post-processors, defaults to None.
         :type nodes_post_processors: Optional[LLamaIndexContextPostProcessorWrapper], optional
         """
-        self.vector_retriever = vector_retriever
-        self.bm25_retriever = bm25_retriever
-        self.hybrid_weight = hybrid_weight
+        self.retrievers = retrievers
         self.nodes_post_processors = nodes_post_processors
 
     @classmethod
@@ -58,18 +51,23 @@ class HybridLangchainRetrieverWrapper(Retriever):
         :return: The hybrid retriever.
         :rtype: HybridLangchainRetrieverWrapper
         """
-        if config.vector_config is None:
-            error_msg = "HybridRetriever requires a vector_config."
-            raise ValueError(error_msg)
-        if config.bm25_config is None:
-            error_msg = "HybridRetriever requires a bm25_config."
-            raise ValueError(error_msg)
         if config.hybrid_weight is None:
             error_msg = "HybridRetriever requires a hybrid_weight."
             raise ValueError(error_msg)
 
-        vector_retriever = LangchainRetrieverWrapper.make(config.vector_config, inputs_chunks)
-        bm25_retriever = LangchainRetrieverWrapper.make(config.bm25_config, inputs_chunks)
+        retrievers: list[tuple[Retriever, float]] = []
+
+        if config.vector_config is not None:
+            vector_retriever = LangchainRetrieverWrapper.make(config.vector_config, inputs_chunks)
+            retrievers.append((vector_retriever, config.hybrid_weight))
+
+        if config.bm25_config is not None:
+            bm25_retriever = LangchainRetrieverWrapper.make(config.bm25_config, inputs_chunks)
+            retrievers.append((bm25_retriever, 1.0 - config.hybrid_weight))
+
+        if not retrievers:
+            error_msg = "HybridRetriever requires at least one sub-retriever config (vector_config or bm25_config)."
+            raise ValueError(error_msg)
 
         nodes_post_processors = None
         if config.node_post_processor_config is not None:
@@ -78,9 +76,7 @@ class HybridLangchainRetrieverWrapper(Retriever):
             )
 
         return cls(
-            vector_retriever=vector_retriever,
-            bm25_retriever=bm25_retriever,
-            hybrid_weight=config.hybrid_weight,
+            retrievers=retrievers,
             nodes_post_processors=nodes_post_processors,
         )
 
@@ -115,36 +111,28 @@ class HybridLangchainRetrieverWrapper(Retriever):
         return normalized
 
     def get_retriever_output(self, query: str) -> list[RetrievedContext]:
-        """Get the texts relevant to the query by combining vector and BM25 retriever results.
+        """Get the texts relevant to the query by combining all sub-retriever results.
 
-        Results are combined using weighted scoring: hybrid_weight * vector_score + (1 - hybrid_weight) * bm25_score.
-        Duplicate contexts (same text) are merged by taking the combined score.
+        Each sub-retriever's scores are normalized to [0, 1], then multiplied by
+        the associated weight.  Duplicate contexts (same text) are merged by
+        summing their weighted scores.
 
         :param query: The query.
         :type query: str
         :return: The texts relevant to the query, sorted by combined score descending.
         :rtype: list[RetrievedContext]
         """
-        vector_results = self._normalize_scores(self.vector_retriever.get_retriever_output(query))
-        bm25_results = self._normalize_scores(self.bm25_retriever.get_retriever_output(query))
-
-        # Combine results using weighted scores, merging duplicates
         combined: dict[str, float] = {}
         embeddings: dict[str, list[float] | None] = {}
 
-        for ctx in vector_results:
-            score = (ctx.score or 0.0) * self.hybrid_weight
-            combined[ctx.text] = combined.get(ctx.text, 0.0) + score
-            if ctx.embedding is not None:
-                embeddings[ctx.text] = ctx.embedding
+        for retriever, weight in self.retrievers:
+            results = self._normalize_scores(retriever.get_retriever_output(query))
+            for ctx in results:
+                score = (ctx.score or 0.0) * weight
+                combined[ctx.text] = combined.get(ctx.text, 0.0) + score
+                if ctx.embedding is not None and ctx.text not in embeddings:
+                    embeddings[ctx.text] = ctx.embedding
 
-        for ctx in bm25_results:
-            score = (ctx.score or 0.0) * (1.0 - self.hybrid_weight)
-            combined[ctx.text] = combined.get(ctx.text, 0.0) + score
-            if ctx.text not in embeddings and ctx.embedding is not None:
-                embeddings[ctx.text] = ctx.embedding
-
-        # Build sorted results
         retrieved_contexts = [
             RetrievedContext(text=text, score=score, embedding=embeddings.get(text))
             for text, score in sorted(combined.items(), key=lambda x: x[1], reverse=True)

@@ -16,8 +16,6 @@ if TYPE_CHECKING:
 
     from rago.optimization.search_space.elements import ParamSpaceElement
 
-categorical_type = None | bool | int | float | str
-
 
 class ParamType(StrEnum):
     """The available param types."""
@@ -81,10 +79,4 @@ class CategoricalParamSpace[T: (None, bool, int, float, str)](ParamSpace):
         """Sample a parameter from the parameter space using trial."""
         if self.name is None:
             raise ValueError(self.name)
-        sampled_param = trial.suggest_categorical(self.name, choices=self.choices)
-        # Check membership in choices rather than comparing against the type of
-        # choices[0]: the latter breaks when choices[0] is None and the sampled
-        # value is a non-None string (e.g. a reranker model name).
-        if sampled_param in self.choices:
-            return sampled_param  # type: ignore[return-value]
-        raise ValueError(sampled_param)
+        return trial.suggest_categorical(self.name, choices=self.choices)  # type: ignore[return-value]
