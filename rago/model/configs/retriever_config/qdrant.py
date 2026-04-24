@@ -31,7 +31,7 @@ class QdrantCollectionConfig:
     :type encoder_base_url: str
     """
 
-    collection_name: str = ""
+    collection_name: str
     dense_vector_name: str = "dense"
     sparse_vector_name: str = "bm25"
     late_interaction_vector_name: str = "colbert"
@@ -60,30 +60,14 @@ class QdrantRetrieverConfig(RetrieverConfig):
     * ``score_threshold``: Minimum fusion score to keep a result. ``None`` disables filtering.
     """
 
-    # ── Collection / vectors ──────────────────────────────────────────────────
-    collection: QdrantCollectionConfig = Field(default_factory=lambda: QdrantCollectionConfig())
-
-    # ── Fusion strategy ───────────────────────────────────────────────────────
-    fusion_method: str = "rrf"  # "rrf" | "dbsf"
+    collection: QdrantCollectionConfig
+    fusion_method: str = "rrf"
     rrf_k: int = 60
-
-    # ── Limits ────────────────────────────────────────────────────────────────
     prefetch_limit: int = 100
     limit: int = 20
-
-    # ── Late-interaction re-scoring (ColBERT) ─────────────────────────────────
     late_interaction_rescore: bool = False
-
-    # ── RRF weights (dense, sparse) order matters ──────────────────────────
     dense_weight: float = 3.0
     sparse_weight: float = 1.0
-
-    # ── Minimum score threshold (post-fusion) ─────────────────────────────────
     score_threshold: float | None = None
-
-    # ── Post-retrieval cross-encoder reranker ─────────────────────────────────
-    # When set, a cross-encoder model is loaded and used to re-score the
-    # retrieved chunks *after* the Qdrant fusion stage.  ``None`` disables
-    # reranking entirely (default).
     reranker_model: str | None = None
     reranker_top_n: int | None = None

@@ -31,6 +31,14 @@ CHROMA_CACHE_DIR = Path(
     os.getenv("RAGO_CHROMA_CACHE_DIR", str(Path(PATH_PROJECT) / ".cache" / "rago" / "chroma")),
 )
 
+#: Set to ``"false"`` to disable the persistent Chroma cache entirely.
+CHROMA_CACHE_ENABLED = os.getenv("RAGO_CHROMA_CACHE_ENABLED", "true").lower() in ("true", "1", "yes")
+
+#: Maximum number of collections kept in the persistent Chroma cache.
+#: Oldest collections (by name sort) are evicted when this limit is exceeded.
+#: ``0`` means unlimited.
+CHROMA_CACHE_MAX_COLLECTIONS = int(os.getenv("RAGO_CHROMA_CACHE_MAX_COLLECTIONS", "0"))
+
 logger = logging.getLogger(__name__)
 
 
@@ -180,11 +188,26 @@ class RetrieverFactory:
         :return: The created vector store retriever.
         :rtype: VectorStoreRetriever
         """
+        if not CHROMA_CACHE_ENABLED:
+            vectorstore = Chroma.from_documents(
+                documents=input_chunks,
+                embedding=encoder,
+                collection_metadata={"hnsw:space": config.similarity_function} if config.similarity_function else None,
+            )
+            return vectorstore.as_retriever(search_type=config.search_type, search_kwargs=config.search_kwargs)
+
         encoder_name = RetrieverFactory._get_encoder_name(config, encoder)
         corpus_id = RetrieverFactory._get_corpus_id(input_chunks)
         collection_name = _safe_dir_name(encoder_name, config.similarity_function, corpus_id)
 
         client = RetrieverFactory._get_chroma_client()
+
+        if CHROMA_CACHE_MAX_COLLECTIONS > 0:
+            existing = sorted(c.name for c in client.list_collections())
+            while len(existing) >= CHROMA_CACHE_MAX_COLLECTIONS and collection_name not in existing:
+                evicted = existing.pop(0)
+                client.delete_collection(evicted)
+                logger.info("[CACHE EVICT] Removed collection %s (max=%d)", evicted, CHROMA_CACHE_MAX_COLLECTIONS)
 
         collection = client.get_or_create_collection(
             name=collection_name,
