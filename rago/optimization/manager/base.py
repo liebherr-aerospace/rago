@@ -28,11 +28,16 @@ if TYPE_CHECKING:
     from rago.data_objects import EvalSample, RAGOutput
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
+    from rago.model.configs.tunable_model_config import TunableModelConfig
+    from rago.model.wrapper.tunable_model import TunableModel
+    from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 from enum import StrEnum
 
 from rago.data_objects import DataObject, Metric
 from rago.model.wrapper.rag.base import RAG, RAGConfig
+from rago.model.wrapper.reader_model import ReaderModel, ReaderModelConfig
+from rago.model.wrapper.retriever_model import RetrieverModel, RetrieverModelConfig
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
 
@@ -45,9 +50,9 @@ class EvalMode(StrEnum):
 
 @dataclass
 class RAGCandidateEval(DataObject):
-    """Performance and config of a rag on train and test set."""
+    """Performance and config of a model on train and test set."""
 
-    config: RAGConfig
+    config: TunableModelConfig
     train_score: float
     mean_evals: dict[str, float]
     full_evals: dict[str, list[float]]
@@ -70,7 +75,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
     """An Abstract Class that defines the optimization manager."""
 
     manager: optuna.Study
-    config_space: RAGConfigSpace
+    config_space: TunableModelConfigSpace
     logger: logging.Logger
 
     def __init__(
@@ -81,7 +86,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         optim_evaluator: EvaluatorType,
         optim_metric_name: str,
         test_evaluators: list[BaseEvaluator],
-        config_space: Optional[RAGConfigSpace] = None,
+        config_space: Optional[TunableModelConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
@@ -98,8 +103,8 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :type optim_metric_name: Optional[str], optional
         :param test_evaluators: Evaluators used in test.
         :type test_evaluators: list[EvaluatorType]
-        :param config_space: The space of RAG config to search in, defaults to None
-        :type config_space: Optional[RAGConfigSpace], optional
+        :param config_space: The space of model config to search in, defaults to None
+        :type config_space: Optional[TunableModelConfigSpace], optional
         :param prompt_config: Configuration of the prompt used by the reader of each RAG.
         :type prompt_config: Optional[PromptConfig], optional
         :param sampler: The sampler used to suggest new rag configuration to tests, defaults to None
@@ -131,7 +136,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         optim_evaluator: EvaluatorType,
         optim_metric_name: str,
         test_evaluators: list[BaseEvaluator],
-        config_space: Optional[RAGConfigSpace] = None,
+        config_space: Optional[TunableModelConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
@@ -152,8 +157,8 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :type optim_metric_name: str
         :param test_evaluators: Evaluators used in test, if None evaluator is used for tests, defaults to None.
         :type test_evaluators: Optional[list[EvaluatorType]] = None
-        :param config_space: The space of RAG config to search in, defaults to None
-        :type config_space: Optional[RAGConfigSpace], optional
+        :param config_space: The space of model config to search in, defaults to None
+        :type config_space: Optional[TunableModelConfigSpace], optional
         :param prompt_config: Configuration of the prompt used by the reader of each RAG.
         :type prompt_config: Optional[PromptConfig], optional
         :param sampler: The sampler used to suggest new rag configuration to tests, defaults to None
@@ -283,22 +288,40 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         for m_name, m_value in trial_eval.items():
             trial.set_user_attr(m_name, m_value.score)
 
-    def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> RAG:
-        """Sample RAG from trial.
+    def sample_model(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel:
+        """Sample a model (RAG, RetrieverModel, or ReaderModel) from trial.
 
-        :param trial: Trial to use to sample the rag
+        :param trial: Trial to use to sample the model.
         :type trial: optuna.trial.BaseTrial
-        :return: The sampled RAG
-        :rtype: RAG
+        :param dataset: Dataset providing the corpus chunks.
+        :type dataset: RAGDataset
+        :return: The instantiated model.
+        :rtype: TunableModel
         """
         config = self.config_space.sample(trial)
-        self.logger.debug("[PROCESS] Current RAG Configuration Candidate: %s", config)
-        rag_candidate = RAG.make(
-            rag_config=config,
-            prompt_config=self.prompt_config,
-            inputs_chunks=[doc.text for doc in dataset.corpus.values()],
-        )
-        return rag_candidate
+        self.logger.debug("[PROCESS] Current Model Configuration Candidate: %s", config)
+        inputs_chunks = [doc.text for doc in dataset.corpus.values()]
+
+        if isinstance(config, RAGConfig):
+            return RAG.make(
+                rag_config=config,
+                prompt_config=self.prompt_config,
+                inputs_chunks=inputs_chunks,
+            )
+        if isinstance(config, RetrieverModelConfig):
+            return RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
+        if isinstance(config, ReaderModelConfig):
+            return ReaderModel.make(config=config, prompt_config=self.prompt_config)
+        msg = f"Unsupported config type: {type(config)}"
+        raise TypeError(msg)
+
+    def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel:
+        """Sample RAG from trial.
+
+        .. deprecated::
+            Use :meth:`sample_model` instead.
+        """
+        return self.sample_model(trial, dataset)
 
     def load_results(self) -> optuna.study.Study:
         """Load the results of the optimization.
@@ -318,13 +341,13 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         """
         return self.experiment_repo.get_n_best_trials(number)
 
-    def get_n_best_rag_configs(self, number: int) -> list[RAGConfig]:
-        """Get the top N best RAGConfig objects from the optimization.
+    def get_n_best_rag_configs(self, number: int) -> list[TunableModelConfig]:
+        """Get the top N best model configs from the optimization.
 
-        :param number: The number of top RAGConfig objects to retrieve.
+        :param number: The number of top configs to retrieve.
         :type number: int
-        :return: A list of the top N best RAGConfig objects.
-        :rtype: list[RAGConfig]
+        :return: A list of the top N best configs.
+        :rtype: list[TunableModelConfig]
         """
         best_trials = self.get_n_best_trials(number)
         return [self.config_space.sample(trial) for trial in best_trials]
@@ -343,7 +366,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self,
         evaluator: BaseEvaluator,
         eval_sample: EvalSample,
-        rag_candidate: RAG,
+        rag_candidate: TunableModel,
     ) -> dict[str, Metric]:
         """Calculate and return the current score.
 
@@ -351,15 +374,15 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :type evaluator: BaseEvaluator
         :param eval_sample: The dataset for the evaluation.
         :type eval_sample: EvalSample
-        :param rag_candidate: The RAG candidate.
-        :type rag_candidate: RAG
+        :param rag_candidate: The model candidate.
+        :type rag_candidate: TunableModel
         :return: The score of the current evaluation.
         :rtype: float
         :raise ValueError if the given context or the evaluation score is None.
         """
         self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
         self.logger.debug("[PROCESS] Query: %s", eval_sample.query)
-        candidate = rag_candidate.get_rag_output(eval_sample.query)
+        candidate = rag_candidate.get_output(eval_sample.query)
         self.logger.info("[PROCESS] Query: %s | Generated response: %s", eval_sample.query, candidate.answer)
 
         # Log retrieved chunks for visibility during retriever-only optimisation
@@ -396,15 +419,26 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self.logger.info("[PROCESS] Evaluating best trial on test set...")
         test_dataset = self.datasets["test"]
         config = self.config_space.sample(trial)
-        rag = RAG.make(
-            rag_config=config,
-            prompt_config=self.prompt_config,
-            inputs_chunks=[doc.text for doc in test_dataset.corpus.values()],
-        )
+        inputs_chunks = [doc.text for doc in test_dataset.corpus.values()]
+
+        if isinstance(config, RAGConfig):
+            model: TunableModel = RAG.make(
+                rag_config=config,
+                prompt_config=self.prompt_config,
+                inputs_chunks=inputs_chunks,
+            )
+        elif isinstance(config, RetrieverModelConfig):
+            model = RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
+        elif isinstance(config, ReaderModelConfig):
+            model = ReaderModel.make(config=config, prompt_config=self.prompt_config)
+        else:
+            msg = f"Unsupported config type: {type(config)}"
+            raise TypeError(msg)
+
         test_results: dict[str, list[float]] = defaultdict(list[float])
         for evaluator in self.test_evaluators:
             for test_sample in test_dataset.samples:
-                single_eval = self.single_eval(evaluator, test_sample, rag)
+                single_eval = self.single_eval(evaluator, test_sample, model)
                 for metric_name, metric_value in single_eval.items():
                     test_results[metric_name].append(metric_value.score)
 

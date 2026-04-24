@@ -49,7 +49,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         :return: the dictionary containing the metrics
         :rtype: float
         """
-        rag = self.sample_rag(trial, dataset)
+        rag = self.sample_model(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
         if len(self.manager.best_trials) > 0:
             self.logger.info(

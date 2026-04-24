@@ -12,35 +12,23 @@ if TYPE_CHECKING:
     from rago.optimization.search_space.qdrant_retriever_config_space import QdrantRetrieverConfigSpace
 
 from rago.model.wrapper.rag.base import RAGConfig
-from rago.optimization.search_space.config_space import ConfigSpace
 from rago.optimization.search_space.reader_config_space import LangchainReaderConfigSpace, ReaderConfigSpace
-from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
-
-
-class _NoReader:
-    """Sentinel value to explicitly disable reader sampling in RAGConfigSpace.
-
-    Use ``RAGConfigSpace(reader_space=NO_READER)`` to optimize only the retriever.
-    """
-
-
-NO_READER = _NoReader()
-"""Sentinel to pass as ``reader_space`` to disable reader optimization."""
+from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace as _RetrieverConfigSpace
+from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 
 @dataclass
-class RAGConfigSpace(ConfigSpace):
-    """Define the RAG Config space.
+class RAGConfigSpace(TunableModelConfigSpace):
+    """Config space that samples a full :class:`RAGConfig` (reader **and** retriever).
 
-    When ``reader_space`` is ``None`` (default), a ``LangchainReaderConfigSpace`` is used.
-    When ``reader_space`` is ``NO_READER``, the reader is disabled and only the retriever is optimized.
-
-    The ``retriever_space`` can be a :class:`RetrieverConfigSpace` (Langchain-based) or
-    a :class:`QdrantRetrieverConfigSpace` (Qdrant hybrid search).
+    Both ``retriever_space`` and ``reader_space`` default to sensible config
+    spaces when left as ``None``.  For retriever-only or reader-only
+    optimisation use :class:`RetrieverModelConfigSpace` or
+    :class:`ReaderModelConfigSpace` instead.
     """
 
-    retriever_space: Optional[Union[RetrieverConfigSpace, QdrantRetrieverConfigSpace]] = None
-    reader_space: Optional[ReaderConfigSpace | _NoReader] = None
+    retriever_space: Optional[Union[_RetrieverConfigSpace, QdrantRetrieverConfigSpace]] = None
+    reader_space: Optional[ReaderConfigSpace] = None
 
     def sample(self, trial: optuna.trial.BaseTrial) -> RAGConfig:
         """Sample a RAG configuration from configuration spaces.
@@ -51,16 +39,13 @@ class RAGConfigSpace(ConfigSpace):
         :rtype: RAGConfig
         """
         # Reader
-        if isinstance(self.reader_space, _NoReader):
-            reader_config = None
-        else:
-            if self.reader_space is None:
-                self.reader_space = LangchainReaderConfigSpace()
-            reader_config = self.reader_space.sample(trial)
+        if self.reader_space is None:
+            self.reader_space = LangchainReaderConfigSpace()
+        reader_config = self.reader_space.sample(trial)
 
         # Retriever
         if self.retriever_space is None:
-            self.retriever_space = RetrieverConfigSpace()
+            self.retriever_space = _RetrieverConfigSpace()
         retriever_config: RetrieverConfig = self.retriever_space.sample(trial)
 
         return RAGConfig(
