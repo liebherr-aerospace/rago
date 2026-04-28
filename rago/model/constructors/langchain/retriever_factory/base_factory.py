@@ -2,10 +2,10 @@
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import os
 import shutil
-import uuid
 from pathlib import Path
 from typing import TYPE_CHECKING, ClassVar, Optional
 
@@ -62,6 +62,7 @@ class RetrieverFactory:
     """
 
     _corpus_id_cache: ClassVar[dict[int, str]] = {}
+    _corpus_hash_cache: ClassVar[dict[int, str]] = {}
 
     _chroma_client: ClassVar[Optional[chromadb.ClientAPI]] = None
 
@@ -133,20 +134,25 @@ class RetrieverFactory:
 
     @staticmethod
     def _get_corpus_id(input_chunks: list[Document]) -> str:
-        """Return a stable UUID for a given corpus list object (cheap, no hashing).
+        """Return a stable hash for a given corpus.
 
-        Within the same process the same *list object* always receives the same
-        UUID.  A new UUID is generated the first time a list is seen.
+        Uses a fast in-process cache keyed on the list's ``id()`` so that the
+        SHA-256 is only computed once per list object.  Because the hash is
+        content-based, it also survives process restarts and correctly
+        identifies identical corpora across different list instances.
 
         :param input_chunks: The corpus documents.
         :type input_chunks: list[Document]
-        :return: A hex string identifying the corpus.
+        :return: A 16-char hex string identifying the corpus.
         :rtype: str
         """
         obj_id = id(input_chunks)
-        if obj_id not in RetrieverFactory._corpus_id_cache:
-            RetrieverFactory._corpus_id_cache[obj_id] = uuid.uuid4().hex[:16]
-        return RetrieverFactory._corpus_id_cache[obj_id]
+        if obj_id not in RetrieverFactory._corpus_hash_cache:
+            h = hashlib.sha256()
+            for doc in input_chunks:
+                h.update(doc.page_content.encode("utf-8"))
+            RetrieverFactory._corpus_hash_cache[obj_id] = h.hexdigest()[:16]
+        return RetrieverFactory._corpus_hash_cache[obj_id]
 
     @staticmethod
     def _get_chroma_client() -> chromadb.ClientAPI:
@@ -295,6 +301,7 @@ class RetrieverFactory:
         :type include_disk: bool
         """
         RetrieverFactory._corpus_id_cache.clear()
+        RetrieverFactory._corpus_hash_cache.clear()
         RetrieverFactory._bm25_cache.clear()
 
         if include_disk and CHROMA_CACHE_DIR.exists():
