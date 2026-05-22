@@ -21,11 +21,15 @@ if TYPE_CHECKING:
     from rago.data_objects import RAGOutput
     from rago.data_objects.eval_sample import EvalSample
     from rago.dataset import RAGDataset
-    from rago.optimization.search_space.rag_config_space import RAGConfigSpace
+    from rago.model.configs.tunable_model_config import TunableModelConfig
+    from rago.model.wrapper.tunable_model import TunableModel
+    from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 from rago.data_objects import Metric
 from rago.eval import BaseLLMEvaluator, EvalPrompts, SimpleLLMEvaluator
 from rago.model.wrapper.llm_agent import LangchainLLMAgent
-from rago.model.wrapper.rag.base import RAG
+from rago.model.wrapper.rag.base import RAG, RAGConfig
+from rago.model.wrapper.reader_model import ReaderModel, ReaderModelConfig
+from rago.model.wrapper.retriever_model import RetrieverModel, RetrieverModelConfig
 from rago.optimization.manager.base import BaseOptunaManager, OptimParams
 from rago.prompts import DEFAULT_REFERENCE_EVAL_PROMPT
 
@@ -44,7 +48,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         optim_evaluator: BaseLLMEvaluator,
         optim_metric_name: str,
         test_evaluators: list[BaseEvaluator],
-        config_space: Optional[RAGConfigSpace] = None,
+        config_space: Optional[TunableModelConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
@@ -62,8 +66,8 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :type optim_metric_name: str
         :param test_evaluators: Evaluators used in test, if None evaluator is used for tests, defaults to None.
         :type test_evaluators: Optional[list[EvaluatorType]] = None
-        :param config_space: The space of RAG config to search in, defaults to None
-        :type config_space: Optional[RAGConfigSpace], optional
+        :param config_space: The space of model config to search in, defaults to None
+        :type config_space: Optional[TunableModelConfigSpace], optional
         :param prompt_config: Configuration of the prompt used by the reader of each RAG.
         :type prompt_config: Optional[PromptConfig], optional
         :param sampler: The sampler used to suggest new rag configuration to tests, defaults to None
@@ -102,6 +106,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self.manager.optimize(
             lambda trial: self.eval_trial(trial, self.datasets["train"]),
             self.params.n_iter,
+            catch=(Exception,),
         )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
         return self.manager
@@ -119,7 +124,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
             self.logger.debug("[INIT OPTIM] Iteration %s", n)
             if test_sample.context is not None:
                 self.logger.debug("[INIT OPTIM] Test Eval Sample: %s", test_sample)
-                rag_outputs = [rag_cand.get_rag_output(test_sample.query) for rag_cand in rags]
+                rag_outputs = [rag_cand.get_output(test_sample.query) for rag_cand in rags]
                 evaluations = self.optim_evaluator.evaluate_n_wise(
                     rag_outputs,
                     test_sample,
@@ -150,26 +155,36 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
             mean_best_score = np.mean(best_scores)
             self.manager.tell(best_trial, float(mean_best_score))
 
-    def instantiate_simple_rags(self) -> tuple[list[RAG], list[optuna.Trial]]:
-        """Instantiate the simple RAG.
+    def _make_model(self, config: TunableModelConfig) -> TunableModel:
+        """Instantiate a model from a config, dispatching by type."""
+        inputs_chunks = [doc.text for doc in self.datasets["train"].corpus.values()]
+        if isinstance(config, RAGConfig):
+            return RAG.make(
+                rag_config=config,
+                prompt_config=self.prompt_config,
+                inputs_chunks=inputs_chunks,
+            )
+        if isinstance(config, RetrieverModelConfig):
+            return RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
+        if isinstance(config, ReaderModelConfig):
+            return ReaderModel.make(config=config, prompt_config=self.prompt_config)
+        msg = f"Unsupported config type: {type(config)}"
+        raise TypeError(msg)
 
-        :return: The RAG candidate and the trial
-        :rtype: tuple(RAG, optuna.Trial)
+    def instantiate_simple_rags(self) -> tuple[list[TunableModel], list[optuna.Trial]]:
+        """Instantiate models for the initial pairwise comparison.
+
+        :return: The model candidates and the trials.
+        :rtype: tuple[list[TunableModel], list[optuna.Trial]]
         """
         trials: list[optuna.Trial] = []
-        rags: list[RAG] = []
+        models: list[TunableModel] = []
         for _ in range(self.num_initial_trials):
             trials.append(self.manager.ask())
             config = self.config_space.sample(trials[-1])
             self.logger.info("[PROCESS] Current Config: %s", config)
-            rags.append(
-                RAG.make(
-                    rag_config=config,
-                    prompt_config=self.prompt_config,
-                    inputs_chunks=[doc.text for doc in self.datasets["train"].corpus.values()],
-                ),
-            )
-        return (rags, trials)
+            models.append(self._make_model(config))
+        return (models, trials)
 
     def update_answers_scores(
         self,
@@ -244,21 +259,21 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self,
         evaluator: BaseEvaluator,
         eval_sample: EvalSample,
-        rag_candidate: RAG,
+        rag_candidate: TunableModel,
     ) -> tuple[str, dict[str, Metric]]:
         """Get the current score and answer.
 
         :param eval_sample: The dataset for the evaluation.
         :type eval_sample: EvalSample
-        :param rag_candidate: The RAG candidate.
-        :type rag_candidate: RAG
+        :param rag_candidate: The model candidate.
+        :type rag_candidate: TunableModel
         :return: The score of the current evaluation.
         :rtype: tuple[str, float]
         :raise ValueError if the given context or the score or answer is None.
         """
         self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
         if eval_sample.context is not None:
-            candidate = rag_candidate.get_rag_output(eval_sample.query)
+            candidate = rag_candidate.get_output(eval_sample.query)
             evaluation = evaluator.evaluate(candidate, eval_sample)
             self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
             if candidate.answer is not None:
@@ -278,7 +293,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :return: the dictionary containing the metrics
         :rtype: float
         """
-        rag_candidate = self.sample_rag(trial, dataset)
+        rag_candidate = self.sample_model(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
         if len(self.manager.best_trials) > 0:
             self.logger.info(
@@ -292,6 +307,14 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration %s", n)
             answer_eval, single_eval = self.get_current_score_answer(self.optim_evaluator, test_sample, rag_candidate)
+            self.logger.info(
+                "[PROCESS] Trial %s | Sample %s | Query: %s | Generated response: %s | Scores: %s",
+                trial.number,
+                n,
+                test_sample.query,
+                answer_eval,
+                single_eval,
+            )
             trial_eval = {
                 name: Metric(self.optim_evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
                 for name, metric in single_eval.items()

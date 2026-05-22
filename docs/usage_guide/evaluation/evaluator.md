@@ -241,12 +241,12 @@ evaluator = SimpleLLMEvaluator(llm_agent)
 
 ## Summary Table
 
-| Evaluator | Type | Metrics | Requires Reference | Requires Context | Speed |
-|-----------|------|---------|-------------------|------------------|-------|
-| `BertScore` | Independent | precision, recall, f1 | ✅ | ❌ | Fast |
-| `SimilarityScore` | Independent | similarity | ✅ | ❌ | Very Fast |
-| `RelevancyEvaluator` | Independent | relevancy | ❌ | ✅ | Very Fast |
-| `SimpleLLMEvaluator` | Dependent | correctness | ❌ | ❌ | Slow (LLM) |
+| Evaluator | Type | Metrics | Requires Reference | Requires Context | Requires Answer | Speed |
+|-----------|------|---------|-------------------|------------------|-----------------|-------|
+| `BertScore` | Independent | precision, recall, f1 | ✅ | ❌ | ✅ | Fast |
+| `SimilarityScore` | Independent | similarity | ✅ | ❌ | ✅ | Very Fast |
+| `RelevancyEvaluator` | Independent | relevancy | ❌ | ✅ | ❌ | Very Fast |
+| `SimpleLLMEvaluator` | Dependent | correctness | ❌ | ❌ | ✅ | Slow (LLM) |
 
 
 ## 📚 Related Documentation

@@ -8,7 +8,11 @@ from typing import TYPE_CHECKING
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from rago.model.configs.llm_config.langchain import LangchainOllamaConfig
+from rago.model.configs.llm_config.langchain import (
+    LangchainHuggingFaceConfig,
+    LangchainLLMConfig,
+    LangchainOllamaConfig,
+)
 from rago.model.configs.llm_config.llama_index import LlamaIndexOllamaConfig
 from rago.optimization.search_space.config_space import ConfigSpace
 from rago.optimization.search_space.param_space import CategoricalParamSpace, FloatParamSpace, IntParamSpace
@@ -29,13 +33,13 @@ class LLMConfigSpace(ConfigSpace):
     top_p: FloatParamSpace = Field(default=FloatParamSpace(low=0.0, high=1.0))
     max_new_tokens: IntParamSpace = Field(default=IntParamSpace(low=64, high=1024))
 
-    def sample(self, trial: optuna.trial.BaseTrial) -> LangchainOllamaConfig:
+    def sample(self, trial: optuna.trial.BaseTrial) -> LangchainLLMConfig:
         """Sample a LLM configuration from LLM configuration space.
 
         :param trial: the trial used to sample elements.
         :type trial: optuna.trial.BaseTrial
         :return: The sampled LLM config.
-        :rtype: LLMConfig
+        :rtype: LangchainLLMConfig
         """
         return LangchainOllamaConfig(
             model_name=self.model_name.sample(trial),
@@ -52,9 +56,29 @@ class HFLLMConfigSpace(LLMConfigSpace):
 
     model_name: CategoricalParamSpace = Field(
         default=CategoricalParamSpace(
-            choices=["HuggingFaceTB/SmolLM2-360M-Instruct-Q8-mlx"],
+            choices=["meta-llama/Llama-3.1-8B-Instruct"],
         ),
     )
+    huggingfacehub_api_token: str | None = Field(default=os.environ.get("HF_API_TOKEN"))
+    endpoint_url: str | None = Field(default=os.environ.get("HF_ENDPOINT_URL"))
+
+    def sample(self, trial: optuna.trial.BaseTrial) -> LangchainHuggingFaceConfig:
+        """Sample a HuggingFace LLM configuration from LLM configuration space.
+
+        :param trial: the trial used to sample elements.
+        :type trial: optuna.trial.BaseTrial
+        :return: The sampled HuggingFace LLM config.
+        :rtype: LangchainHuggingFaceConfig
+        """
+        return LangchainHuggingFaceConfig(
+            model_name=self.model_name.sample(trial),
+            temperature=self.temperature.sample(trial),
+            top_k=self.top_k.sample(trial),
+            top_p=self.top_p.sample(trial),
+            max_new_tokens=self.max_new_tokens.sample(trial),
+            huggingfacehub_api_token=self.huggingfacehub_api_token,
+            endpoint_url=self.endpoint_url,
+        )
 
 
 @dataclass

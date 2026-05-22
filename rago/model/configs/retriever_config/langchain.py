@@ -21,3 +21,8 @@ class LangchainRetrieverConfig(RetrieverConfig):
     search_kwargs: Optional[dict[str, Any]] = None
     encoder: Optional[LangchainEncoderConfig] = None
     node_post_processor_config: Optional[list[NodePostProcessorConfig]] = None
+
+    # Hybrid retriever fields
+    vector_config: Optional[LangchainRetrieverConfig] = None
+    bm25_config: Optional[LangchainRetrieverConfig] = None
+    hybrid_weight: Optional[float] = None  # Weight for vector retriever (1 - weight for BM25)

@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+import logging
+from typing import TYPE_CHECKING, ClassVar
 
 from llama_index.embeddings.huggingface import HuggingFaceEmbedding
 
@@ -15,9 +16,17 @@ from rago.model.configs.encoder_config import (
 if TYPE_CHECKING:
     from llama_index.core.base.embeddings.base import BaseEmbedding
 
+logger = logging.getLogger(__name__)
+
 
 class EncoderFactory:
-    """A encoder Factory to build llama-index encoders."""
+    """A encoder Factory to build llama-index encoders.
+
+    Encoder instances are cached by model name so that the same model is
+    loaded only once across multiple Optuna trials.
+    """
+
+    _hf_cache: ClassVar[dict[tuple[str, int], HuggingFaceEmbedding]] = {}
 
     @staticmethod
     def make(config: LlamaIndexEncoderConfig) -> BaseEmbedding:
@@ -38,7 +47,7 @@ class EncoderFactory:
 
     @staticmethod
     def get_hugging_face_embedding(encoder_name: str, embed_batch_size: int = 32) -> HuggingFaceEmbedding:
-        """Get hugging face encoder from embedding and batch size.
+        """Get a HuggingFace encoder, returning a cached instance if available.
 
         :param encoder_name: Name of the encoder to build.
         :type encoder_name: str
@@ -47,4 +56,18 @@ class EncoderFactory:
         :return: The built HuggingFace encoder.
         :rtype: HuggingFaceEmbedding
         """
-        return HuggingFaceEmbedding(model_name=encoder_name, embed_batch_size=embed_batch_size)
+        cache_key = (encoder_name, embed_batch_size)
+        if cache_key in EncoderFactory._hf_cache:
+            logger.debug("[CACHE HIT] Reusing LlamaIndex HuggingFace encoder '%s'", encoder_name)
+            return EncoderFactory._hf_cache[cache_key]
+
+        logger.info("[CACHE MISS] Loading LlamaIndex HuggingFace encoder '%s'", encoder_name)
+        encoder = HuggingFaceEmbedding(model_name=encoder_name, embed_batch_size=embed_batch_size)
+        EncoderFactory._hf_cache[cache_key] = encoder
+        return encoder
+
+    @staticmethod
+    def clear_cache() -> None:
+        """Clear all cached encoder instances."""
+        EncoderFactory._hf_cache.clear()
+        logger.info("[CACHE] LlamaIndex encoder cache cleared")
