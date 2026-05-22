@@ -35,6 +35,7 @@ dependencies = [
     "qdrant-client>=1.9.0",
     "fastembed>=0.4.0",
     "sentence-transformers>=3.0.0",
+    "pylate>=1.5.0",
 ]
 
 [tool.hatch.build.targets.wheel]
