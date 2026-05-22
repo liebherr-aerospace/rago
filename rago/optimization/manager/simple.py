@@ -34,6 +34,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
             lambda trial: self.eval_trial(trial, self.datasets["train"]),
             self.params.n_iter,
             show_progress_bar=self.params.show_progress_bar,
+            catch=(Exception,),
         )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
 

@@ -106,6 +106,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self.manager.optimize(
             lambda trial: self.eval_trial(trial, self.datasets["train"]),
             self.params.n_iter,
+            catch=(Exception,),
         )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
         return self.manager
