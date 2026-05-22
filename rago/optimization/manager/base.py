@@ -21,6 +21,9 @@ from pydantic.dataclasses import dataclass
 
 from rago.dataset.generator.simple import SeedDataType, SimpleDatasetGenerator
 from rago.eval import BaseEvaluator
+from rago.model.configs.tunable_model_config import (
+    TunableModelConfig,  # noqa: TC001 - needed at runtime for Pydantic dataclass
+)
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.prompts import PromptConfig
 
@@ -28,7 +31,6 @@ if TYPE_CHECKING:
     from rago.data_objects import EvalSample, RAGOutput
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
-    from rago.model.configs.tunable_model_config import TunableModelConfig
     from rago.model.wrapper.tunable_model import TunableModel
     from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
@@ -407,7 +409,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         """
         best_trial = self.manager.best_trial
         best_rag_results = self.test_trial(best_trial)
-        DataObject.save_to_json(best_rag_results, f"experiments/{self.params.experiment_name}/best_rag_results.json")
+        DataObject.save_to_json(best_rag_results, str(self.experiment_repo.path_experiment / "best_rag_results.json"))
         return best_rag_results
 
     def test_trial(self, trial: optuna.trial.FrozenTrial) -> RAGCandidateEval:
