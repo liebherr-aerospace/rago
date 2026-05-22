@@ -10,7 +10,11 @@ from rago.model.configs.reader_config.base import ReaderConfig
 from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 from rago.model.configs.reader_config.llama_index import LLamaIndexReaderConfig
 from rago.optimization.search_space.config_space import ConfigSpace
-from rago.optimization.search_space.llm_config_space import OllamaLlamaIndexLLMConfigSpace, OllamaLLMConfigSpace
+from rago.optimization.search_space.llm_config_space import (
+    HFLLMConfigSpace,
+    OllamaLlamaIndexLLMConfigSpace,
+    OllamaLLMConfigSpace,
+)
 from rago.optimization.search_space.param_space import CategoricalParamSpace
 
 
@@ -66,3 +70,20 @@ class LlamaIndexReaderConfigSpace(ReaderConfigSpace):
         :rtype: LLamaIndexReaderConfig
         """
         return LLamaIndexReaderConfig(type=self.type_config.sample(trial), llm=self.llm_config.sample(trial))
+
+
+@dataclass
+class HuggingFaceReaderConfigSpace(ReaderConfigSpace):
+    """Space containing all the possible reader configurations using HuggingFace."""
+
+    llm_config: HFLLMConfigSpace = Field(default=HFLLMConfigSpace())
+
+    def sample(self, trial: optuna.trial.BaseTrial) -> LangchainReaderConfig:
+        """Sample a configuration from configuration space.
+
+        :param trial: Trial used to sample the configuration
+        :type trial: optuna.trial.BaseTrial
+        :return: The sampled configuration of the HuggingFace reader.
+        :rtype: LangchainReaderConfig
+        """
+        return LangchainReaderConfig(llm=self.llm_config.sample(trial))

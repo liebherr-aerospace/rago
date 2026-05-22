@@ -34,3 +34,12 @@ class LangchainOllamaConfig(LangchainLLMConfig):
     mirostat_tau: Optional[float] = Field(default=None)
     base_url: str = Field(default=os.environ.get("TEST_OLLAMA_HOST", ""))
     client_kwargs: dict[str, bool] = Field(default={"verify": False})
+
+
+@dataclass
+class LangchainHuggingFaceConfig(LangchainLLMConfig):
+    """Configuration parameters for HuggingFace Inference API LLM."""
+
+    model_name: str = Field(default="meta-llama/Llama-3.1-8B-Instruct")
+    huggingfacehub_api_token: Optional[str] = Field(default=os.environ.get("HF_API_TOKEN"))
+    endpoint_url: Optional[str] = Field(default=os.environ.get("HF_ENDPOINT_URL"))
