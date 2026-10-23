@@ -1107,6 +1107,28 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#hybrid-retriever" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🔀 Hybrid Retriever
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#qdrant-retriever" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        🗄️ Qdrant Retriever
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#retrieved-context" class="md-nav__link">
     <span class="md-ellipsis">
       
@@ -1156,6 +1178,17 @@
     <span class="md-ellipsis">
       
         BM25 Configuration Space
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hybrid-configuration-space" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hybrid Configuration Space
       
     </span>
   </a>
@@ -1400,18 +1433,42 @@
 </tbody>
 </table>
 <p><strong>Best practice</strong>: Use <strong>hybrid retrieval</strong> (combine both)!</p>
+<h2 id="hybrid-retriever">🔀 Hybrid Retriever<a class="headerlink" href="#hybrid-retriever" title="Permanent link">&para;</a></h2>
+<p>The <code>HybridRetriever</code> combines a <code>VectorIndexRetriever</code> and a <code>BM25Retriever</code>:
+1. both sub-retrievers are queried,
+2. the scores of each sub-retriever are min-max normalized to <span class="arithmatex">\([0, 1]\)</span>,
+3. they are weighted by <code>hybrid_weight</code> (vector) and <code>1 - hybrid_weight</code> (BM25),
+4. chunks returned by both are merged by summing their weighted scores, and the result is sorted by score.</p>
+<div class="arithmatex">\[\text{score}(c) = w \cdot \widehat{s}_{vector}(c) + (1 - w) \cdot \widehat{s}_{BM25}(c)\]</div>
+<p>In the configuration space, <code>hybrid_weight</code> and all the parameters of both sub-retrievers are optimized. Select it with <code>retriever_type_name=CategoricalParamSpace(choices=["HybridRetriever"])</code>. Like BM25, it needs the OpenSearch environment variables.</p>
+<h2 id="qdrant-retriever">🗄️ Qdrant Retriever<a class="headerlink" href="#qdrant-retriever" title="Permanent link">&para;</a></h2>
+<p>The <code>QdrantRetrieverWrapper</code> queries <strong>pre-indexed</strong> Qdrant collections (no <code>inputs_chunks</code> needed) with a hybrid search: dense vectors + sparse BM25 (<code>Qdrant/bm25</code>), fused with RRF or DBSF, optional ColBERT late-interaction re-scoring, optional score threshold and optional cross-encoder reranker.</p>
+<ul>
+<li>Connection: <code>QDRANT_URL</code> (default <code>http://localhost:6333</code>) and <code>QDRANT_API_KEY</code> environment variables.</li>
+<li>Search space: <code>QdrantRetrieverConfigSpace</code> tunes the collection (one <code>QdrantCollectionSlot</code> per pre-indexed collection / encoder), <code>fusion_method</code>, <code>rrf_k</code>, <code>prefetch_limit</code>, <code>limit</code>, <code>late_interaction_rescore</code>, <code>dense_weight</code>, <code>sparse_weight</code>, and optionally <code>score_threshold</code>, <code>reranker_model</code>, <code>reranker_top_n</code>.</li>
+</ul>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.optimization.search_space.qdrant_retriever_config_space</span><span class="w"> </span><span class="kn">import</span> <span class="p">(</span>
+</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>    <span class="n">QdrantCollectionSlot</span><span class="p">,</span>
+</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>    <span class="n">QdrantRetrieverConfigSpace</span><span class="p">,</span>
+</span><span id="__span-0-4"><a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="p">)</span>
+</span><span id="__span-0-5"><a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>
+</span><span id="__span-0-6"><a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="n">space</span> <span class="o">=</span> <span class="n">QdrantRetrieverConfigSpace</span><span class="p">(</span>
+</span><span id="__span-0-7"><a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>    <span class="n">collections</span><span class="o">=</span><span class="p">[</span><span class="n">QdrantCollectionSlot</span><span class="p">(</span><span class="n">collection_name</span><span class="o">=</span><span class="s2">&quot;my_collection_bge&quot;</span><span class="p">,</span> <span class="n">encoder_model</span><span class="o">=</span><span class="s2">&quot;BAAI/bge-m3&quot;</span><span class="p">)],</span>
+</span><span id="__span-0-8"><a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="p">)</span>
+</span></code></pre></div>
+<p>See 🐍 <a href="../../../rago/optimization/search_space/qdrant_retriever_config_space.py">Qdrant Configuration Space</a> and the script <a href="../../../scripts/optimize_qdrant_retriever.py">optimize_qdrant_retriever.py</a>.</p>
 <hr />
 <blockquote>
-<p>⚠️ <code>Hybrid Retriever</code>, <code>Cluster Based Retriever</code> shall be implemented in next versions.</p>
+<p>⚠️ <code>Cluster Based Retriever</code> shall be implemented in next versions.</p>
 </blockquote>
 <h2 id="retrieved-context">📄 Retrieved Context<a class="headerlink" href="#retrieved-context" title="Permanent link">&para;</a></h2>
 <p>The retrieved context is a list of <code>RetrievedContext</code>. A retrieved context contains:
 - a text: chunk of information (e.g a document, a sentence or paragraph.)
 - with optionally its relevancy (the score) and its embedding (vector representations of the text)</p>
 <p>Below is an example usage of the ContextNode class:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-0-1"><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.data_objects</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetrievedContext</span>
-</span><span id="__span-0-2"><a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>
-</span><span id="__span-0-3"><a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="n">RetrievedContext</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span><span class="s2">&quot;Thomas will be twelve in 2012.&quot;</span><span class="p">,</span> <span class="n">embedding</span><span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">score</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.data_objects</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetrievedContext</span>
+</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">RetrievedContext</span><span class="p">(</span><span class="n">text</span> <span class="o">=</span><span class="s2">&quot;Thomas will be twelve in 2012.&quot;</span><span class="p">,</span> <span class="n">embedding</span><span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="n">score</span> <span class="o">=</span> <span class="mf">0.8</span><span class="p">)</span>
 </span></code></pre></div>
 <blockquote>
 <p>see <a href="../../../rago/data_objects/retrieved_context.py">Retrieved Context Dataclass</a> for more details</p>
@@ -1419,53 +1476,59 @@
 <h2 id="retriever-wrappers">🔍 Retriever Wrappers<a class="headerlink" href="#retriever-wrappers" title="Permanent link">&para;</a></h2>
 <p>The retriever wrapper is a key component of the RAG pipeline it takes in the query and returns a context it deems relevant to answer the query.
 The retriever wrapper can be instantiated as follow:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.wrapper.retriever.langchain_retriever</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainRetrieverWrapper</span>
-</span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.configs.retriever_config.langchain</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainRetrieverConfig</span>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.configs.encoder_config.langchain</span><span class="w"> </span><span class="kn">import</span> <span class="n">HuggingFaceLangchainEncoderConfig</span>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>
-</span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">encoder_config</span> <span class="o">=</span> <span class="n">HuggingFaceLangchainEncoderConfig</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2&quot;</span><span class="p">)</span>
-</span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="n">config</span> <span class="o">=</span> <span class="n">LangchainRetrieverConfig</span><span class="p">(</span>
-</span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;VectorIndexRetriever&quot;</span><span class="p">,</span>
-</span><span id="__span-1-8"><a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    <span class="n">similarity_function</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
-</span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">search_type</span><span class="o">=</span><span class="s2">&quot;similarity_score_threshold&quot;</span><span class="p">,</span>
-</span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">search_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;k&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;score_threshold&quot;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
-</span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">encoder</span> <span class="o">=</span> <span class="n">encoder_config</span><span class="p">,</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="p">)</span>
-</span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="n">retriever</span> <span class="o">=</span> <span class="n">LangchainRetrieverWrapper</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">inputs_chunks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Thomas is 12.&quot;</span><span class="p">])</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">retriever</span><span class="o">.</span><span class="n">get_retriever_output</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">))</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.wrapper.retriever.langchain_retriever</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainRetrieverWrapper</span>
+</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.configs.retriever_config.langchain</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainRetrieverConfig</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.configs.encoder_config.langchain</span><span class="w"> </span><span class="kn">import</span> <span class="n">HuggingFaceLangchainEncoderConfig</span>
+</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">encoder_config</span> <span class="o">=</span> <span class="n">HuggingFaceLangchainEncoderConfig</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2&quot;</span><span class="p">)</span>
+</span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">config</span> <span class="o">=</span> <span class="n">LangchainRetrieverConfig</span><span class="p">(</span>
+</span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    <span class="nb">type</span> <span class="o">=</span> <span class="s2">&quot;VectorIndexRetriever&quot;</span><span class="p">,</span>
+</span><span id="__span-2-8"><a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    <span class="n">similarity_function</span><span class="o">=</span><span class="s2">&quot;cosine&quot;</span><span class="p">,</span>
+</span><span id="__span-2-9"><a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    <span class="n">search_type</span><span class="o">=</span><span class="s2">&quot;similarity_score_threshold&quot;</span><span class="p">,</span>
+</span><span id="__span-2-10"><a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    <span class="n">search_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s2">&quot;k&quot;</span><span class="p">:</span><span class="mi">3</span><span class="p">,</span> <span class="s2">&quot;score_threshold&quot;</span> <span class="p">:</span> <span class="mf">0.0</span><span class="p">},</span>
+</span><span id="__span-2-11"><a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    <span class="n">encoder</span> <span class="o">=</span> <span class="n">encoder_config</span><span class="p">,</span>
+</span><span id="__span-2-12"><a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    <span class="p">)</span>
+</span><span id="__span-2-13"><a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="n">retriever</span> <span class="o">=</span> <span class="n">LangchainRetrieverWrapper</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">config</span><span class="p">,</span> <span class="n">inputs_chunks</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;Thomas is 12.&quot;</span><span class="p">])</span>
+</span><span id="__span-2-14"><a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="nb">print</span><span class="p">(</span><span class="n">retriever</span><span class="o">.</span><span class="n">get_retriever_output</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">))</span>  <span class="c1"># list[RetrievedContext]</span>
+</span><span id="__span-2-15"><a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="nb">print</span><span class="p">(</span><span class="n">retriever</span><span class="o">.</span><span class="n">get_output</span><span class="p">(</span><span class="s2">&quot;Hello&quot;</span><span class="p">))</span>            <span class="c1"># RAGOutput(answer=None, retrieved_context=[...])</span>
 </span></code></pre></div>
+<p>Every retriever is a <code>TunableModel</code>: it can be built from any retriever config with <code>RetrieverWrapperFactory.make(config, input_chunks)</code> or <code>make_tunable_model(config, inputs_chunks=...)</code>, and optimized alone (see <a href="../../optimization/run_experiment/#optimize-a-single-component">Optimize a single component</a>).</p>
 <h2 id="retrievers-configuration-space-in-rago">🧭 Retrievers Configuration Space in RAGO<a class="headerlink" href="#retrievers-configuration-space-in-rago" title="Permanent link">&para;</a></h2>
 <p>In order to have a deeper look on the retriever configuration spaces implemented in RAGO, see the following code 👉 🐍 <a href="../../../rago/optimization/search_space/retriever_config_space.py">Retriever Configuration Space python methods</a>.
 All the following parameter values can be adapted as you need, and you can combine or choose one of the methods.</p>
 <h3 id="default-retriever-configuration-space">Default Retriever Configuration Space<a class="headerlink" href="#default-retriever-configuration-space" title="Permanent link">&para;</a></h3>
 <p>By default the Retriever Configuration Space used in RAGO is based on the <code>VectorIndexRetriever</code> method with these default parameter values:
-<div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="n">similarity_function</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cosine&quot;</span><span class="p">]))</span>
-</span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">search_type</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;similarity_score_threshold&quot;</span><span class="p">]))</span>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">top_k</span><span class="p">:</span> <span class="n">IntParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">IntParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
-</span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="n">score_threshold</span><span class="p">:</span> <span class="n">FloatParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">FloatParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.9</span><span class="p">))</span>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">encoder</span><span class="p">:</span> <span class="n">HFEncoderConfigSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">HFEncoderConfigSpace</span><span class="p">())</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="n">similarity_function</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;cosine&quot;</span><span class="p">]))</span>
+</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a><span class="n">search_type</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;similarity_score_threshold&quot;</span><span class="p">]))</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">top_k</span><span class="p">:</span> <span class="n">IntParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">IntParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">5</span><span class="p">))</span>
+</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="n">score_threshold</span><span class="p">:</span> <span class="n">FloatParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">FloatParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">0.9</span><span class="p">))</span>
+</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a><span class="n">encoder</span><span class="p">:</span> <span class="n">HFEncoderConfigSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">HFEncoderConfigSpace</span><span class="p">())</span>
 </span></code></pre></div>
 By default the encoder configuration space used with this retriever methods is defined by:
-<div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>    <span class="n">model_name</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
-</span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>        <span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;encoder_model_name&quot;</span><span class="p">,</span>
-</span><span id="__span-3-4"><a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>            <span class="n">choices</span><span class="o">=</span><span class="p">[</span>
-</span><span id="__span-3-5"><a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>                <span class="s2">&quot;BAAI/bge-m3&quot;</span><span class="p">,</span>
-</span><span id="__span-3-6"><a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>                <span class="s2">&quot;intfloat/e5-large-v2&quot;</span><span class="p">,</span>
-</span><span id="__span-3-7"><a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>                <span class="s2">&quot;Qwen/Qwen3-Embedding-0.6B&quot;</span><span class="p">,</span>
-</span><span id="__span-3-8"><a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>                <span class="s2">&quot;sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2&quot;</span><span class="p">,</span>
-</span><span id="__span-3-9"><a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>            <span class="p">],</span>
-</span><span id="__span-3-10"><a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>        <span class="p">),</span>
-</span><span id="__span-3-11"><a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    <span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>    <span class="n">model_name</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>        <span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span>
+</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>            <span class="n">name</span><span class="o">=</span><span class="s2">&quot;encoder_model_name&quot;</span><span class="p">,</span>
+</span><span id="__span-4-4"><a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>            <span class="n">choices</span><span class="o">=</span><span class="p">[</span>
+</span><span id="__span-4-5"><a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>                <span class="s2">&quot;BAAI/bge-m3&quot;</span><span class="p">,</span>
+</span><span id="__span-4-6"><a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>                <span class="s2">&quot;intfloat/e5-large-v2&quot;</span><span class="p">,</span>
+</span><span id="__span-4-7"><a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>                <span class="s2">&quot;Qwen/Qwen3-Embedding-0.6B&quot;</span><span class="p">,</span>
+</span><span id="__span-4-8"><a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>                <span class="s2">&quot;sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2&quot;</span><span class="p">,</span>
+</span><span id="__span-4-9"><a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>            <span class="p">],</span>
+</span><span id="__span-4-10"><a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>        <span class="p">),</span>
+</span><span id="__span-4-11"><a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>    <span class="p">)</span>
 </span></code></pre></div>
 See the following code 👉 🐍 <a href="../../../rago/optimization/search_space/encoder_config_space.py">Encoder Configuration Space python methods</a> for more details.</p>
 <h3 id="bm25-configuration-space">BM25 Configuration Space<a class="headerlink" href="#bm25-configuration-space" title="Permanent link">&para;</a></h3>
 <p>Here is the default configuration space fo the BM25 retrievers:
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">bm25_k1</span><span class="p">:</span> <span class="n">FloatParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">FloatParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">2.0</span><span class="p">))</span>
-</span><span id="__span-4-2"><a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="n">bm25_b</span><span class="p">:</span> <span class="n">FloatParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">FloatParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
-</span><span id="__span-4-3"><a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a><span class="n">bm25_similarity</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;custom_bm25&quot;</span><span class="p">]))</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">bm25_k1</span><span class="p">:</span> <span class="n">FloatParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">FloatParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">1.2</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">2.0</span><span class="p">))</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="n">bm25_b</span><span class="p">:</span> <span class="n">FloatParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">FloatParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="n">bm25_similarity</span><span class="p">:</span> <span class="n">CategoricalParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;custom_bm25&quot;</span><span class="p">]))</span>
 </span></code></pre></div>
 You can find the values <span class="arithmatex">\(k1\)</span> and <span class="arithmatex">\(b\)</span> defined in the formula (2).</p>
+<h3 id="hybrid-configuration-space">Hybrid Configuration Space<a class="headerlink" href="#hybrid-configuration-space" title="Permanent link">&para;</a></h3>
+<p><div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">hybrid_weight</span><span class="p">:</span> <span class="n">FloatParamSpace</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="n">FloatParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mf">1.0</span><span class="p">))</span>
+</span></code></pre></div>
+The vector and BM25 parameters above are sampled as well for the two sub-retrievers.</p>
 <hr />
 <h2 id="related-documentation">📚 Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>

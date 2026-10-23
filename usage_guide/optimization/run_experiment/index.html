@@ -942,6 +942,17 @@
   
 </li>
         
+          <li class="md-nav__item">
+  <a href="#optimize-a-single-component" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Optimize a single component
+      
+    </span>
+  </a>
+  
+</li>
+        
       </ul>
     </nav>
   
@@ -1384,20 +1395,24 @@
 </span><span id="__span-1-9"><a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    <span class="n">optim_evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>      <span class="c1"># Evaluator for optimization</span>
 </span><span id="__span-1-10"><a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a>    <span class="n">optim_metric_name</span><span class="o">=</span><span class="s2">&quot;bert_score_f1&quot;</span><span class="p">,</span>  <span class="c1"># Metric to optimize</span>
 </span><span id="__span-1-11"><a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a>    <span class="n">test_evaluators</span><span class="o">=</span><span class="p">[</span><span class="n">evaluator</span><span class="p">],</span>    <span class="c1"># Evaluators for final test</span>
-</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">config_space</span><span class="o">=</span><span class="n">config_space</span><span class="p">,</span>
+</span><span id="__span-1-12"><a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a>    <span class="n">config_space</span><span class="o">=</span><span class="n">config_space</span><span class="p">,</span>      <span class="c1"># Any TunableModelConfigSpace (default: RAGConfigSpace())</span>
 </span><span id="__span-1-13"><a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a>    <span class="n">sampler</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                   <span class="c1"># Optional: custom sampler (default: TPE)</span>
-</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">pruner</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                    <span class="c1"># Optional: custom pruner (default: MedianPruner)</span>
+</span><span id="__span-1-14"><a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a>    <span class="n">pruner</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>                    <span class="c1"># Optional: custom pruner (default: Optuna&#39;s MedianPruner)</span>
 </span><span id="__span-1-15"><a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="p">)</span>
 </span></code></pre></div>
+<blockquote>
+<p><code>optim_metric_name</code> must be one of the keys returned by the evaluator, e.g. <code>bert_score_f1</code> for <code>BertScore</code>, <code>correctness</code> for LLM judges, <code>relevancy</code> / <code>precision</code> / <code>context_f1</code> for <code>ContextRetrievalEvaluator</code>.</p>
+</blockquote>
 <h3 id="default-sampler-and-pruner">Default Sampler and Pruner<a class="headerlink" href="#default-sampler-and-pruner" title="Permanent link">&para;</a></h3>
 <p><strong>Sampler</strong> (default: <code>optuna.samplers.TPESampler</code>):
 - Controls <strong>how</strong> new configurations are suggested
 - <strong>TPE (Tree-structured Parzen Estimator)</strong> is the default
 - Balances exploration (random search) and exploitation (focusing on promising areas)
-- Uses <code>n_startup_trials</code> random trials, then switches to TPE</p>
-<p><strong>Pruner</strong>:
+- Starts with random trials, then switches to TPE. With <code>sampler=None</code>, Optuna's default number of startup trials is used: pass <code>sampler=optuna.samplers.TPESampler(n_startup_trials=params.n_startup_trials)</code> to apply your <code>n_startup_trials</code>.</p>
+<p><strong>Pruner</strong> (default: Optuna's <code>MedianPruner</code> when <code>pruner=None</code>):
 - Controls <strong>when</strong> to stop unpromising trials early
 - <strong>MedianPruner</strong>: Stops trials performing worse than the median of previous trials
+- RAGO only prunes a trial if the pruner says so <strong>and</strong> its current mean score is below the best trial
 - Saves computation by abandoning bad configurations early
 - Especially useful for multi-step evaluations (e.g., evaluating on multiple test samples)</p>
 <h3 id="custom-samplerpruner-advanced">Custom Sampler/Pruner (Advanced)<a class="headerlink" href="#custom-samplerpruner-advanced" title="Permanent link">&para;</a></h3>
@@ -1456,7 +1471,7 @@
 </span><span id="__span-3-21"><a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a><span class="c1"># 4. Define search space</span>
 </span><span id="__span-3-22"><a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a><span class="n">config_space</span> <span class="o">=</span> <span class="n">RAGConfigSpace</span><span class="p">()</span>
 </span><span id="__span-3-23"><a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>
-</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="c1"># 5. Instantiate the optimizer (uses TPE sampler + no pruner by default)</span>
+</span><span id="__span-3-24"><a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a><span class="c1"># 5. Instantiate the optimizer (TPE sampler + Optuna&#39;s MedianPruner by default)</span>
 </span><span id="__span-3-25"><a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a><span class="n">optimizer</span> <span class="o">=</span> <span class="n">SimpleDirectOptunaManager</span><span class="p">(</span>
 </span><span id="__span-3-26"><a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>    <span class="n">params</span><span class="o">=</span><span class="n">params</span><span class="p">,</span>
 </span><span id="__span-3-27"><a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>    <span class="n">datasets</span><span class="o">=</span><span class="n">datasets</span><span class="p">,</span>
@@ -1517,9 +1532,72 @@
 </span><span id="__span-4-39"><a id="__codelineno-4-39" name="__codelineno-4-39" href="#__codelineno-4-39"></a><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
 </span></code></pre></div>
 <blockquote>
-<p>You can also replace the <code>LlamaIndexReaderConfigSpace</code> by <code>LangchainReaderConfigSpace</code> to run the langchain reader. However, in addition to generation via the LLM, the <code>LlamaIndexReaderConfigSpace</code> provides more advanced capabilities, such as 'refine', 'compact', and 'summarize' methods, which process chunks and may involve multiple LLM calls.</p>
+<p><strong>Thinking models</strong> (e.g. <code>qwen3</code>, <code>qwen3.5</code>): <code>OllamaLLMConfigSpace</code> has <code>reasoning=False</code> by default, so they answer directly. With <code>reasoning=None</code> or <code>True</code>, the thinking tokens count in <code>max_new_tokens</code> and can leave the answer empty (score 0 on every trial). See <a href="../../rag/reader/#thinking-models">Thinking models</a>.</p>
+<p>You can also replace the <code>LangchainReaderConfigSpace</code> by <code>LlamaIndexReaderConfigSpace</code> to run the LlamaIndex reader. In addition to generation via the LLM, the <code>LlamaIndexReaderConfigSpace</code> provides more advanced capabilities, such as 'refine', 'compact', and 'summarize' methods, which process chunks and may involve multiple LLM calls.</p>
 <p>[!CAUTION]
 You can also replace the <code>SimpleDirectOptunaManager</code> by <code>SimplePairWiseOptunaManager</code> to run the pair-wise optimization.</p>
+</blockquote>
+<h3 id="optimize-a-single-component">Optimize a single component<a class="headerlink" href="#optimize-a-single-component" title="Permanent link">&para;</a></h3>
+<p><code>config_space</code> accepts any <code>TunableModelConfigSpace</code>, so you can optimize the retriever or the reader alone:</p>
+<table>
+<thead>
+<tr>
+<th>Config space</th>
+<th>Model built</th>
+<th>Typical evaluator / metric</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RAGConfigSpace</code></td>
+<td><code>RAG</code> (retriever + reader)</td>
+<td><code>BertScore</code> / <code>bert_score_f1</code>, LLM judge / <code>correctness</code></td>
+</tr>
+<tr>
+<td><code>RetrieverConfigSpace</code></td>
+<td>LangChain retriever (vector, BM25, hybrid)</td>
+<td><code>ContextRetrievalEvaluator</code> / <code>relevancy</code>, <code>precision</code>, <code>context_f1</code></td>
+</tr>
+<tr>
+<td><code>QdrantRetrieverConfigSpace</code></td>
+<td>Qdrant retriever</td>
+<td><code>ContextRetrievalEvaluator</code></td>
+</tr>
+<tr>
+<td><code>LangchainReaderConfigSpace</code>, <code>LlamaIndexReaderConfigSpace</code></td>
+<td>Reader only (no retrieved context)</td>
+<td><code>BertScore</code>, LLM judge</td>
+</tr>
+</tbody>
+</table>
+<p>Retriever-only optimization does not call any LLM, so it is fast:</p>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">RAGDataset</span>
+</span><span id="__span-5-2"><a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.eval</span><span class="w"> </span><span class="kn">import</span> <span class="n">ContextRetrievalEvaluator</span>
+</span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.optimization.manager</span><span class="w"> </span><span class="kn">import</span> <span class="n">OptimParams</span><span class="p">,</span> <span class="n">SimpleDirectOptunaManager</span>
+</span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.optimization.search_space.param_space</span><span class="w"> </span><span class="kn">import</span> <span class="n">CategoricalParamSpace</span><span class="p">,</span> <span class="n">IntParamSpace</span>
+</span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.optimization.search_space.retriever_config_space</span><span class="w"> </span><span class="kn">import</span> <span class="n">RetrieverConfigSpace</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="n">datasets</span> <span class="o">=</span> <span class="n">RAGDataset</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;crag&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="mi">10</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">50</span><span class="p">)</span><span class="o">.</span><span class="n">split_dataset</span><span class="p">([</span><span class="mf">0.8</span><span class="p">],</span> <span class="n">split_names</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">,</span> <span class="s2">&quot;test&quot;</span><span class="p">],</span> <span class="n">seed</span><span class="o">=</span><span class="mi">42</span><span class="p">)</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a><span class="n">evaluator</span> <span class="o">=</span> <span class="n">ContextRetrievalEvaluator</span><span class="p">()</span>  <span class="c1"># returns relevancy, precision and context_f1</span>
+</span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>
+</span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a><span class="n">optimizer</span> <span class="o">=</span> <span class="n">SimpleDirectOptunaManager</span><span class="p">(</span>
+</span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a>    <span class="n">params</span><span class="o">=</span><span class="n">OptimParams</span><span class="p">(</span><span class="n">experiment_name</span><span class="o">=</span><span class="s2">&quot;retriever_only&quot;</span><span class="p">,</span> <span class="n">n_iter</span><span class="o">=</span><span class="mi">50</span><span class="p">),</span>
+</span><span id="__span-5-12"><a id="__codelineno-5-12" name="__codelineno-5-12" href="#__codelineno-5-12"></a>    <span class="n">datasets</span><span class="o">=</span><span class="n">datasets</span><span class="p">,</span>
+</span><span id="__span-5-13"><a id="__codelineno-5-13" name="__codelineno-5-13" href="#__codelineno-5-13"></a>    <span class="n">optim_evaluator</span><span class="o">=</span><span class="n">evaluator</span><span class="p">,</span>
+</span><span id="__span-5-14"><a id="__codelineno-5-14" name="__codelineno-5-14" href="#__codelineno-5-14"></a>    <span class="n">optim_metric_name</span><span class="o">=</span><span class="s2">&quot;context_f1&quot;</span><span class="p">,</span>  <span class="c1"># &quot;relevancy&quot; alone pushes towards a large top_k</span>
+</span><span id="__span-5-15"><a id="__codelineno-5-15" name="__codelineno-5-15" href="#__codelineno-5-15"></a>    <span class="n">test_evaluators</span><span class="o">=</span><span class="p">[</span><span class="n">evaluator</span><span class="p">],</span>
+</span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a>    <span class="n">config_space</span><span class="o">=</span><span class="n">RetrieverConfigSpace</span><span class="p">(</span>
+</span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a>        <span class="c1"># HybridRetriever needs OpenSearch for its BM25 part (see env variables above)</span>
+</span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>        <span class="n">retriever_type_name</span><span class="o">=</span><span class="n">CategoricalParamSpace</span><span class="p">(</span><span class="n">choices</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;VectorIndexRetriever&quot;</span><span class="p">,</span> <span class="s2">&quot;HybridRetriever&quot;</span><span class="p">]),</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a>        <span class="n">top_k</span><span class="o">=</span><span class="n">IntParamSpace</span><span class="p">(</span><span class="n">low</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">high</span><span class="o">=</span><span class="mi">10</span><span class="p">),</span>
+</span><span id="__span-5-20"><a id="__codelineno-5-20" name="__codelineno-5-20" href="#__codelineno-5-20"></a>    <span class="p">),</span>
+</span><span id="__span-5-21"><a id="__codelineno-5-21" name="__codelineno-5-21" href="#__codelineno-5-21"></a><span class="p">)</span>
+</span><span id="__span-5-22"><a id="__codelineno-5-22" name="__codelineno-5-22" href="#__codelineno-5-22"></a><span class="n">optimizer</span><span class="o">.</span><span class="n">optimize</span><span class="p">()</span>
+</span><span id="__span-5-23"><a id="__codelineno-5-23" name="__codelineno-5-23" href="#__codelineno-5-23"></a><span class="n">result</span> <span class="o">=</span> <span class="n">optimizer</span><span class="o">.</span><span class="n">test</span><span class="p">()</span>
+</span><span id="__span-5-24"><a id="__codelineno-5-24" name="__codelineno-5-24" href="#__codelineno-5-24"></a><span class="nb">print</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">mean_evals</span><span class="p">,</span> <span class="n">result</span><span class="o">.</span><span class="n">config</span><span class="p">)</span>
+</span></code></pre></div>
+<blockquote>
+<p>Changing the categorical choices or the optimized metric of an existing study is not supported by Optuna: use a new <code>experiment_name</code>.</p>
 </blockquote>
 <h2 id="to-go-further">⛵ To go further<a class="headerlink" href="#to-go-further" title="Permanent link">&para;</a></h2>
 <p>👉 <a href="../../rag/rag_configuration/#pimp-your-rag-configuration-space">Pimp your RAG configuration space (retriever and reader)</a></p>
@@ -1530,7 +1608,7 @@ You can also replace the <code>SimpleDirectOptunaManager</code> by <code>SimpleP
 <p>A log file exists in each experiment directory that is created and contains all the important optimization steps, for instance in <code>experiments/my_experiment/my_experiment.log</code>.</p>
 <h3 id="visualization">👀 Visualization<a class="headerlink" href="#visualization" title="Permanent link">&para;</a></h3>
 <p>During the optimization process, in order to visualize the optimization details and identify hyperparameter importance, <code>Optuna</code> also offers an interactive dashboard to visualize the results. Here is how to use it (in directory experiments/my_experiment/ if exist):</p>
-<div class="language-bash highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>optuna-dashboard<span class="w"> </span>sqlite:///experiments/my_experiment/study.db
+<div class="language-bash highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>optuna-dashboard<span class="w"> </span>sqlite:///experiments/my_experiment/study.db
 </span></code></pre></div>
 <hr />
 <h2 id="related-documentation">📚 Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>

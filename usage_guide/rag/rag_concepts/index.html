@@ -1470,15 +1470,15 @@ More information here 👉 <a href="../reader/">Reader Methods</a></p>
 <h2 id="rag-output-in-rago">📄 RAG Output in RAGO<a class="headerlink" href="#rag-output-in-rago" title="Permanent link">&para;</a></h2>
 <p>A <code>RAGOutput</code> as its name hints is the output of RAG to a query. It contains:</p>
 <ul>
-<li>The <code>answer</code> of the RAG to the query.</li>
-<li>The <code>retrieved_documents</code> by the RAG to answer the query.
-Below his an example usage of the <code>RAGoutput</code> class:</li>
+<li>The <code>answer</code> of the RAG to the query (<code>None</code> for a retriever alone).</li>
+<li>The <code>retrieved_context</code> by the RAG to answer the query (<code>None</code> for a reader alone).
+Below is an example usage of the <code>RAGOutput</code> class:</li>
 </ul>
 <p><div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.data_objects</span><span class="w"> </span><span class="kn">import</span> <span class="n">RAGOutput</span><span class="p">,</span> <span class="n">RetrievedContext</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">RAGOutput</span><span class="p">(</span><span class="s2">&quot;Thomas is 12.&quot;</span><span class="p">,</span> <span class="p">[</span><span class="n">RetrievedContext</span><span class="p">(</span><span class="s2">&quot;Thomas is 12.&quot;</span><span class="p">)])</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">RAGOutput</span><span class="p">(</span><span class="n">answer</span><span class="o">=</span><span class="s2">&quot;Thomas is 12.&quot;</span><span class="p">,</span> <span class="n">retrieved_context</span><span class="o">=</span><span class="p">[</span><span class="n">RetrievedContext</span><span class="p">(</span><span class="s2">&quot;Thomas is 12.&quot;</span><span class="p">)])</span>
 </span></code></pre></div>
-RAG outputs can be generated manually or using a RAG.</p>
+RAG outputs can be generated manually or with <code>get_output(query)</code> on any <code>TunableModel</code> (<code>RAG</code>, <code>Retriever</code> or <code>Reader</code>).</p>
 <hr />
 <h2 id="related-documentation">📚 Related Documentation<a class="headerlink" href="#related-documentation" title="Permanent link">&para;</a></h2>
 <ul>
