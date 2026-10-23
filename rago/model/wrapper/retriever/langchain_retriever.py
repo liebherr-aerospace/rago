@@ -72,7 +72,7 @@ class LangchainRetrieverWrapper(Retriever):
         """
         nodes_with_scores = self.langchain_retriever.invoke(query)
         retrieved_context = [
-            RetrievedContext.from_langchain_node(node_with_score) for node_with_score in nodes_with_scores
+            RetrievedContext.from_langchain_node_with_score(node_with_score) for node_with_score in nodes_with_scores
         ]
         if self.nodes_post_processors is not None:
             retrieved_context = self.nodes_post_processors.post_process_context(query, retrieved_context)

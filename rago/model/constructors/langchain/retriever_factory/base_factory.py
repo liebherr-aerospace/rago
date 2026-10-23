@@ -7,10 +7,12 @@ import logging
 import os
 import shutil
 from pathlib import Path
-from typing import TYPE_CHECKING, ClassVar, Optional
+from typing import TYPE_CHECKING, Any, ClassVar, Optional
 
 import chromadb
 from langchain_chroma import Chroma
+from langchain_core.documents import Document
+from langchain_core.vectorstores import VectorStoreRetriever
 
 from rago.model.constructors.langchain.encoder_factory import EncoderFactory
 from rago.model.constructors.langchain.retriever_factory.bm25_factory import OpenSearchBM25Retriever
@@ -18,9 +20,8 @@ from rago.utils import PATH_PROJECT
 
 if TYPE_CHECKING:
     from langchain.embeddings.base import Embeddings
-    from langchain_core.documents import Document
+    from langchain_core.callbacks import CallbackManagerForRetrieverRun
     from langchain_core.retrievers import BaseRetriever
-    from langchain_core.vectorstores import VectorStoreRetriever
 
     from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 
@@ -51,6 +52,55 @@ def _safe_dir_name(*parts: Optional[str]) -> str:
     """
     joined = "_".join(str(p) if p is not None else "none" for p in parts)
     return joined.replace("/", "--").replace("\\", "--").replace(":", "-")
+
+
+class ScoredVectorStoreRetriever(VectorStoreRetriever):
+    """Vector store retriever that keeps the relevance score in ``metadata["score"]``."""
+
+    @classmethod
+    def from_config(cls, vectorstore: Chroma, config: LangchainRetrieverConfig) -> ScoredVectorStoreRetriever:
+        """Build the retriever on a vector store with the search parameters of the config.
+
+        :param vectorstore: The vector store to search.
+        :type vectorstore: Chroma
+        :param config: The retriever config (``search_type`` and ``search_kwargs``).
+        :type config: LangchainRetrieverConfig
+        :return: The scored vector store retriever.
+        :rtype: ScoredVectorStoreRetriever
+        """
+        return cls(
+            vectorstore=vectorstore,
+            search_type=config.search_type or "similarity",
+            search_kwargs=config.search_kwargs or {},
+        )
+
+    def _get_relevant_documents(
+        self,
+        query: str,
+        *,
+        run_manager: CallbackManagerForRetrieverRun,
+        **kwargs: Any,  # noqa: ANN401
+    ) -> list[Document]:
+        """Retrieve documents with their relevance score stored in the metadata.
+
+        :param query: The query.
+        :type query: str
+        :param run_manager: The callback manager.
+        :type run_manager: CallbackManagerForRetrieverRun
+        :return: The retrieved documents, with ``metadata["score"]`` (except for ``mmr``).
+        :rtype: list[Document]
+        """
+        if self.search_type == "mmr":
+            # MMR does not expose scores.
+            return super()._get_relevant_documents(query, run_manager=run_manager, **kwargs)
+        docs_and_scores = self.vectorstore.similarity_search_with_relevance_scores(
+            query,
+            **(self.search_kwargs | kwargs),
+        )
+        return [
+            Document(page_content=doc.page_content, metadata={**doc.metadata, "score": float(score)})
+            for doc, score in docs_and_scores
+        ]
 
 
 class RetrieverFactory:
@@ -200,7 +250,7 @@ class RetrieverFactory:
                 embedding=encoder,
                 collection_metadata={"hnsw:space": config.similarity_function} if config.similarity_function else None,
             )
-            return vectorstore.as_retriever(search_type=config.search_type, search_kwargs=config.search_kwargs)
+            return ScoredVectorStoreRetriever.from_config(vectorstore, config)
 
         encoder_name = RetrieverFactory._get_encoder_name(config, encoder)
         corpus_id = RetrieverFactory._get_corpus_id(input_chunks)
@@ -248,7 +298,7 @@ class RetrieverFactory:
                 config.similarity_function,
             )
 
-        return vectorstore.as_retriever(search_type=config.search_type, search_kwargs=config.search_kwargs)
+        return ScoredVectorStoreRetriever.from_config(vectorstore, config)
 
     @staticmethod
     def make_bm25_retriever(
