@@ -37,9 +37,7 @@ if TYPE_CHECKING:
 from enum import StrEnum
 
 from rago.data_objects import DataObject, Metric
-from rago.model.wrapper.rag.base import RAG, RAGConfig
-from rago.model.wrapper.reader_model import ReaderModel, ReaderModelConfig
-from rago.model.wrapper.retriever_model import RetrieverModel, RetrieverModelConfig
+from rago.model.wrapper.tunable_model_factory import make_tunable_model
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
 
@@ -291,7 +289,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
             trial.set_user_attr(m_name, m_value.score)
 
     def sample_model(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel:
-        """Sample a model (RAG, RetrieverModel, or ReaderModel) from trial.
+        """Sample a model (RAG, Retriever, or Reader) from trial.
 
         :param trial: Trial to use to sample the model.
         :type trial: optuna.trial.BaseTrial
@@ -303,19 +301,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         config = self.config_space.sample(trial)
         self.logger.debug("[PROCESS] Current Model Configuration Candidate: %s", config)
         inputs_chunks = [doc.text for doc in dataset.corpus.values()]
-
-        if isinstance(config, RAGConfig):
-            return RAG.make(
-                rag_config=config,
-                prompt_config=self.prompt_config,
-                inputs_chunks=inputs_chunks,
-            )
-        if isinstance(config, RetrieverModelConfig):
-            return RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
-        if isinstance(config, ReaderModelConfig):
-            return ReaderModel.make(config=config, prompt_config=self.prompt_config)
-        msg = f"Unsupported config type: {type(config)}"
-        raise TypeError(msg)
+        return make_tunable_model(config, prompt_config=self.prompt_config, inputs_chunks=inputs_chunks)
 
     def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel:
         """Sample RAG from trial.
@@ -422,20 +408,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         test_dataset = self.datasets["test"]
         config = self.config_space.sample(trial)
         inputs_chunks = [doc.text for doc in test_dataset.corpus.values()]
-
-        if isinstance(config, RAGConfig):
-            model: TunableModel = RAG.make(
-                rag_config=config,
-                prompt_config=self.prompt_config,
-                inputs_chunks=inputs_chunks,
-            )
-        elif isinstance(config, RetrieverModelConfig):
-            model = RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
-        elif isinstance(config, ReaderModelConfig):
-            model = ReaderModel.make(config=config, prompt_config=self.prompt_config)
-        else:
-            msg = f"Unsupported config type: {type(config)}"
-            raise TypeError(msg)
+        model = make_tunable_model(config, prompt_config=self.prompt_config, inputs_chunks=inputs_chunks)
 
         test_results: dict[str, list[float]] = defaultdict(list[float])
         for evaluator in self.test_evaluators:

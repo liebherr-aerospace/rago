@@ -5,13 +5,13 @@ from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
-from rago.optimization.search_space.config_space import ConfigSpace
 from rago.optimization.search_space.encoder_config_space import HFEncoderConfigSpace
 from rago.optimization.search_space.param_space import CategoricalParamSpace, FloatParamSpace, IntParamSpace
+from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 
 @dataclass
-class RetrieverConfigSpace(ConfigSpace):
+class RetrieverConfigSpace(TunableModelConfigSpace):
     """Space containing all the possible retriever configurations."""
 
     retriever_type_name: CategoricalParamSpace = Field(

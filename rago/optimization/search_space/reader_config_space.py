@@ -9,17 +9,17 @@ from pydantic.dataclasses import dataclass
 from rago.model.configs.reader_config.base import ReaderConfig
 from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 from rago.model.configs.reader_config.llama_index import LLamaIndexReaderConfig
-from rago.optimization.search_space.config_space import ConfigSpace
 from rago.optimization.search_space.llm_config_space import (
     HFLLMConfigSpace,
     OllamaLlamaIndexLLMConfigSpace,
     OllamaLLMConfigSpace,
 )
 from rago.optimization.search_space.param_space import CategoricalParamSpace
+from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 
 @dataclass
-class ReaderConfigSpace(ConfigSpace):
+class ReaderConfigSpace(TunableModelConfigSpace):
     """Space of containing all the possible reader configurations."""
 
     @abstractmethod

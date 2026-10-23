@@ -9,7 +9,6 @@ from pydantic.dataclasses import dataclass
 from rago.data_objects import RAGOutput
 from rago.model.configs.reader_config.base import ReaderConfig  # noqa: TC001
 from rago.model.configs.retriever_config.base import RetrieverConfig  # noqa: TC001
-from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 from rago.model.configs.tunable_model_config import TunableModelConfig
 from rago.model.wrapper.reader.reader_wrapper_factory import ReaderWrapperFactory
 from rago.model.wrapper.retriever.retriever_wrapper_factory import RetrieverWrapperFactory
@@ -26,8 +25,8 @@ class RAGConfig(TunableModelConfig):
     """Configuration parameters of the RAG.
 
     Both ``reader`` and ``retriever`` are required.  For retriever-only or
-    reader-only optimisation use :class:`RetrieverModelConfig` or
-    :class:`ReaderModelConfig` instead.
+    reader-only optimisation use a :class:`RetrieverConfig` or
+    :class:`ReaderConfig` directly.
     """
 
     reader: ReaderConfig
@@ -72,13 +71,9 @@ class RAG(TunableModel):
             rag_config.reader,
             prompt_config=prompt_config,
         )
-
-        # Qdrant retrievers query an external collection; no local chunks needed.
-        if not isinstance(rag_config.retriever, QdrantRetrieverConfig) and inputs_chunks is None:
-            raise ValueError(inputs_chunks)
         retriever = RetrieverWrapperFactory.make(
             config=rag_config.retriever,
-            input_chunks=inputs_chunks or [],
+            input_chunks=inputs_chunks,
         )
 
         return cls(reader, retriever)

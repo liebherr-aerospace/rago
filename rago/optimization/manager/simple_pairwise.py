@@ -27,9 +27,7 @@ if TYPE_CHECKING:
 from rago.data_objects import Metric
 from rago.eval import BaseLLMEvaluator, EvalPrompts, SimpleLLMEvaluator
 from rago.model.wrapper.llm_agent import LangchainLLMAgent
-from rago.model.wrapper.rag.base import RAG, RAGConfig
-from rago.model.wrapper.reader_model import ReaderModel, ReaderModelConfig
-from rago.model.wrapper.retriever_model import RetrieverModel, RetrieverModelConfig
+from rago.model.wrapper.tunable_model_factory import make_tunable_model
 from rago.optimization.manager.base import BaseOptunaManager, OptimParams
 from rago.prompts import DEFAULT_REFERENCE_EVAL_PROMPT
 
@@ -158,18 +156,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
     def _make_model(self, config: TunableModelConfig) -> TunableModel:
         """Instantiate a model from a config, dispatching by type."""
         inputs_chunks = [doc.text for doc in self.datasets["train"].corpus.values()]
-        if isinstance(config, RAGConfig):
-            return RAG.make(
-                rag_config=config,
-                prompt_config=self.prompt_config,
-                inputs_chunks=inputs_chunks,
-            )
-        if isinstance(config, RetrieverModelConfig):
-            return RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
-        if isinstance(config, ReaderModelConfig):
-            return ReaderModel.make(config=config, prompt_config=self.prompt_config)
-        msg = f"Unsupported config type: {type(config)}"
-        raise TypeError(msg)
+        return make_tunable_model(config, prompt_config=self.prompt_config, inputs_chunks=inputs_chunks)
 
     def instantiate_simple_rags(self) -> tuple[list[TunableModel], list[optuna.Trial]]:
         """Instantiate models for the initial pairwise comparison.

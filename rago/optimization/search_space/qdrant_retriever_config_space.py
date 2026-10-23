@@ -30,12 +30,12 @@ from rago.model.configs.retriever_config.qdrant import (
     QdrantCollectionConfig,
     QdrantRetrieverConfig,
 )
-from rago.optimization.search_space.config_space import ConfigSpace
 from rago.optimization.search_space.param_space import (
     CategoricalParamSpace,
     FloatParamSpace,
     IntParamSpace,
 )
+from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 if TYPE_CHECKING:
     import optuna
@@ -86,7 +86,7 @@ class QdrantCollectionSlot:
 
 
 @dataclass
-class QdrantRetrieverConfigSpace(ConfigSpace):
+class QdrantRetrieverConfigSpace(TunableModelConfigSpace):
     """Search space for the Qdrant hybrid retriever.
 
     Example:

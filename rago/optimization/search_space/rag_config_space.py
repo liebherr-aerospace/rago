@@ -23,8 +23,7 @@ class RAGConfigSpace(TunableModelConfigSpace):
 
     Both ``retriever_space`` and ``reader_space`` default to sensible config
     spaces when left as ``None``.  For retriever-only or reader-only
-    optimisation use :class:`RetrieverModelConfigSpace` or
-    :class:`ReaderModelConfigSpace` instead.
+    optimisation use a retriever or reader config space directly.
     """
 
     retriever_space: Optional[Union[_RetrieverConfigSpace, QdrantRetrieverConfigSpace]] = None

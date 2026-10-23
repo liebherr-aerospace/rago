@@ -2,9 +2,9 @@
 
 from pydantic.dataclasses import dataclass
 
-from rago.model.configs.base import Config
+from rago.model.configs.tunable_model_config import TunableModelConfig
 
 
 @dataclass
-class ReaderConfig(Config):
+class ReaderConfig(TunableModelConfig):
     """Configuration parameters of a Reader."""

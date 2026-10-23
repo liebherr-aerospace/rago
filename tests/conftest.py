@@ -34,7 +34,7 @@ def documents() -> list[Document]:
 def hotpot_qa_sample() -> RAGDataset:
     """Return the dataset that the simple dataset generator should generate in the deterministic case."""
     dataset = QADatasetLoader.load_from_disk(RAGDataset, "./tests/assets/hotpot_qa_test_sample.json")
-    dataset = cast(RAGDataset, dataset)
+    dataset = cast("RAGDataset", dataset)
     return dataset
 
 
@@ -42,7 +42,7 @@ def hotpot_qa_sample() -> RAGDataset:
 def expected_dataset() -> RAGDataset:
     """Return the dataset that the simple dataset generator should generate in the deterministic case."""
     dataset = QADatasetLoader.load_from_disk(RAGDataset, "./tests/assets/expected_dataset.json")
-    dataset = cast(RAGDataset, dataset)
+    dataset = cast("RAGDataset", dataset)
     return dataset
 
 
@@ -66,16 +66,16 @@ def base_url() -> str:
 def language_model_name() -> str:
     """Return the Name of the language model.
 
-    Using smollm:1.7b as it is a small LM and smaller LM seem to suffer from difficulties to finish answer
+    Using smollm2:1.7b as it is a small LM and smaller LM seem to suffer from difficulties to finish answer
     i.e. do not generate eos token.
     """
-    return "smollm:1.7b"
+    return "smollm2:1.7b"
 
 
 @pytest.fixture(scope="session")
 def language_model_name_for_optim() -> str:
-    """Return the Name of the language model used ofr optimization."""
-    return "phi3:3.8b-mini-128k-instruct-q8_0"
+    """Return the Name of the language model used for optimization."""
+    return "qwen3.5:0.8b"
 
 
 @pytest.fixture(scope="session")

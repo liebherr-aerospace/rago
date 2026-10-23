@@ -20,7 +20,7 @@ from rago.optimization.search_space.param_space import CategoricalParamSpace, Fl
 if TYPE_CHECKING:
     import optuna
 
-DEFAULT_LLM_CHOICE = ["smollm2:1.7b", "qwen3:4b", "gemma3:4b", "llama3.2:3b"]
+DEFAULT_LLM_CHOICE = ["qwen3.5:0.8b", "ministral-3:3b"]
 
 
 @dataclass

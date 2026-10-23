@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
@@ -40,17 +40,19 @@ class RetrieverWrapperFactory:
     """Factory of retriever wrappers."""
 
     @staticmethod
-    def make(config: RetrieverConfig, input_chunks: list[str]) -> Retriever:
+    def make(config: RetrieverConfig, input_chunks: Optional[list[str]] = None) -> Retriever:
         """Make a retriever wrapper.
 
         :param config: The config of the retriever wrapper to make.
         :type config: RetrieverConfig
-        :param input_chunks: The input chunks used by the retriever wrapper.
-        :type input_chunks: list[str]
+        :param input_chunks: The input chunks used by the retriever wrapper (not needed for Qdrant).
+        :type input_chunks: Optional[list[str]]
         :return: The created retriever wrapper.
         :rtype: Retriever
         """
+        if not isinstance(config, QdrantRetrieverConfig) and input_chunks is None:
+            raise ValueError(input_chunks)
         factory = _REGISTRY.get(type(config))
         if factory is None:
             raise TypeError(config)
-        return factory(config, input_chunks)
+        return factory(config, input_chunks or [])
