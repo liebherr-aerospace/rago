@@ -70,7 +70,7 @@ RAGO uses **Optimization Methods** (Bayesian methods for instance) to automatica
 ### 🧩 Flexible RAG Components
 - **Retrievers**: Vector search (semantic), BM25 (keyword), and more
 - **Readers**: Simple generation, refine, compact, tree-summarize (LangChain & LlamaIndex)
-- **LLM Support**: Ollama integration
+- **LLM Support**: Ollama integration (thinking and non-thinking models, see `reasoning` option)
 
 ### 📝 Dataset Generation
 - **Automatically generate** evaluation datasets from your documents if no dataset with manual annotations

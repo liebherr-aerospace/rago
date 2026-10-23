@@ -63,6 +63,7 @@ class LangchainLLMFactory:
             mirostat_tau=config.mirostat_tau,
             base_url=config.base_url,
             client_kwargs=config.client_kwargs,
+            reasoning=config.reasoning,
         )
 
     @staticmethod

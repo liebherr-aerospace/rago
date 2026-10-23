@@ -195,6 +195,9 @@ optimizer = SimpleDirectOptunaManager.from_seed_data(
 # 5. Start optimization
 optimizer.optimize()
 ```
+
+> **Thinking models** (e.g. `qwen3`, `qwen3.5`): `OllamaLLMConfigSpace` has `reasoning=False` by default, so they answer directly. With `reasoning=None` or `True`, the thinking tokens count in `max_new_tokens` and can leave the answer empty (score 0 on every trial). See [Thinking models](../rag/reader.md#thinking-models).
+
 > You can also replace the `LlamaIndexReaderConfigSpace` by `LangchainReaderConfigSpace` to run the langchain reader. However, in addition to generation via the LLM, the `LlamaIndexReaderConfigSpace` provides more advanced capabilities, such as 'refine', 'compact', and 'summarize' methods, which process chunks and may involve multiple LLM calls.
 
 > [!CAUTION]
