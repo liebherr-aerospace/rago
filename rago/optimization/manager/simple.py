@@ -34,6 +34,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
             lambda trial: self.eval_trial(trial, self.datasets["train"]),
             self.params.n_iter,
             show_progress_bar=self.params.show_progress_bar,
+            catch=(Exception,),
         )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
 
@@ -49,7 +50,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         :return: the dictionary containing the metrics
         :rtype: float
         """
-        rag = self.sample_rag(trial, dataset)
+        rag = self.sample_model(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
         if len(self.manager.best_trials) > 0:
             self.logger.info(

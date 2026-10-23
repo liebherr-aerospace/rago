@@ -104,16 +104,16 @@ More information here 👉 [Reader Methods](reader.md)
 
 A `RAGOutput` as its name hints is the output of RAG to a query. It contains:
 
-- The `answer` of the RAG to the query.
-- The `retrieved_documents` by the RAG to answer the query.
-Below his an example usage of the `RAGoutput` class:
+- The `answer` of the RAG to the query (`None` for a retriever alone).
+- The `retrieved_context` by the RAG to answer the query (`None` for a reader alone).
+Below is an example usage of the `RAGOutput` class:
 
 ```python
 from rago.data_objects import RAGOutput, RetrievedContext
 
-RAGOutput("Thomas is 12.", [RetrievedContext("Thomas is 12.")])
+RAGOutput(answer="Thomas is 12.", retrieved_context=[RetrievedContext("Thomas is 12.")])
 ```
-RAG outputs can be generated manually or using a RAG.
+RAG outputs can be generated manually or with `get_output(query)` on any `TunableModel` (`RAG`, `Retriever` or `Reader`).
 
 ---
 

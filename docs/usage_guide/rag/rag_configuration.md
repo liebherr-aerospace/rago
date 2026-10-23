@@ -47,7 +47,7 @@ RetrieverConfigSpace(
 ```python
 LangchainReaderConfigSpace(
     llm_config=OllamaLLMConfigSpace(
-        model_name=CategoricalParamSpace(name='OllamaLLMConfigSpace_model_name', choices=['smollm2:1.7b', 'qwen3:4b', 'gemma3:4b', 'llama3.2:3b']),
+        model_name=CategoricalParamSpace(name='OllamaLLMConfigSpace_model_name', choices=['qwen3.5:0.8b', 'ministral-3:3b']),
         temperature=FloatParamSpace(name='OllamaLLMConfigSpace_temperature', low=0.0, high=1.0, step=None, log=False),
         top_k=IntParamSpace(name='OllamaLLMConfigSpace_top_k', low=0, high=10000, step=1, log=False),
         top_p=FloatParamSpace(name='OllamaLLMConfigSpace_top_p', low=0.0, high=1.0, step=None, log=False),
@@ -57,7 +57,7 @@ LangchainReaderConfigSpace(
         mirostat_tau=FloatParamSpace(name='OllamaLLMConfigSpace_mirostat_tau', low=0.0, high=1.0, step=None, log=False),
         num_ctx=IntParamSpace(name='OllamaLLMConfigSpace_num_ctx', low=64, high=12800, step=64, log=False),
         repeat_last_n=IntParamSpace(name='OllamaLLMConfigSpace_repeat_last_n', low=-1, high=256, step=1, log=False),
-        base_url='TEST_OLLAMA_HOST', client_kwargs={'verify': False})
+        base_url='TEST_OLLAMA_HOST', client_kwargs={'verify': False}, reasoning=False)
 )
 ```
 
@@ -67,7 +67,7 @@ LangchainReaderConfigSpace(
 
 ```python
 from rago.optimization.search_space.param_space import CategoricalParamSpace
-from rago.optimization.search_space.reader_config_space import ReaderConfigSpace
+from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
 
 # By default - Vector Index retriever only
@@ -83,7 +83,16 @@ config_space = RAGConfigSpace(RetrieverConfigSpace(
     retriever_type_name=CategoricalParamSpace(choices=["VectorIndexRetriever", "BM25Retriever"])
     )
 )
+# Vector Index, BM25 and Hybrid (weighted vector + BM25) retrievers
+config_space = RAGConfigSpace(RetrieverConfigSpace(
+    retriever_type_name=CategoricalParamSpace(choices=["VectorIndexRetriever", "BM25Retriever", "HybridRetriever"])
+    )
+)
 ```
+
+A `QdrantRetrieverConfigSpace` can also be used as `retriever_space` (see [Qdrant Retriever](retriever.md#qdrant-retriever)).
+
+> To optimize the retriever or the reader **alone**, pass its config space directly as the manager `config_space` (see [Optimize a single component](../optimization/run_experiment.md#optimize-a-single-component)).
 #### Reader methods
 
 You can specify and choose the reader method from `llama Index` or `Langchain` as described here 👉 [Reader Methods](reader.md#reader-methods-and-strategies)

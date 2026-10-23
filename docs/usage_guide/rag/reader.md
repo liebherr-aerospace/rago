@@ -128,6 +128,17 @@ llm_agent = LLMAgentFactory.make(llm_config)
 llm_agent.query("Who is the most famous president of the united states?")
 ```
 
+#### Thinking models
+
+Both Ollama configs (and `OllamaLLMConfigSpace` / `OllamaLlamaIndexLLMConfigSpace`) expose a `reasoning` field, forwarded to Ollama as `think`:
+- `False` (default): thinking is disabled. Works with any model, thinking or not.
+- `True`: thinking is enabled (only for thinking models). The thinking tokens count in `max_new_tokens`, so a too small value can yield an empty answer.
+- `None`: the Ollama server decides (thinking models will think).
+
+```python
+llm_config = LangchainOllamaConfig(model_name="qwen3.5:0.8b", reasoning=False)
+```
+
 ### Usage
 
 Any Language model can be:
@@ -183,7 +194,7 @@ By default we use Langchain LLM config space:
 ```python
   model_name: CategoricalParamSpace = Field(
       default=CategoricalParamSpace(
-          choices=["smollm2:1.7b", "qwen3:4b", "gemma3:4b", "llama3.2:3b"],
+          choices=["qwen3.5:0.8b", "ministral-3:3b"],
       ),
   )
   mirostat: CategoricalParamSpace = Field(
@@ -196,6 +207,7 @@ By default we use Langchain LLM config space:
   num_ctx: IntParamSpace = Field(default=IntParamSpace(low=64, high=12800, step=64))
   repeat_last_n: IntParamSpace = Field(default=IntParamSpace(low=-1, high=256))
   base_url: str = Field(default=os.environ.get("TEST_OLLAMA_HOST", ""))
+  reasoning: Optional[bool] = Field(default=False)  # fixed, not tuned (see Thinking models)
 ```
 See 👉 [Default LLM Configuration Space](../../../rago/optimization/search_space/llm_config_space.py)
 
