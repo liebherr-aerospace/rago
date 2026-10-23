@@ -51,7 +51,7 @@ RAGO uses **Optimization Methods** (Bayesian methods for instance) to automatica
 
 - 📝 **Generate** evaluation datasets from your documents if you do not have manual annotations
 - 🔬 **Test** different RAG configurations exploring the parameter space
-- 📊 **Evaluate** answer quality using BERTScore, LLM-as-Judge, Relevancy metrics
+- 📊 **Evaluate** answer quality using BERTScore, LLM-as-Judge, and retrieval quality using relevancy / precision / context F1
 - 🧠 **Learn** from each trial and focus on promising configurations
 - 🏆 **Find** the optimal setup and the best performance for your documents
 
@@ -68,9 +68,10 @@ RAGO uses **Optimization Methods** (Bayesian methods for instance) to automatica
 <td width="50%" valign="top">
 
 ### 🧩 Flexible RAG Components
-- **Retrievers**: Vector search (semantic), BM25 (keyword), and more
+- **Retrievers**: Vector search (semantic), BM25 (keyword), Hybrid (weighted vector + BM25), Qdrant hybrid search
 - **Readers**: Simple generation, refine, compact, tree-summarize (LangChain & LlamaIndex)
 - **LLM Support**: Ollama integration (thinking and non-thinking models, see `reasoning` option)
+- **Component-level optimization**: optimize the full RAG, the retriever alone or the reader alone
 
 ### 📝 Dataset Generation
 - **Automatically generate** evaluation datasets from your documents if no dataset with manual annotations
@@ -83,7 +84,7 @@ RAGO uses **Optimization Methods** (Bayesian methods for instance) to automatica
 ### 📊 Evaluation Metrics
 - **BERTScore**: Semantic similarity evaluation
 - **LLM-as-a-Judge**: AI-powered answer quality assessment
-- **Relevancy**: Retrieved context documents compared to the source context evaluation
+- **Context retrieval**: relevancy (recall), precision and context F1 of the retrieved context compared to the source context
 
 ### ⚙️ Smart Optimization
 - **Optimization Methods** from Optuna frameworks. Bayesian optimization is used with Tree-structured Parzen Estimator (TPE) by default.
@@ -211,7 +212,7 @@ optuna-dashboard sqlite:///experiments/my_experiment/study.db
 
 ### Advanced Topics
 - 🛠️ [**Optimization Methods**](https://liebherr-aerospace.github.io/rago/usage_guide/optimization/tpe/) - TPE algorithm details
-- 🎯 [**Optimization Strategies**](https://liebherr-aerospace.github.io/rago/usage_guide/optimization/direct_pairwise/) - Direct vs Pairwise
+- 🎯 [**Optimization Strategies**](https://liebherr-aerospace.github.io/rago/usage_guide/optimization/run_experiment/) - Direct vs Pairwise, single component optimization
 - 📔 [**Dataset Generation**](https://liebherr-aerospace.github.io/rago/usage_guide/dataset/generator/) - (Query, Answer, Context) dataset Generation
 - 👍 [**Evaluation Methods**](https://liebherr-aerospace.github.io/rago/usage_guide/evaluation/evaluator/) - LLM Evaluators
 - 📊 [**Metrics**](https://liebherr-aerospace.github.io/rago/usage_guide/evaluation/metrics/) - Evaluation metrics
@@ -232,7 +233,7 @@ optuna-dashboard sqlite:///experiments/my_experiment/study.db
 ### 🚀 Coming Soon
 - **Similarity based metrics**: metric based on similarity score
 - **Configuration Files**: YAML/JSON for reproducible experiments
-- **Advanced Retrievers**: Hybrid search, cluster-based retrieval, rerankers model
+- **Advanced Retrievers**: cluster-based retrieval
 - **Document Splitters**: Semantic chunking, recursive splitting, and more
 
 

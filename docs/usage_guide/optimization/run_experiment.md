@@ -48,11 +48,13 @@ optimizer = SimpleDirectOptunaManager(
     optim_evaluator=evaluator,      # Evaluator for optimization
     optim_metric_name="bert_score_f1",  # Metric to optimize
     test_evaluators=[evaluator],    # Evaluators for final test
-    config_space=config_space,
+    config_space=config_space,      # Any TunableModelConfigSpace (default: RAGConfigSpace())
     sampler=None,                   # Optional: custom sampler (default: TPE)
-    pruner=None,                    # Optional: custom pruner (default: MedianPruner)
+    pruner=None,                    # Optional: custom pruner (default: Optuna's MedianPruner)
 )
 ```
+
+> `optim_metric_name` must be one of the keys returned by the evaluator, e.g. `bert_score_f1` for `BertScore`, `correctness` for LLM judges, `relevancy` / `precision` / `context_f1` for `ContextRetrievalEvaluator`.
 
 ### Default Sampler and Pruner
 
@@ -60,11 +62,12 @@ optimizer = SimpleDirectOptunaManager(
 - Controls **how** new configurations are suggested
 - **TPE (Tree-structured Parzen Estimator)** is the default
 - Balances exploration (random search) and exploitation (focusing on promising areas)
-- Uses `n_startup_trials` random trials, then switches to TPE
+- Starts with random trials, then switches to TPE. With `sampler=None`, Optuna's default number of startup trials is used: pass `sampler=optuna.samplers.TPESampler(n_startup_trials=params.n_startup_trials)` to apply your `n_startup_trials`.
 
-**Pruner**:
+**Pruner** (default: Optuna's `MedianPruner` when `pruner=None`):
 - Controls **when** to stop unpromising trials early
 - **MedianPruner**: Stops trials performing worse than the median of previous trials
+- RAGO only prunes a trial if the pruner says so **and** its current mean score is below the best trial
 - Saves computation by abandoning bad configurations early
 - Especially useful for multi-step evaluations (e.g., evaluating on multiple test samples)
 
@@ -131,7 +134,7 @@ datasets = full_ds.split_dataset([0.8], split_names=["train", "test"], seed=42)
 # 4. Define search space
 config_space = RAGConfigSpace()
 
-# 5. Instantiate the optimizer (uses TPE sampler + no pruner by default)
+# 5. Instantiate the optimizer (TPE sampler + Optuna's MedianPruner by default)
 optimizer = SimpleDirectOptunaManager(
     params=params,
     datasets=datasets,
@@ -198,10 +201,52 @@ optimizer.optimize()
 
 > **Thinking models** (e.g. `qwen3`, `qwen3.5`): `OllamaLLMConfigSpace` has `reasoning=False` by default, so they answer directly. With `reasoning=None` or `True`, the thinking tokens count in `max_new_tokens` and can leave the answer empty (score 0 on every trial). See [Thinking models](../rag/reader.md#thinking-models).
 
-> You can also replace the `LlamaIndexReaderConfigSpace` by `LangchainReaderConfigSpace` to run the langchain reader. However, in addition to generation via the LLM, the `LlamaIndexReaderConfigSpace` provides more advanced capabilities, such as 'refine', 'compact', and 'summarize' methods, which process chunks and may involve multiple LLM calls.
+> You can also replace the `LangchainReaderConfigSpace` by `LlamaIndexReaderConfigSpace` to run the LlamaIndex reader. In addition to generation via the LLM, the `LlamaIndexReaderConfigSpace` provides more advanced capabilities, such as 'refine', 'compact', and 'summarize' methods, which process chunks and may involve multiple LLM calls.
 
 > [!CAUTION]
 > You can also replace the `SimpleDirectOptunaManager` by `SimplePairWiseOptunaManager` to run the pair-wise optimization.
+
+### Optimize a single component
+
+`config_space` accepts any `TunableModelConfigSpace`, so you can optimize the retriever or the reader alone:
+
+| Config space | Model built | Typical evaluator / metric |
+|---|---|---|
+| `RAGConfigSpace` | `RAG` (retriever + reader) | `BertScore` / `bert_score_f1`, LLM judge / `correctness` |
+| `RetrieverConfigSpace` | LangChain retriever (vector, BM25, hybrid) | `ContextRetrievalEvaluator` / `relevancy`, `precision`, `context_f1` |
+| `QdrantRetrieverConfigSpace` | Qdrant retriever | `ContextRetrievalEvaluator` |
+| `LangchainReaderConfigSpace`, `LlamaIndexReaderConfigSpace` | Reader only (no retrieved context) | `BertScore`, LLM judge |
+
+Retriever-only optimization does not call any LLM, so it is fast:
+
+```python
+from rago.dataset import RAGDataset
+from rago.eval import ContextRetrievalEvaluator
+from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
+from rago.optimization.search_space.param_space import CategoricalParamSpace, IntParamSpace
+from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
+
+datasets = RAGDataset.load_dataset("crag").sample(10, 0, 50).split_dataset([0.8], split_names=["train", "test"], seed=42)
+evaluator = ContextRetrievalEvaluator()  # returns relevancy, precision and context_f1
+
+optimizer = SimpleDirectOptunaManager(
+    params=OptimParams(experiment_name="retriever_only", n_iter=50),
+    datasets=datasets,
+    optim_evaluator=evaluator,
+    optim_metric_name="context_f1",  # "relevancy" alone pushes towards a large top_k
+    test_evaluators=[evaluator],
+    config_space=RetrieverConfigSpace(
+        # HybridRetriever needs OpenSearch for its BM25 part (see env variables above)
+        retriever_type_name=CategoricalParamSpace(choices=["VectorIndexRetriever", "HybridRetriever"]),
+        top_k=IntParamSpace(low=1, high=10),
+    ),
+)
+optimizer.optimize()
+result = optimizer.test()
+print(result.mean_evals, result.config)
+```
+
+> Changing the categorical choices or the optimized metric of an existing study is not supported by Optuna: use a new `experiment_name`.
 
 ## ⛵ To go further
 

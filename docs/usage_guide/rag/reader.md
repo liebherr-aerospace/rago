@@ -194,7 +194,7 @@ By default we use Langchain LLM config space:
 ```python
   model_name: CategoricalParamSpace = Field(
       default=CategoricalParamSpace(
-          choices=["smollm2:1.7b", "qwen3:4b", "gemma3:4b", "llama3.2:3b"],
+          choices=["qwen3.5:0.8b", "ministral-3:3b"],
       ),
   )
   mirostat: CategoricalParamSpace = Field(
