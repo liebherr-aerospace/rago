@@ -1,41 +1,32 @@
-"""Define an evaluator that evaluates the relevancy of the retrieved context."""
+"""Deprecated evaluator measuring only the relevancy (recall) of the retrieved context."""
 
-import numpy as np
+from __future__ import annotations
+
+import warnings
 
 from rago.data_objects import EvalSample, Metric, RAGOutput
-from rago.eval.base import BaseIndependentEvaluator
+from rago.eval.retrieval import ContextRetrievalEvaluator
 
 
-class RelevancyEvaluator(BaseIndependentEvaluator[RAGOutput]):
-    """Evaluator that evaluates the relevancy of the RAG output's retrieved context.
+class RelevancyEvaluator(ContextRetrievalEvaluator):
+    """Deprecated: use :class:`ContextRetrievalEvaluator`, which also returns precision and context_f1."""
 
-    i.e. The percentage of the eval sample's context that is in the retrieved context of the RAG output.
-    """
+    def __init__(self) -> None:
+        """Warn that this evaluator is deprecated."""
+        warnings.warn(
+            "RelevancyEvaluator is deprecated, use ContextRetrievalEvaluator instead.",
+            DeprecationWarning,
+            stacklevel=2,
+        )
 
     def evaluate(self, candidate_output: RAGOutput, eval_sample: EvalSample) -> dict[str, Metric]:
-        """Evaluate the percentage of the evaluation context that is in the retrieved context in RAGOutput.
-
-        If the query was not generated using any context (e.g general queries like: "Hello!") the relevancy score is 1.
-        If the output does not contain any retrieved context and the eval_sample does the relevancy score is 0.
+        """Evaluate the proportion of the expected context contained in the retrieved context.
 
         :param candidate_output: The RAG's output to the query.
         :type candidate_output: RAGOutput
-        :param eval_sample: The context used to evaluate the candidate answer.
+        :param eval_sample: The sample containing the expected context.
         :type eval_sample: EvalSample
-        :return: The evaluation result.
+        :return: The evaluation result with a ``"relevancy"`` key.
         :rtype: dict[str, Metric]
         """
-        if eval_sample.context is not None and len(eval_sample.context) > 0:
-            if candidate_output.retrieved_context is None or len(candidate_output.retrieved_context) == 0:
-                relevancy = 0
-            else:
-                retrieved_context = "\n".join(
-                    [retrieved_doc.text for retrieved_doc in candidate_output.retrieved_context],
-                )
-                nb_of_eval_sample_in_retrieved_context = np.sum(
-                    [context.text in retrieved_context for context in eval_sample.context],
-                )
-                relevancy = nb_of_eval_sample_in_retrieved_context / len(eval_sample.context)
-        else:
-            relevancy = 1
-        return {"relevancy": Metric(relevancy)}
+        return {"relevancy": Metric(self.compute_relevancy(candidate_output, eval_sample))}
