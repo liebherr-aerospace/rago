@@ -66,10 +66,10 @@ def base_url() -> str:
 def language_model_name() -> str:
     """Return the Name of the language model.
 
-    Using smollm2:1.7b as it is a small LM and smaller LM seem to suffer from difficulties to finish answer
+    Using qwen3.5:0.8b as it is a small LM and smaller LM seem to suffer from difficulties to finish answer
     i.e. do not generate eos token.
     """
-    return "smollm2:1.7b"
+    return "qwen3.5:0.8b"
 
 
 @pytest.fixture(scope="session")
