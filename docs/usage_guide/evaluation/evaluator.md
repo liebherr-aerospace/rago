@@ -77,51 +77,63 @@ print(eval_result["similarity"].score)  # Cosine similarity score
 - Independent evaluator
 - Requires reference answer in the `EvalSample`
 
-### RelevancyEvaluator
+### ContextRetrievalEvaluator
 
-The relevancy evaluator evaluates only the retrieved context (obtained by the RAG based on the query) compared to the source context (used by the generator to generate query).
-More precisely it returns the proportion of the source context that is in the retrieved context.
-Therefore using it requires an `EvalSample` with `context`:
+The context retrieval evaluator evaluates only the retrieved context (obtained by the RAG based on the query) compared to the source context (used by the generator to generate query).
+It returns three metrics:
 
-The relevancy evaluator does not require any argument to be instantiated:
+- `relevancy` (recall): proportion of the source context that is in the retrieved context.
+- `precision`: proportion of the retrieved chunks that match a source chunk (a chunk matches if it contains, or is contained in, a source chunk).
+- `context_f1`: harmonic mean of `relevancy` and `precision`.
+
+Therefore using it requires an `EvalSample` with `context`.
+
+The evaluator does not require any argument to be instantiated:
 ```python
-from rago.data_objects import EvalSample
-from rago.eval import RelevancyEvaluator
+from rago.data_objects import Document, EvalSample
+from rago.eval import ContextRetrievalEvaluator
 
-eval_sample = EvalSample("How old is thomas", context = ["Thomas is 12.", "Thomas was born 12 years ago."])
+eval_sample = EvalSample("How old is thomas", context=[Document("Thomas is 12."), Document("Thomas was born 12 years ago.")])
 
-evaluator = RelevancyEvaluator()
+evaluator = ContextRetrievalEvaluator()
 ```
-Below is an example of the relevancy evaluator usage:
+Below is an example of its usage:
 ```python
-from rago.utils import Document, RAGOutput
+from rago.data_objects import RAGOutput, RetrievedContext
 
 eval_result = evaluator.evaluate(
-    RAGOutput(retrieved_documents=[Document("Thomas is 12.")]),
+    RAGOutput(retrieved_context=[RetrievedContext("Thomas is 12."), RetrievedContext("Paris is in France.")]),
     eval_sample,
 )
-eval_result["relevancy"].score #Output: 0.5
+eval_result["relevancy"].score   # Output: 0.5
+eval_result["precision"].score   # Output: 0.5
+eval_result["context_f1"].score  # Output: 0.5
 ```
-The Output in this case is 0.5 because the output has retrieved 1 out of the 2 source contexts (1/2 = 0.5).
+The output has retrieved 1 out of the 2 source contexts (relevancy = 0.5), and 1 out of its 2 retrieved chunks is relevant (precision = 0.5).
+
+If the `EvalSample` has no context, all metrics are 1. If it has context but nothing was retrieved, all metrics are 0.
+
+> [!NOTE]
+> `RelevancyEvaluator` and `PrecisionEvaluator` are deprecated. They still work and return only the `relevancy` or `precision` key, respectively.
 
 **Key features:**
-- Returns 1 metric: `relevancy` (proportion of source context retrieved)
+- Returns 3 metrics: `relevancy`, `precision`, `context_f1`
 - Evaluates retrieval quality, not answer quality
 - Independent evaluator
 - Requires `context` in the `EvalSample`
 
 ## Independent vs Dependent Evaluators
 
-The relevancy evaluator is an `IndependentEvaluator`.
+The context retrieval evaluator is an `IndependentEvaluator`.
 This means evaluating two outputs with `pairwise_evaluation` is the same as evaluating both outputs independently:
 ```python
-from rago.utils import Document, RAGOutput
+from rago.data_objects import Document, EvalSample, RAGOutput, RetrievedContext
 
-eval_sample = EvalSample("How old is thomas", context = ["Thomas is 12.", "Thomas was born 12 years ago."])
-evaluator = RelevancyEvaluator()
+eval_sample = EvalSample("How old is thomas", context=[Document("Thomas is 12."), Document("Thomas was born 12 years ago.")])
+evaluator = ContextRetrievalEvaluator()
 
-output_1 = RAGOutput(retrieved_documents=[Document("Thomas is 12.")])
-output_2 = RAGOutput(retrieved_documents=[Document("Thomas is 13.")])
+output_1 = RAGOutput(retrieved_context=[RetrievedContext("Thomas is 12.")])
+output_2 = RAGOutput(retrieved_context=[RetrievedContext("Thomas is 13.")])
 
 eval_result_1 = evaluator.evaluate(output_1, eval_sample)
 eval_result_2 = evaluator.evaluate(output_2, eval_sample)
@@ -146,7 +158,7 @@ More generally, any Evaluator in RAGO is either an independent evaluator or a de
 
   where $e_{\text{individual}}$ is the individual evaluation function applied to each output separately.
 
-  - Examples: `BertScore`, `SimilarityScore`, `RelevancyEvaluator`
+  - Examples: `BertScore`, `SimilarityScore`, `ContextRetrievalEvaluator`
 
 - **Dependent evaluators** inherit from `BaseDependentEvaluator`. This means that the example above would not hold (pairwise evaluation produces different results than individual evaluations).
 
@@ -241,12 +253,12 @@ evaluator = SimpleLLMEvaluator(llm_agent)
 
 ## Summary Table
 
-| Evaluator | Type | Metrics | Requires Reference | Requires Context | Speed |
-|-----------|------|---------|-------------------|------------------|-------|
-| `BertScore` | Independent | precision, recall, f1 | ✅ | ❌ | Fast |
-| `SimilarityScore` | Independent | similarity | ✅ | ❌ | Very Fast |
-| `RelevancyEvaluator` | Independent | relevancy | ❌ | ✅ | Very Fast |
-| `SimpleLLMEvaluator` | Dependent | correctness | ❌ | ❌ | Slow (LLM) |
+| Evaluator | Type | Metrics | Requires Reference | Requires Context | Requires Answer | Speed |
+|-----------|------|---------|-------------------|------------------|-----------------|-------|
+| `BertScore` | Independent | precision, recall, f1 | ✅ | ❌ | ✅ | Fast |
+| `SimilarityScore` | Independent | similarity | ✅ | ❌ | ✅ | Very Fast |
+| `ContextRetrievalEvaluator` | Independent | relevancy, precision, context_f1 | ❌ | ✅ | ❌ | Very Fast |
+| `SimpleLLMEvaluator` | Dependent | correctness | ❌ | ❌ | ✅ | Slow (LLM) |
 
 
 ## 📚 Related Documentation

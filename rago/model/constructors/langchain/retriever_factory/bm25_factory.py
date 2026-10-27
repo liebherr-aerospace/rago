@@ -146,7 +146,7 @@ class OpenSearchBM25Retriever(BaseRetriever):
             docs.append(
                 Document(
                     page_content=content,
-                    metadata=metadata,
+                    metadata={**metadata, "score": float(r["_score"])},
                 ),
             )
         return docs

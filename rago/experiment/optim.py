@@ -9,6 +9,7 @@ from optuna.samplers import TPESampler
 from rago.dataset import RAGDataset
 from rago.eval import BertScore, SimilarityScore, SimpleLLMEvaluator
 from rago.experiment.base import Experiment
+from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.llm_config_space import OllamaLLMConfigSpace
 from rago.optimization.search_space.param_space import CategoricalParamSpace
@@ -52,6 +53,7 @@ class OptimExperiment(Experiment):
             optim_evaluator=self.evaluator,
             optim_metric_name="bert_score_f1",
             test_evaluators=self.test_evaluators,
+            model_cls=RAG,
             config_space=config_space,
             sampler=sampler,
         )

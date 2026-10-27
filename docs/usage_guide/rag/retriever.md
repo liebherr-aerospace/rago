@@ -65,9 +65,41 @@ where
 
 **Best practice**: Use **hybrid retrieval** (combine both)!
 
+## 🔀 Hybrid Retriever
+
+The `HybridRetriever` combines a `VectorIndexRetriever` and a `BM25Retriever`:
+1. both sub-retrievers are queried,
+2. the scores of each sub-retriever are min-max normalized to $[0, 1]$,
+3. they are weighted by `hybrid_weight` (vector) and `1 - hybrid_weight` (BM25),
+4. chunks returned by both are merged by summing their weighted scores, and the result is sorted by score.
+
+$$\text{score}(c) = w \cdot \widehat{s}_{vector}(c) + (1 - w) \cdot \widehat{s}_{BM25}(c)$$
+
+In the configuration space, `hybrid_weight` and all the parameters of both sub-retrievers are optimized. Select it with `retriever_type_name=CategoricalParamSpace(choices=["HybridRetriever"])`; the space then samples a `HybridLangchainRetrieverConfig(vector_config=..., bm25_config=..., hybrid_weight=...)`. Like BM25, it needs the OpenSearch environment variables.
+
+## 🗄️ Qdrant Retriever
+
+The `QdrantRetrieverWrapper` queries **pre-indexed** Qdrant collections (no `inputs_chunks` needed) with a hybrid search: dense vectors + sparse BM25 (`Qdrant/bm25`), fused with RRF or DBSF, optional ColBERT late-interaction re-scoring, optional score threshold and optional cross-encoder reranker.
+
+- Connection: `QDRANT_URL` (default `http://localhost:6333`) and `QDRANT_API_KEY` environment variables.
+- Search space: `QdrantRetrieverConfigSpace` tunes the collection (one `QdrantCollectionSlot` per pre-indexed collection / encoder), `fusion_method`, `rrf_k`, `prefetch_limit`, `limit`, `late_interaction_rescore`, `dense_weight`, `sparse_weight`, and optionally `score_threshold`, `reranker_model`, `reranker_top_n`.
+
+```python
+from rago.optimization.search_space.qdrant_retriever_config_space import (
+    QdrantCollectionSlot,
+    QdrantRetrieverConfigSpace,
+)
+
+space = QdrantRetrieverConfigSpace(
+    collections=[QdrantCollectionSlot(collection_name="my_collection_bge", encoder_model="BAAI/bge-m3")],
+)
+```
+
+See 🐍 [Qdrant Configuration Space](../../../rago/optimization/search_space/qdrant_retriever_config_space.py) and the script [optimize_qdrant_retriever.py](../../../scripts/optimize_qdrant_retriever.py).
+
 ---
 
-> ⚠️ `Hybrid Retriever`, `Cluster Based Retriever` shall be implemented in next versions.
+> ⚠️ `Cluster Based Retriever` shall be implemented in next versions.
 
 ## 📄 Retrieved Context
 
@@ -91,6 +123,7 @@ The retriever wrapper can be instantiated as follow:
 
 ```python
 from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
+from rago.model.wrapper.tunable_model import BuildContext
 from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.configs.encoder_config.langchain import HuggingFaceLangchainEncoderConfig
 
@@ -102,9 +135,12 @@ config = LangchainRetrieverConfig(
     search_kwargs={"k":3, "score_threshold" : 0.0},
     encoder = encoder_config,
     )
-retriever = LangchainRetrieverWrapper.make(config, inputs_chunks=["Thomas is 12."])
-print(retriever.get_retriever_output("Hello"))
+retriever = LangchainRetrieverWrapper.make(config, BuildContext(inputs_chunks=["Thomas is 12."]))
+print(retriever.get_retriever_output("Hello"))  # list[RetrievedContext]
+print(retriever.get_output("Hello"))            # RAGOutput(answer=None, retrieved_context=[...])
 ```
+
+Every retriever is a `TunableModel`: it is built with `Wrapper.make(config, BuildContext(inputs_chunks=...))` (or `RetrieverWrapperFactory.make(config, ctx)` to dispatch on the config type), and can be optimized alone (see [Optimize a single component](../optimization/run_experiment.md#optimize-a-single-component)).
 
 ## 🧭 Retrievers Configuration Space in RAGO
 
@@ -146,6 +182,13 @@ bm25_b: FloatParamSpace = Field(default=FloatParamSpace(low=0.0, high=1.0))
 bm25_similarity: CategoricalParamSpace = Field(default=CategoricalParamSpace(choices=["custom_bm25"]))
 ```
 You can find the values $k1$ and $b$ defined in the formula (2).
+
+### Hybrid Configuration Space
+
+```python
+hybrid_weight: FloatParamSpace = Field(default=FloatParamSpace(low=0.0, high=1.0))
+```
+The vector and BM25 parameters above are sampled as well for the two sub-retrievers.
 
 ---
 

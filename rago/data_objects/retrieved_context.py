@@ -82,5 +82,5 @@ class RetrievedContext:
         :param node:
         """
         metadata_score = node.metadata.get("score")
-        score = metadata_score if metadata_score and isinstance(metadata_score, float) else None
+        score = metadata_score if isinstance(metadata_score, float) else None
         return cls(node.page_content, score=score)

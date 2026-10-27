@@ -12,11 +12,12 @@ if TYPE_CHECKING:
     from rago.dataset import RAGDataset
 from rago.data_objects import Metric
 from rago.eval import BaseEvaluator
+from rago.model.configs.tunable_model_config import TunableModelConfig
 
 from .base import BaseOptunaManager
 
 
-class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
+class SimpleDirectOptunaManager[ConfigT: TunableModelConfig](BaseOptunaManager[BaseEvaluator, ConfigT]):
     """A simple direct optimization manager calling Optuna to optimize parameters.
 
     The Optimization manager is instantiated with Optuna Study.
@@ -34,6 +35,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
             lambda trial: self.eval_trial(trial, self.datasets["train"]),
             self.params.n_iter,
             show_progress_bar=self.params.show_progress_bar,
+            catch=(Exception,),
         )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
 
@@ -49,7 +51,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         :return: the dictionary containing the metrics
         :rtype: float
         """
-        rag = self.sample_rag(trial, dataset)
+        model = self.sample_model(trial, dataset)
         self.logger.info("[PROCESS] Trial %s", trial.number)
         if len(self.manager.best_trials) > 0:
             self.logger.info(
@@ -60,7 +62,7 @@ class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
         trial_eval: dict[str, Metric] = defaultdict(Metric)
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[PROCESS] Iteration: %s", n)
-            single_eval = self.single_eval(self.optim_evaluator, test_sample, rag)
+            single_eval = self.single_eval(self.optim_evaluator, test_sample, model)
             trial_eval = {
                 metric_name: Metric(
                     self.optim_evaluator.update_avg_score(trial_eval[metric_name].score, metric.score, n),

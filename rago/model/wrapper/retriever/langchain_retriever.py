@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional
 from langchain_core.documents import Document
 
 from rago.data_objects import RetrievedContext
+from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.constructors.langchain.retriever_factory.base_factory import RetrieverFactory
 from rago.model.wrapper.context_post_processor.llama_index_post_processor import LLamaIndexContextPostProcessorWrapper
 from rago.model.wrapper.retriever.base import Retriever
@@ -14,10 +15,10 @@ from rago.model.wrapper.retriever.base import Retriever
 if TYPE_CHECKING:
     from langchain_core.retrievers import BaseRetriever
 
-    from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
+    from rago.model.wrapper.tunable_model import BuildContext
 
 
-class LangchainRetrieverWrapper(Retriever):
+class LangchainRetrieverWrapper(Retriever[LangchainRetrieverConfig]):
     """A retriever that retrieves information relevant to answer a query from a database (non-parametric knowledge)."""
 
     def __init__(
@@ -39,18 +40,22 @@ class LangchainRetrieverWrapper(Retriever):
     def make(
         cls,
         config: LangchainRetrieverConfig,
-        inputs_chunks: list[str],
+        ctx: Optional[BuildContext] = None,
     ) -> LangchainRetrieverWrapper:
-        """Generate a retriever from a documents set, an encoder, a llm and the config of the retriever to build.
+        """Generate a retriever from the document chunks of the context and the config of the retriever to build.
 
         :param config: The config of the retriever to generate.
-        :type config: dict
-        :param inputs_chunks: the document that will be used to generate the non parametric knowledge.
-        :type inputs_chunks: list[str]
-        :return: The retriever corresponding to the config dict.
+        :type config: LangchainRetrieverConfig
+        :param ctx: Runtime resources, ``ctx.inputs_chunks`` is required.
+        :type ctx: Optional[BuildContext]
+        :raises ValueError: If no input chunks are provided.
+        :return: The retriever corresponding to the config.
         :rtype: LangchainRetrieverWrapper
         """
-        langchain_inputs_chunks = [Document(chunk) for chunk in inputs_chunks]
+        if ctx is None or ctx.inputs_chunks is None:
+            error_msg = f"{cls.__name__} requires ctx.inputs_chunks."
+            raise ValueError(error_msg)
+        langchain_inputs_chunks = [Document(chunk) for chunk in ctx.inputs_chunks]
 
         retriever = RetrieverFactory.make(config, langchain_inputs_chunks)
         if config.node_post_processor_config is not None:
@@ -72,7 +77,7 @@ class LangchainRetrieverWrapper(Retriever):
         """
         nodes_with_scores = self.langchain_retriever.invoke(query)
         retrieved_context = [
-            RetrievedContext.from_langchain_node(node_with_score) for node_with_score in nodes_with_scores
+            RetrievedContext.from_langchain_node_with_score(node_with_score) for node_with_score in nodes_with_scores
         ]
         if self.nodes_post_processors is not None:
             retrieved_context = self.nodes_post_processors.post_process_context(query, retrieved_context)

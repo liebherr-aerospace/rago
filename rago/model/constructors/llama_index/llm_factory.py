@@ -69,4 +69,5 @@ class LLamaIndexLLMFactory:
             },
             client=client,
             keep_alive=keep_alive,
+            thinking=config.reasoning,
         )
