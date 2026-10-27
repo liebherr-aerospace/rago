@@ -4,18 +4,20 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
-from rago.model.constructors.llama_index.reader_factory import LLamaIndexReaderConfig, ReaderFactory
+from rago.model.configs.reader_config.llama_index import LLamaIndexReaderConfig
+from rago.model.constructors.llama_index.reader_factory import ReaderFactory
 from rago.model.wrapper.reader.base import Reader
-from rago.prompts import PromptConfig
+from rago.model.wrapper.tunable_model import BuildContext
 
 if TYPE_CHECKING:
     from llama_index.core.llms import LLM
     from llama_index.core.response_synthesizers.base import RESPONSE_TEXT_TYPE, BaseSynthesizer
 
     from rago.data_objects import RetrievedContext
+    from rago.prompts import PromptConfig
 
 
-class LlamaIndexWrapperReader(Reader):
+class LlamaIndexWrapperReader(Reader[LLamaIndexReaderConfig]):
     """Defines a wrapper around a llama-index reader."""
 
     lama_index_reader: BaseSynthesizer
@@ -36,21 +38,22 @@ class LlamaIndexWrapperReader(Reader):
     def make(
         cls,
         config: LLamaIndexReaderConfig,
+        ctx: Optional[BuildContext] = None,
+        *,
         llm: Optional[LLM] = None,
-        prompt_config: Optional[PromptConfig] = None,
     ) -> LlamaIndexWrapperReader:
         """Build a wrapper around a llama-index reader from the config of the llama-index reader.
 
         :param config: The config of the llama-index reader to wrap around.
-        :type config: dict
-        :param llm: The llm used by the reader.
-        :type llm: LLM
-        :param prompt_config: The configuration for the prompt, defaults to None
-        :type prompt_config: Optional[PromptConfig ], optional
+        :type config: LLamaIndexReaderConfig
+        :param ctx: Runtime resources (prompt config), defaults to ``BuildContext()``.
+        :type ctx: Optional[BuildContext]
+        :param llm: The llm used by the reader, defaults to None.
+        :type llm: Optional[LLM]
         :return: The wrapper around the prompt.
         :rtype: LlamaIndexWrapperReader
         """
-        prompt_config = prompt_config if prompt_config is not None else PromptConfig()
+        prompt_config = (ctx or BuildContext()).prompt_config
         prompt_template_str = cls.get_prompt_template_string(prompt_config)
         context_prompt_template = prompt_config.context_template.format(source_context="{context_str}")
         prompt_template_str = prompt_template_str.format(

@@ -4,18 +4,19 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 from rago.model.constructors.langchain.llm_factory import LangchainLLMFactory
 from rago.model.wrapper.reader.base import Reader
-from rago.prompts import PromptConfig
+from rago.model.wrapper.tunable_model import BuildContext
 
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLLM
 
     from rago.data_objects import RetrievedContext
-    from rago.model.configs.reader_config.langchain import LangchainReaderConfig
+    from rago.prompts import PromptConfig
 
 
-class LangchainWrapperReader(Reader):
+class LangchainWrapperReader(Reader[LangchainReaderConfig]):
     """Wrapper to around a Langchain reader."""
 
     def __init__(self, langchain_reader: BaseLLM, prompt_config: PromptConfig, prompt_template: str) -> None:
@@ -32,15 +33,18 @@ class LangchainWrapperReader(Reader):
     def make(
         cls,
         config: LangchainReaderConfig,
+        ctx: Optional[BuildContext] = None,
+        *,
         llm: Optional[BaseLLM] = None,
-        prompt_config: Optional[PromptConfig] = None,
     ) -> LangchainWrapperReader:
         """Build a wrapper around a Langchain reader.
 
         :param config: The config of the langchain reader to wrap around.
-        :type config: dict
-        :param llm: The llm used by the reader.
-        :type llm: LLM
+        :type config: LangchainReaderConfig
+        :param ctx: Runtime resources (prompt config), defaults to ``BuildContext()``.
+        :type ctx: Optional[BuildContext]
+        :param llm: The llm used by the reader, built from ``config.llm`` if None.
+        :type llm: Optional[BaseLLM]
         :return: The wrapper around the reader.
         :rtype: LangchainWrapperReader
         """
@@ -49,7 +53,7 @@ class LangchainWrapperReader(Reader):
                 raise ValueError(config.llm)
             llm = LangchainLLMFactory.make(config.llm)
 
-        prompt_config = PromptConfig() if prompt_config is None else prompt_config
+        prompt_config = (ctx or BuildContext()).prompt_config
         prompt_template_str = cls.get_prompt_template_string(prompt_config)
 
         return LangchainWrapperReader(

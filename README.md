@@ -145,6 +145,7 @@ Optimize a RAG system with default reader and retriever methods in just a few li
 ```python
 from rago.dataset import RAGDataset
 from rago.eval import BertScore
+from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
@@ -173,6 +174,7 @@ optimizer = SimpleDirectOptunaManager(
     optim_evaluator=evaluator,
     optim_metric_name="bert_score_f1",
     test_evaluators=[evaluator],
+    model_cls=RAG,
     config_space=config_space,
 )
 optimizer.optimize()

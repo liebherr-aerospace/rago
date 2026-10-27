@@ -30,6 +30,6 @@ def test_llama_index_response_synthesizer_works(
 def test_base_reader_works(langchain_llm: BaseLLM) -> None:
     """Tests that the reader using a language model works correctly."""
     reader_config = LangchainReaderConfig()
-    reader = LangchainWrapperReader.make(reader_config, langchain_llm)
+    reader = LangchainWrapperReader.make(reader_config, llm=langchain_llm)
     nodes = [RetrievedContext("The date is 2012"), RetrievedContext("Thomas is going to be 12 in 2013")]
     assert reader.get_reader_output("How old is thomas?", nodes) == "In this scenario, we can use the given context"

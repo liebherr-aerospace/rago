@@ -19,22 +19,22 @@ from rago.optimization.search_space.tunable_model_config_space import TunableMod
 
 
 @dataclass
-class ReaderConfigSpace(TunableModelConfigSpace):
+class ReaderConfigSpace[ConfigT: ReaderConfig](TunableModelConfigSpace[ConfigT]):
     """Space of containing all the possible reader configurations."""
 
     @abstractmethod
-    def sample(self, trial: optuna.trial.BaseTrial) -> ReaderConfig:
+    def sample(self, trial: optuna.trial.BaseTrial) -> ConfigT:
         """Sample a configuration from configuration space.
 
         :param trial: Trial used to sample the configuration
         :type trial: optuna.trial.BaseTrial
         :return: The sampled configuration.
-        :rtype: ReaderConfig
+        :rtype: ConfigT
         """
 
 
 @dataclass
-class LangchainReaderConfigSpace(ReaderConfigSpace):
+class LangchainReaderConfigSpace(ReaderConfigSpace[LangchainReaderConfig]):
     """Space of containing all the possible reader configurations by using Langchain."""
 
     llm_config: OllamaLLMConfigSpace = Field(default=OllamaLLMConfigSpace())
@@ -51,7 +51,7 @@ class LangchainReaderConfigSpace(ReaderConfigSpace):
 
 
 @dataclass
-class LlamaIndexReaderConfigSpace(ReaderConfigSpace):
+class LlamaIndexReaderConfigSpace(ReaderConfigSpace[LLamaIndexReaderConfig]):
     """Space of containing all the possible reader configurations by using llama index."""
 
     type_config: CategoricalParamSpace = Field(
@@ -73,7 +73,7 @@ class LlamaIndexReaderConfigSpace(ReaderConfigSpace):
 
 
 @dataclass
-class HuggingFaceReaderConfigSpace(ReaderConfigSpace):
+class HuggingFaceReaderConfigSpace(ReaderConfigSpace[LangchainReaderConfig]):
     """Space containing all the possible reader configurations using HuggingFace."""
 
     llm_config: HFLLMConfigSpace = Field(default=HFLLMConfigSpace())

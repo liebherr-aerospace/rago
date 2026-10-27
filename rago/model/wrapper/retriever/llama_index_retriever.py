@@ -7,6 +7,7 @@ from typing import TYPE_CHECKING, Optional
 from llama_index.core.schema import TextNode
 
 from rago.data_objects import RetrievedContext
+from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
 from rago.model.constructors.llama_index.retriever_factory import RetrieverFactory
 from rago.model.wrapper.context_post_processor.llama_index_post_processor import LLamaIndexContextPostProcessorWrapper
 from rago.model.wrapper.retriever.base import Retriever
@@ -16,10 +17,10 @@ if TYPE_CHECKING:
     from llama_index.core.llms import LLM
     from llama_index.core.retrievers import BaseRetriever
 
-    from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
+    from rago.model.wrapper.tunable_model import BuildContext
 
 
-class LlamaIndexRetrieverWrapper(Retriever):
+class LlamaIndexRetrieverWrapper(Retriever[LlamaIndexRetrieverConfig]):
     """A retriever using llama_index retrievers."""
 
     llama_index_retriever: BaseRetriever
@@ -44,24 +45,29 @@ class LlamaIndexRetrieverWrapper(Retriever):
     def make(
         cls,
         config: LlamaIndexRetrieverConfig,
-        inputs_chunks: list[str],
+        ctx: Optional[BuildContext] = None,
+        *,
         encoder: Optional[BaseEmbedding] = None,
         llm: Optional[LLM] = None,
     ) -> LlamaIndexRetrieverWrapper:
-        """Generate a retriever from a documents set, an encoder, a llm and the config of the retriever to build.
+        """Generate a retriever from the document chunks of the context, an encoder, a llm and the retriever config.
 
         :param config: The config of the retriever to generate.
-        :type config: dict
-        :param inputs_chunks: the document that will be used to generate the non parametric knowledge.
-        :type inputs_chunks: list[str]
+        :type config: LlamaIndexRetrieverConfig
+        :param ctx: Runtime resources, ``ctx.inputs_chunks`` is required.
+        :type ctx: Optional[BuildContext]
         :param encoder: The encoder used by the retriever, defaults to None
         :type encoder: Optional[BaseEmbedding], optional
         :param llm: The llm used by the retriever, defaults to None
         :type llm: Optional[LLM], optional
-        :return: The retriever corresponding to the config dict.
+        :raises ValueError: If no input chunks are provided.
+        :return: The retriever corresponding to the config.
         :rtype: LlamaIndexRetrieverWrapper
         """
-        langchain_inputs_chunks = [TextNode(text=chunk) for chunk in inputs_chunks]
+        if ctx is None or ctx.inputs_chunks is None:
+            error_msg = f"{cls.__name__} requires ctx.inputs_chunks."
+            raise ValueError(error_msg)
+        langchain_inputs_chunks = [TextNode(text=chunk) for chunk in ctx.inputs_chunks]
         retriever = RetrieverFactory.make(config, langchain_inputs_chunks, encoder, llm)
         nodes_post_processors = (
             LLamaIndexContextPostProcessorWrapper.make(

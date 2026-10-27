@@ -37,6 +37,7 @@ params = OptimParams(
 The manager orchestrates the optimization process:
 
 ```python
+from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager import SimpleDirectOptunaManager
 
 # Split dataset into train/test
@@ -48,7 +49,8 @@ optimizer = SimpleDirectOptunaManager(
     optim_evaluator=evaluator,      # Evaluator for optimization
     optim_metric_name="bert_score_f1",  # Metric to optimize
     test_evaluators=[evaluator],    # Evaluators for final test
-    config_space=config_space,      # Any TunableModelConfigSpace (default: RAGConfigSpace())
+    model_cls=RAG,                  # Model built from each sampled config: model_cls.make(config, ctx)
+    config_space=config_space,      # TunableModelConfigSpace whose configs model_cls accepts
     sampler=None,                   # Optional: custom sampler (default: TPE)
     pruner=None,                    # Optional: custom pruner (default: Optuna's MedianPruner)
 )
@@ -100,6 +102,7 @@ optimizer = SimpleDirectOptunaManager(
     optim_evaluator=evaluator,
     optim_metric_name="bert_score_f1",
     test_evaluators=[evaluator],
+    model_cls=RAG,
     config_space=config_space,
     sampler=custom_sampler,
     pruner=custom_pruner,
@@ -113,6 +116,7 @@ optimizer = SimpleDirectOptunaManager(
 ```python
 from rago.dataset import RAGDataset
 from rago.eval import BertScore
+from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
@@ -141,6 +145,7 @@ optimizer = SimpleDirectOptunaManager(
     optim_evaluator=evaluator,
     optim_metric_name="bert_score_f1",
     test_evaluators=[evaluator],
+    model_cls=RAG,
     config_space=config_space,
 )
 
@@ -162,6 +167,7 @@ from typing import cast
 
 from rago.dataset import QADatasetLoader, RAGDataset
 from rago.eval import SimpleLLMEvaluator
+from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.llm_config_space import OllamaLLMConfigSpace
 from rago.optimization.search_space.param_space import CategoricalParamSpace
@@ -192,6 +198,7 @@ optimizer = SimpleDirectOptunaManager.from_seed_data(
     optim_evaluator=evaluator,
     optim_metric_name="correctness",
     test_evaluators=[evaluator],
+    model_cls=RAG,
     config_space=config_space,
 )
 
@@ -208,20 +215,25 @@ optimizer.optimize()
 
 ### Optimize a single component
 
-`config_space` accepts any `TunableModelConfigSpace`, so you can optimize the retriever or the reader alone:
+The manager builds each sampled config with `model_cls.make(config, ctx)`, so you can optimize the retriever or the reader alone by passing the matching pair:
 
-| Config space | Model built | Typical evaluator / metric |
+| `config_space` | `model_cls` | Typical evaluator / metric |
 |---|---|---|
 | `RAGConfigSpace` | `RAG` (retriever + reader) | `BertScore` / `bert_score_f1`, LLM judge / `correctness` |
-| `RetrieverConfigSpace` | LangChain retriever (vector, BM25, hybrid) | `ContextRetrievalEvaluator` / `relevancy`, `precision`, `context_f1` |
-| `QdrantRetrieverConfigSpace` | Qdrant retriever | `ContextRetrievalEvaluator` |
-| `LangchainReaderConfigSpace`, `LlamaIndexReaderConfigSpace` | Reader only (no retrieved context) | `BertScore`, LLM judge |
+| `RetrieverConfigSpace` (vector or BM25) | `LangchainRetrieverWrapper` | `ContextRetrievalEvaluator` / `relevancy`, `precision`, `context_f1` |
+| `RetrieverConfigSpace` (`HybridRetriever` only) | `HybridLangchainRetrieverWrapper` | `ContextRetrievalEvaluator` |
+| `QdrantRetrieverConfigSpace` | `QdrantRetrieverWrapper` | `ContextRetrievalEvaluator` |
+| `LangchainReaderConfigSpace` | `LangchainWrapperReader` (no retrieved context) | `BertScore`, LLM judge |
+| `LlamaIndexReaderConfigSpace` | `LlamaIndexWrapperReader` (no retrieved context) | `BertScore`, LLM judge |
+
+> A retriever-only study uses one `model_cls`, so it cannot mix `HybridRetriever` with vector/BM25 choices. Inside a `RAG`, all retriever types can be mixed.
 
 Retriever-only optimization does not call any LLM, so it is fast:
 
 ```python
 from rago.dataset import RAGDataset
 from rago.eval import ContextRetrievalEvaluator
+from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
 from rago.optimization.manager import OptimParams, SimpleDirectOptunaManager
 from rago.optimization.search_space.param_space import CategoricalParamSpace, IntParamSpace
 from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
@@ -235,9 +247,10 @@ optimizer = SimpleDirectOptunaManager(
     optim_evaluator=evaluator,
     optim_metric_name="context_f1",  # "relevancy" alone pushes towards a large top_k
     test_evaluators=[evaluator],
+    model_cls=LangchainRetrieverWrapper,
     config_space=RetrieverConfigSpace(
-        # HybridRetriever needs OpenSearch for its BM25 part (see env variables above)
-        retriever_type_name=CategoricalParamSpace(choices=["VectorIndexRetriever", "HybridRetriever"]),
+        # BM25Retriever needs OpenSearch (see env variables above)
+        retriever_type_name=CategoricalParamSpace(choices=["VectorIndexRetriever", "BM25Retriever"]),
         top_k=IntParamSpace(low=1, high=10),
     ),
 )

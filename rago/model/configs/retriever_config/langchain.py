@@ -22,7 +22,12 @@ class LangchainRetrieverConfig(RetrieverConfig):
     encoder: Optional[LangchainEncoderConfig] = None
     node_post_processor_config: Optional[list[NodePostProcessorConfig]] = None
 
-    # Hybrid retriever fields
+
+@dataclass
+class HybridLangchainRetrieverConfig(LangchainRetrieverConfig):
+    """Configuration of a hybrid retriever combining a vector and a BM25 langchain retriever."""
+
+    type: str = "HybridRetriever"
     vector_config: Optional[LangchainRetrieverConfig] = None
     bm25_config: Optional[LangchainRetrieverConfig] = None
     hybrid_weight: Optional[float] = None  # Weight for vector retriever (1 - weight for BM25)

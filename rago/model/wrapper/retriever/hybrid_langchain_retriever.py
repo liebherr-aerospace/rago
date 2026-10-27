@@ -5,15 +5,16 @@ from __future__ import annotations
 from typing import TYPE_CHECKING, Optional
 
 from rago.data_objects import RetrievedContext
+from rago.model.configs.retriever_config.langchain import HybridLangchainRetrieverConfig
 from rago.model.wrapper.context_post_processor.llama_index_post_processor import LLamaIndexContextPostProcessorWrapper
 from rago.model.wrapper.retriever.base import Retriever
 from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
 
 if TYPE_CHECKING:
-    from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
+    from rago.model.wrapper.tunable_model import BuildContext
 
 
-class HybridLangchainRetrieverWrapper(Retriever):
+class HybridLangchainRetrieverWrapper(Retriever[HybridLangchainRetrieverConfig]):
     """A hybrid retriever that combines an arbitrary number of sub-retrievers with weighted scoring.
 
     Each sub-retriever's results are independently normalized then multiplied by
@@ -39,15 +40,15 @@ class HybridLangchainRetrieverWrapper(Retriever):
     @classmethod
     def make(
         cls,
-        config: LangchainRetrieverConfig,
-        inputs_chunks: list[str],
+        config: HybridLangchainRetrieverConfig,
+        ctx: Optional[BuildContext] = None,
     ) -> HybridLangchainRetrieverWrapper:
-        """Generate a hybrid retriever from a config and document chunks.
+        """Generate a hybrid retriever from a config and the document chunks of the context.
 
         :param config: The config of the hybrid retriever to generate.
-        :type config: LangchainRetrieverConfig
-        :param inputs_chunks: The document chunks used by the retrievers.
-        :type inputs_chunks: list[str]
+        :type config: HybridLangchainRetrieverConfig
+        :param ctx: Runtime resources, ``ctx.inputs_chunks`` is required.
+        :type ctx: Optional[BuildContext]
         :return: The hybrid retriever.
         :rtype: HybridLangchainRetrieverWrapper
         """
@@ -58,11 +59,11 @@ class HybridLangchainRetrieverWrapper(Retriever):
         retrievers: list[tuple[Retriever, float]] = []
 
         if config.vector_config is not None:
-            vector_retriever = LangchainRetrieverWrapper.make(config.vector_config, inputs_chunks)
+            vector_retriever = LangchainRetrieverWrapper.make(config.vector_config, ctx)
             retrievers.append((vector_retriever, config.hybrid_weight))
 
         if config.bm25_config is not None:
-            bm25_retriever = LangchainRetrieverWrapper.make(config.bm25_config, inputs_chunks)
+            bm25_retriever = LangchainRetrieverWrapper.make(config.bm25_config, ctx)
             retrievers.append((bm25_retriever, 1.0 - config.hybrid_weight))
 
         if not retrievers:

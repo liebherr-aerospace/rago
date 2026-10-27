@@ -66,13 +66,16 @@ from rago.model.configs.retriever_config.base import RetrieverConfig
 @dataclass
 class LangchainRetrieverConfig(RetrieverConfig):
     """Configuration of the langchain retriever."""
-    type: str                                       # "VectorIndexRetriever", "BM25Retriever", "HybridRetriever"
+    type: str                                       # "VectorIndexRetriever", "BM25Retriever"
     similarity_function: Optional[str] = None       # e.g. "cosine"
     search_type: Optional[str] = None               # e.g. "similarity_score_threshold"
     search_kwargs: Optional[dict[str, Any]] = None  # e.g. {"k": 5, "score_threshold": 0.7}
     encoder: Optional[LangchainEncoderConfig] = None
     node_post_processor_config: Optional[list[NodePostProcessorConfig]] = None
-    # Hybrid retriever fields
+
+@dataclass
+class HybridLangchainRetrieverConfig(LangchainRetrieverConfig):
+    type: str = "HybridRetriever"
     vector_config: Optional[LangchainRetrieverConfig] = None
     bm25_config: Optional[LangchainRetrieverConfig] = None
     hybrid_weight: Optional[float] = None           # weight of the vector retriever (1 - weight for BM25)
@@ -91,19 +94,23 @@ class LangchainRetrieverConfig(RetrieverConfig):
 RAGO provides **unified interfaces** for different LLM/RAG frameworks. Every optimizable model is a `TunableModel`:
 
 ```python
-class TunableModel(ABC):
+class TunableModel[ConfigT: TunableModelConfig](ABC):
+    @classmethod
+    @abstractmethod
+    def make(cls, config: ConfigT, ctx: Optional[BuildContext] = None) -> Self: ...
+
     @abstractmethod
     def get_output(self, query: str) -> RAGOutput: ...
 
-class Retriever(TunableModel):          # get_output -> RAGOutput(answer=None, retrieved_context=...)
+class Retriever[ConfigT: RetrieverConfig](TunableModel[ConfigT]):  # get_output -> RAGOutput(answer=None, ...)
     @abstractmethod
     def get_retriever_output(self, query: str) -> list[RetrievedContext]: ...
 
-class Reader(TunableModel):             # get_output -> RAGOutput(answer=..., retrieved_context=None)
+class Reader[ConfigT: ReaderConfig](TunableModel[ConfigT]):        # get_output -> RAGOutput(..., retrieved_context=None)
     @abstractmethod
     def get_reader_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> str: ...
 
-class RAG(TunableModel):                # retriever + reader
+class RAG(TunableModel[RAGConfig]):                                 # retriever + reader
     def get_output(self, query: str) -> RAGOutput:
         retrieved_context = self.retriever.get_retriever_output(query)
         answer = self.reader.get_reader_output(query, retrieved_context)
@@ -111,6 +118,8 @@ class RAG(TunableModel):                # retriever + reader
 ```
 
 Concrete wrappers: `LangchainRetrieverWrapper`, `HybridLangchainRetrieverWrapper`, `LlamaIndexRetrieverWrapper`, `QdrantRetrieverWrapper` (retrievers) and LangChain / LlamaIndex / HuggingFace readers.
+
+`RAG.make` builds its components through `RetrieverWrapperFactory.make(config.retriever, ctx)` and `ReaderWrapperFactory.make(config.reader, ctx)`, which dispatch on the config type.
 
 **Benefits:**
 - ✅ Framework-agnostic optimization
@@ -122,11 +131,11 @@ Concrete wrappers: `LangchainRetrieverWrapper`, `HybridLangchainRetrieverWrapper
 
 ### Space Pattern
 
-Search spaces define **optimization parameters**. Every space a manager can optimize is a `TunableModelConfigSpace` whose `sample(trial)` returns a `TunableModelConfig`:
+Search spaces define **optimization parameters**. Every space a manager can optimize is a `TunableModelConfigSpace[ConfigT]` whose `sample(trial)` returns a `ConfigT`:
 
 ```python
 @dataclass
-class RetrieverConfigSpace(TunableModelConfigSpace):
+class RetrieverConfigSpace(TunableModelConfigSpace[LangchainRetrieverConfig]):
     retriever_type_name: CategoricalParamSpace = Field(default=CategoricalParamSpace(choices=["VectorIndexRetriever"]))
     top_k: IntParamSpace = Field(default=IntParamSpace(low=1, high=5))
     score_threshold: FloatParamSpace = Field(default=FloatParamSpace(low=0.0, high=0.9))
@@ -149,24 +158,29 @@ class RetrieverConfigSpace(TunableModelConfigSpace):
 ### Model Layer
 
 ```
-Config → Factory → Wrapper (TunableModel)
+Config → Wrapper (TunableModel)
 
-LangchainRetrieverConfig / QdrantRetrieverConfig → RetrieverWrapperFactory → Retriever
-ReaderConfig (LangChain / LlamaIndex / HF)        → ReaderWrapperFactory    → Reader
-RAGConfig (retriever + reader)                    → RAG.make                → RAG
+LangchainRetrieverConfig      → LangchainRetrieverWrapper
+HybridLangchainRetrieverConfig → HybridLangchainRetrieverWrapper
+LlamaIndexRetrieverConfig     → LlamaIndexRetrieverWrapper
+QdrantRetrieverConfig         → QdrantRetrieverWrapper
+LangchainReaderConfig         → LangchainWrapperReader
+LLamaIndexReaderConfig        → LlamaIndexWrapperReader
+RAGConfig (retriever + reader) → RAG
 
-make_tunable_model(config) dispatches to the right factory based on the config type.
+RetrieverWrapperFactory / ReaderWrapperFactory pick the wrapper from the config type (used by RAG.make).
 ```
 
 **Flow:**
 1. **Config**: Defines what you want (pydantic dataclass)
-2. **Factory / Wrapper**: Translates config to framework-specific code
+2. **Wrapper.make(config, ctx)**: Translates config to framework-specific code
 3. **TunableModel**: Answers queries through `get_output(query) -> RAGOutput`
 
 **Example:**
 ```python
 from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
-from rago.model.wrapper.tunable_model_factory import make_tunable_model
+from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
+from rago.model.wrapper.tunable_model import BuildContext
 
 # 1. Define config
 config = LangchainRetrieverConfig(
@@ -175,8 +189,8 @@ config = LangchainRetrieverConfig(
     search_kwargs={"k": 5, "score_threshold": 0.3},
 )
 
-# 2. Build the model (RAGConfig, RetrieverConfig or ReaderConfig)
-retriever = make_tunable_model(config, inputs_chunks=["Thomas is 12.", "Paris is in France."])
+# 2. Build the model
+retriever = LangchainRetrieverWrapper.make(config, BuildContext(inputs_chunks=["Thomas is 12.", "Paris is in France."]))
 
 # 3. Use it
 output = retriever.get_output("How old is Thomas?")
@@ -233,7 +247,7 @@ RAGConfigSpace / RetrieverConfigSpace / QdrantRetrieverConfigSpace / ReaderConfi
              │
              ▼
     ┌──────────────────┐
-    │make_tunable_model│  Build RAG / Retriever / Reader
+    │ model_cls.make   │  Build RAG / Retriever / Reader
     │  (instantiate)   │  from config
     └────────┬─────────┘
              │
@@ -294,7 +308,8 @@ Config (DataObject)
 └── TunableModelConfig
     ├── RAGConfig(reader: ReaderConfig, retriever: RetrieverConfig)
     ├── RetrieverConfig
-    │   ├── LangchainRetrieverConfig   (vector, BM25, hybrid)
+    │   ├── LangchainRetrieverConfig   (vector, BM25)
+    │   │   └── HybridLangchainRetrieverConfig
     │   ├── LlamaIndexRetrieverConfig
     │   └── QdrantRetrieverConfig
     └── ReaderConfig
@@ -321,8 +336,8 @@ TunableModel.get_output(query) -> RAGOutput
 │   └── QdrantRetrieverWrapper
 └── Reader       .get_reader_output(query, retrieved_context) -> str
 
-Factories: RetrieverWrapperFactory.make(config, input_chunks), ReaderWrapperFactory.make(config, prompt_config),
-           RAG.make(rag_config, prompt_config, inputs_chunks), make_tunable_model(config, prompt_config, inputs_chunks)
+Build: Wrapper.make(config, ctx: BuildContext)
+       BuildContext(prompt_config=PromptConfig(), inputs_chunks=None)
 ```
 
 **Purpose**: Abstract away framework-specific details
@@ -335,11 +350,11 @@ Factories: RetrieverWrapperFactory.make(config, input_chunks), ReaderWrapperFact
 
 ```
 ConfigSpace.sample(trial) -> Config
-├── TunableModelConfigSpace          (usable as a manager config_space)
-│   ├── RAGConfigSpace(retriever_space, reader_space)
-│   ├── RetrieverConfigSpace         (vector / BM25 / hybrid)
-│   ├── QdrantRetrieverConfigSpace
-│   └── ReaderConfigSpace            (LangChain / LlamaIndex / HuggingFace)
+├── TunableModelConfigSpace[ConfigT] (usable as a manager config_space)
+│   ├── RAGConfigSpace(retriever_space, reader_space)     → RAGConfig
+│   ├── RetrieverConfigSpace         (vector / BM25 / hybrid) → LangchainRetrieverConfig
+│   ├── QdrantRetrieverConfigSpace                        → QdrantRetrieverConfig
+│   └── ReaderConfigSpace[ConfigT]   (LangChain / LlamaIndex / HuggingFace)
 └── sub-spaces: HFEncoderConfigSpace, OllamaLLMConfigSpace, OllamaLlamaIndexLLMConfigSpace, ...
 
 Parameters: CategoricalParamSpace, IntParamSpace, FloatParamSpace
@@ -354,7 +369,7 @@ Parameters: CategoricalParamSpace, IntParamSpace, FloatParamSpace
 **Location**: `rago/optimization/manager/`
 
 ```python
-class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
+class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: TunableModelConfig](ABC):
     def __init__(
         self, *,
         params: Optional[OptimParams] = None,
@@ -362,16 +377,19 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         optim_evaluator: EvaluatorType,
         optim_metric_name: str,                      # key of the evaluator result to optimize
         test_evaluators: list[BaseEvaluator],
-        config_space: Optional[TunableModelConfigSpace] = None,  # defaults to RAGConfigSpace()
+        model_cls: type[TunableModel[ConfigT]],      # RAG, LangchainRetrieverWrapper, QdrantRetrieverWrapper...
+        config_space: TunableModelConfigSpace[ConfigT],
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
     ) -> None: ...
 
-    def sample_model(self, trial, dataset) -> TunableModel:
+    def sample_model(self, trial, dataset) -> TunableModel[ConfigT]:
         config = self.config_space.sample(trial)
         inputs_chunks = [doc.text for doc in dataset.corpus.values()]
-        return make_tunable_model(config, prompt_config=self.prompt_config, inputs_chunks=inputs_chunks)
+        return self.model_cls.make(
+            config, BuildContext(prompt_config=self.prompt_config, inputs_chunks=inputs_chunks)
+        )
 
     @abstractmethod
     def optimize(self) -> None: ...
@@ -382,7 +400,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
     def test(self) -> RAGCandidateEval: ...  # evaluates the best trial on datasets["test"]
 
 # Direct optimization
-class SimpleDirectOptunaManager(BaseOptunaManager[BaseEvaluator]):
+class SimpleDirectOptunaManager[ConfigT: TunableModelConfig](BaseOptunaManager[BaseEvaluator, ConfigT]):
     def eval_trial(self, trial, dataset) -> float:
         model = self.sample_model(trial, dataset)
         for n, sample in enumerate(dataset.samples):
@@ -410,26 +428,25 @@ class MyRetrieverConfig(RetrieverConfig):
     param2: int
 
 # 2. Create wrapper
-class MyRetriever(Retriever):
+class MyRetriever(Retriever[MyRetrieverConfig]):
     @classmethod
-    def make(cls, config: MyRetrieverConfig, input_chunks: list[str]) -> MyRetriever: ...
+    def make(cls, config: MyRetrieverConfig, ctx: Optional[BuildContext] = None) -> MyRetriever: ...
 
     def get_retriever_output(self, query: str) -> list[RetrievedContext]:
         ...  # get_output() is inherited and wraps this in a RAGOutput
 
-# 3. Register it in rago/model/wrapper/retriever/retriever_wrapper_factory.py
-_REGISTRY[MyRetrieverConfig] = MyRetriever.make
+# 3. To use it inside a RAG, add a `case MyRetrieverConfig()` to RetrieverWrapperFactory.make
 
 # 4. Add a search space
 @dataclass
-class MyRetrieverConfigSpace(TunableModelConfigSpace):
+class MyRetrieverConfigSpace(TunableModelConfigSpace[MyRetrieverConfig]):
     param2: IntParamSpace = Field(default=IntParamSpace(low=1, high=10))
 
     def sample(self, trial: optuna.trial.BaseTrial) -> MyRetrieverConfig:
         return MyRetrieverConfig(param1="fixed", param2=self.param2.sample(trial))
 ```
 
-The space can be used alone (retriever-only optimization) or as `RAGConfigSpace(retriever_space=...)`.
+The space can be used alone (retriever-only optimization, `model_cls=MyRetriever`) or as `RAGConfigSpace(retriever_space=...)` with `model_cls=RAG`.
 
 ---
 
@@ -454,6 +471,7 @@ optimizer = SimpleDirectOptunaManager(
     optim_evaluator=MyEvaluator(),
     optim_metric_name="my_metric",  # ← key returned by evaluate()
     test_evaluators=[MyEvaluator()],
+    model_cls=RAG,
     config_space=RAGConfigSpace(),
 )
 ```

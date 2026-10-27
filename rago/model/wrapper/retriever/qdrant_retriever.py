@@ -34,12 +34,13 @@ from qdrant_client.models import (
 from sentence_transformers import CrossEncoder
 
 from rago.data_objects import RetrievedContext
+from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 from rago.model.wrapper.retriever.base import Retriever
 
 if TYPE_CHECKING:
     from qdrant_client import QdrantClient
 
-    from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
+    from rago.model.wrapper.tunable_model import BuildContext
 
 logger = logging.getLogger(__name__)
 
@@ -267,7 +268,7 @@ class _FastEmbedLateInteractionAdapter:
         return list(self._model.embed(texts))
 
 
-class QdrantRetrieverWrapper(Retriever):
+class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
     """Retrieve documents from a Qdrant collection using hybrid search.
 
     The wrapper holds a ``QdrantClient`` and the embedding providers needed to
@@ -310,7 +311,7 @@ class QdrantRetrieverWrapper(Retriever):
     def make(
         cls,
         config: QdrantRetrieverConfig,
-        input_chunks: Optional[list[str]] = None,  # noqa: ARG003 API compat
+        ctx: Optional[BuildContext] = None,  # noqa: ARG003 chunks are already indexed in Qdrant
         *,
         client: Optional[QdrantClient] = None,
         dense_embedder: _LangchainEmbeddingAdapter | None = None,
@@ -332,8 +333,8 @@ class QdrantRetrieverWrapper(Retriever):
 
         :param config: Qdrant retriever configuration.
         :type config: QdrantRetrieverConfig
-        :param input_chunks: Unused; kept for API compatibility with other
-            retriever wrappers.
+        :param ctx: Unused; the chunks are already indexed in Qdrant.
+        :type ctx: Optional[BuildContext]
         :param client: Optional pre-existing Qdrant client.
         :param dense_embedder: Dense embedding provider.
         :param sparse_embedder: Sparse embedding provider.

@@ -16,6 +16,10 @@ class _FixedRetriever(Retriever):
     def __init__(self, contexts: list[RetrievedContext]) -> None:
         self.contexts = contexts
 
+    @classmethod
+    def make(cls, config: object, ctx: object = None) -> "_FixedRetriever":
+        raise NotImplementedError
+
     def get_retriever_output(self, query: str) -> list[RetrievedContext]:  # noqa: ARG002
         return self.contexts
 

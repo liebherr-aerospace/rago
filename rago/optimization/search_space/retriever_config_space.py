@@ -4,14 +4,14 @@ import optuna
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
+from rago.model.configs.retriever_config.langchain import HybridLangchainRetrieverConfig, LangchainRetrieverConfig
 from rago.optimization.search_space.encoder_config_space import HFEncoderConfigSpace
 from rago.optimization.search_space.param_space import CategoricalParamSpace, FloatParamSpace, IntParamSpace
 from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 
 @dataclass
-class RetrieverConfigSpace(TunableModelConfigSpace):
+class RetrieverConfigSpace(TunableModelConfigSpace[LangchainRetrieverConfig]):
     """Space containing all the possible retriever configurations."""
 
     retriever_type_name: CategoricalParamSpace = Field(
@@ -82,7 +82,7 @@ class RetrieverConfigSpace(TunableModelConfigSpace):
             similarity_function=None,
         )
 
-    def _sample_hybrid(self, trial: optuna.trial.BaseTrial) -> LangchainRetrieverConfig:
+    def _sample_hybrid(self, trial: optuna.trial.BaseTrial) -> HybridLangchainRetrieverConfig:
         """Sample a Hybrid retriever configuration combining VectorIndex and BM25.
 
         Optimizes the hybrid weight as well as all parameters of both sub-retrievers.
@@ -90,7 +90,7 @@ class RetrieverConfigSpace(TunableModelConfigSpace):
         :param trial: Trial used to sample the configuration.
         :type trial: optuna.trial.BaseTrial
         :return: The sampled hybrid retriever config.
-        :rtype: LangchainRetrieverConfig
+        :rtype: HybridLangchainRetrieverConfig
         """
         # Sample vector retriever sub-config (all vector params are optimized)
         vector_config = LangchainRetrieverConfig(
@@ -117,8 +117,7 @@ class RetrieverConfigSpace(TunableModelConfigSpace):
         # Sample the hybrid weight between vector and BM25
         hybrid_weight = self.hybrid_weight.sample(trial)
 
-        return LangchainRetrieverConfig(
-            type="HybridRetriever",
+        return HybridLangchainRetrieverConfig(
             vector_config=vector_config,
             bm25_config=bm25_config,
             hybrid_weight=hybrid_weight,

@@ -75,7 +75,7 @@ The `HybridRetriever` combines a `VectorIndexRetriever` and a `BM25Retriever`:
 
 $$\text{score}(c) = w \cdot \widehat{s}_{vector}(c) + (1 - w) \cdot \widehat{s}_{BM25}(c)$$
 
-In the configuration space, `hybrid_weight` and all the parameters of both sub-retrievers are optimized. Select it with `retriever_type_name=CategoricalParamSpace(choices=["HybridRetriever"])`. Like BM25, it needs the OpenSearch environment variables.
+In the configuration space, `hybrid_weight` and all the parameters of both sub-retrievers are optimized. Select it with `retriever_type_name=CategoricalParamSpace(choices=["HybridRetriever"])`; the space then samples a `HybridLangchainRetrieverConfig(vector_config=..., bm25_config=..., hybrid_weight=...)`. Like BM25, it needs the OpenSearch environment variables.
 
 ## 🗄️ Qdrant Retriever
 
@@ -123,6 +123,7 @@ The retriever wrapper can be instantiated as follow:
 
 ```python
 from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
+from rago.model.wrapper.tunable_model import BuildContext
 from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.configs.encoder_config.langchain import HuggingFaceLangchainEncoderConfig
 
@@ -134,12 +135,12 @@ config = LangchainRetrieverConfig(
     search_kwargs={"k":3, "score_threshold" : 0.0},
     encoder = encoder_config,
     )
-retriever = LangchainRetrieverWrapper.make(config, inputs_chunks=["Thomas is 12."])
+retriever = LangchainRetrieverWrapper.make(config, BuildContext(inputs_chunks=["Thomas is 12."]))
 print(retriever.get_retriever_output("Hello"))  # list[RetrievedContext]
 print(retriever.get_output("Hello"))            # RAGOutput(answer=None, retrieved_context=[...])
 ```
 
-Every retriever is a `TunableModel`: it can be built from any retriever config with `RetrieverWrapperFactory.make(config, input_chunks)` or `make_tunable_model(config, inputs_chunks=...)`, and optimized alone (see [Optimize a single component](../optimization/run_experiment.md#optimize-a-single-component)).
+Every retriever is a `TunableModel`: it is built with `Wrapper.make(config, BuildContext(inputs_chunks=...))` (or `RetrieverWrapperFactory.make(config, ctx)` to dispatch on the config type), and can be optimized alone (see [Optimize a single component](../optimization/run_experiment.md#optimize-a-single-component)).
 
 ## 🧭 Retrievers Configuration Space in RAGO
 

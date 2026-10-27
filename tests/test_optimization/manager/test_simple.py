@@ -13,6 +13,7 @@ from rago.dataset.generator import DatasetGeneratorConfig
 from rago.eval.llm_evaluator.base import LLMEvaluatorConfig
 from rago.eval.llm_evaluator.simple import SimpleLLMEvaluator
 from rago.model.configs.llm_config.langchain import LangchainOllamaConfig
+from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager.base import OptimParams
 from rago.optimization.manager.simple import SimpleDirectOptunaManager
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
@@ -58,6 +59,7 @@ def simple_manager(
     rag_config_space = RAGConfigSpace(retriever_space=retriever_space, reader_space=reader_space)
     simple_direct_manager = SimpleDirectOptunaManager.from_seed_data(
         params=params,
+        model_cls=RAG,
         config_space=rag_config_space,
         optim_evaluator=evaluator,
         optim_metric_name="correctness",
@@ -94,9 +96,9 @@ def test_get_n_best_trials(simple_manager: SimpleDirectOptunaManager) -> None:
     assert all(trial.value is not None for trial in best_trials)
 
 
-def test_get_n_best_rag_configs(simple_manager: SimpleDirectOptunaManager) -> None:
+def test_get_n_best_configs(simple_manager: SimpleDirectOptunaManager) -> None:
     """Test if we get the n best rag configuration."""
-    best_rag_configs = simple_manager.get_n_best_rag_configs(2)
+    best_rag_configs = simple_manager.get_n_best_configs(2)
     assert all(isinstance(config, RAGConfig) for config in best_rag_configs)
 
 

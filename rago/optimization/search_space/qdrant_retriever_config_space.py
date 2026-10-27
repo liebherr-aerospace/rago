@@ -86,7 +86,7 @@ class QdrantCollectionSlot:
 
 
 @dataclass
-class QdrantRetrieverConfigSpace(TunableModelConfigSpace):
+class QdrantRetrieverConfigSpace(TunableModelConfigSpace[QdrantRetrieverConfig]):
     """Search space for the Qdrant hybrid retriever.
 
     Example:

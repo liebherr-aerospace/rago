@@ -12,8 +12,7 @@ from rago.model.configs.retriever_config.base import RetrieverConfig  # noqa: TC
 from rago.model.configs.tunable_model_config import TunableModelConfig
 from rago.model.wrapper.reader.reader_wrapper_factory import ReaderWrapperFactory
 from rago.model.wrapper.retriever.retriever_wrapper_factory import RetrieverWrapperFactory
-from rago.model.wrapper.tunable_model import TunableModel
-from rago.prompts import PromptConfig
+from rago.model.wrapper.tunable_model import BuildContext, TunableModel
 
 if TYPE_CHECKING:
     from rago.model.wrapper.reader.base import Reader
@@ -33,10 +32,10 @@ class RAGConfig(TunableModelConfig):
     retriever: RetrieverConfig
 
 
-class RAG(TunableModel):
+class RAG(TunableModel[RAGConfig]):
     """A RAG answers queries based on its parametric (llm params) and non-parametric (database) knowledge."""
 
-    def __init__(self, reader: Reader, retriever: Retriever) -> None:
+    def __init__(self, reader: Reader[ReaderConfig], retriever: Retriever[RetrieverConfig]) -> None:
         """Instantiate a RAG from its reader and retriever.
 
         :param reader: The reader used by the rag to generate answer.
@@ -48,34 +47,19 @@ class RAG(TunableModel):
         self.retriever = retriever
 
     @classmethod
-    def make(
-        cls,
-        rag_config: RAGConfig,
-        prompt_config: Optional[PromptConfig] = None,
-        inputs_chunks: Optional[list[str]] = None,
-    ) -> RAG:
+    def make(cls, config: RAGConfig, ctx: Optional[BuildContext] = None) -> RAG:
         """Build a RAG instance from its configuration parameters.
 
-        :param rag_config: The configuration of the rag (reader + retriever).
-        :type rag_config: RAGConfig
-        :param prompt_config: The configurations params of the reader's prompt template, defaults to None.
-        :type prompt_config: Optional[PromptConfig], optional
-        :param inputs_chunks: The chunks used by the retriever if any, defaults to None.
-        :type inputs_chunks: Optional[list[str]], optional
+        :param config: The configuration of the rag (reader + retriever).
+        :type config: RAGConfig
+        :param ctx: Runtime resources (prompt config, input chunks), defaults to ``BuildContext()``.
+        :type ctx: Optional[BuildContext]
         :return: The rag instance corresponding to the input config.
         :rtype: RAG
         """
-        if prompt_config is None:
-            prompt_config = PromptConfig()
-        reader = ReaderWrapperFactory.make(
-            rag_config.reader,
-            prompt_config=prompt_config,
-        )
-        retriever = RetrieverWrapperFactory.make(
-            config=rag_config.retriever,
-            input_chunks=inputs_chunks,
-        )
-
+        ctx = ctx or BuildContext()
+        reader = ReaderWrapperFactory.make(config.reader, ctx)
+        retriever = RetrieverWrapperFactory.make(config.retriever, ctx)
         return cls(reader, retriever)
 
     def get_output(self, query: str) -> RAGOutput:

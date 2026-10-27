@@ -6,13 +6,14 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING
 
 from rago.data_objects import RAGOutput
+from rago.model.configs.retriever_config.base import RetrieverConfig
 from rago.model.wrapper.tunable_model import TunableModel
 
 if TYPE_CHECKING:
     from rago.data_objects import RetrievedContext
 
 
-class Retriever(TunableModel):
+class Retriever[ConfigT: RetrieverConfig](TunableModel[ConfigT]):
     """A retriever that retrieves information relevant to answer a query from a database (non-parametric knowledge)."""
 
     def get_output(self, query: str) -> RAGOutput:

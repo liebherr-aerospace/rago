@@ -6,6 +6,7 @@ from abc import abstractmethod
 from typing import TYPE_CHECKING, Optional
 
 from rago.data_objects import RAGOutput
+from rago.model.configs.reader_config.base import ReaderConfig
 from rago.model.wrapper.tunable_model import TunableModel
 from rago.prompts import AMBIGQA_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT, PromptConfig
 
@@ -13,7 +14,7 @@ if TYPE_CHECKING:
     from rago.data_objects import RetrievedContext
 
 
-class Reader(TunableModel):
+class Reader[ConfigT: ReaderConfig](TunableModel[ConfigT]):
     """A Reader takes as input a query (and optionally a context) and outputs a string response."""
 
     def get_output(self, query: str) -> RAGOutput:
