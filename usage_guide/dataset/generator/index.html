@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1275,7 +1275,7 @@
     <div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.dataset.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">DatasetGeneratorConfig</span><span class="p">,</span> <span class="n">SimpleDatasetGenerator</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.configs.llm_config.langchain</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainOllamaConfig</span>
 </span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
-</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">llm_config</span> <span class="o">=</span> <span class="n">LangchainOllamaConfig</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;smollm2:1.7b&quot;</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span>
+</span><span id="__span-1-4"><a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="n">llm_config</span> <span class="o">=</span> <span class="n">LangchainOllamaConfig</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">"smollm2:1.7b"</span><span class="p">,</span> <span class="n">temperature</span><span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span>
 </span><span id="__span-1-5"><a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="n">dataset_generator_config</span> <span class="o">=</span> <span class="n">DatasetGeneratorConfig</span><span class="p">(</span><span class="n">llm_config</span><span class="p">)</span>
 </span><span id="__span-1-6"><a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>
 </span><span id="__span-1-7"><a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="n">dataset_generator</span> <span class="o">=</span> <span class="n">SimpleDatasetGenerator</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">dataset_generator_config</span><span class="p">)</span>
@@ -1285,7 +1285,7 @@
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.configs.llm_config.langchain</span><span class="w"> </span><span class="kn">import</span> <span class="n">LangchainOllamaConfig</span>
 </span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.model.wrapper.llm_agent.llm_agent_factory</span><span class="w"> </span><span class="kn">import</span> <span class="n">LLMAgentFactory</span>
 </span><span id="__span-2-4"><a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>
-</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">llm_config</span> <span class="o">=</span> <span class="n">LangchainOllamaConfig</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">&quot;phi3:3.8b-mini-128k-instruct-q8_0&quot;</span><span class="p">)</span>
+</span><span id="__span-2-5"><a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="n">llm_config</span> <span class="o">=</span> <span class="n">LangchainOllamaConfig</span><span class="p">(</span><span class="n">model_name</span><span class="o">=</span><span class="s2">"phi3:3.8b-mini-128k-instruct-q8_0"</span><span class="p">)</span>
 </span><span id="__span-2-6"><a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="n">llm_agent</span> <span class="o">=</span> <span class="n">LLMAgentFactory</span><span class="o">.</span><span class="n">make</span><span class="p">(</span><span class="n">llm_config</span><span class="p">)</span>
 </span><span id="__span-2-7"><a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="n">dataset_generator</span> <span class="o">=</span> <span class="n">SimpleDatasetGenerator</span><span class="p">(</span><span class="n">llm_agent</span><span class="p">)</span>
 </span></code></pre></div><blockquote>
@@ -1300,7 +1300,7 @@
 </span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">generated_dataset</span> <span class="o">=</span> <span class="n">dataset_generator</span><span class="o">.</span><span class="n">generate_dataset</span><span class="p">(</span><span class="n">sampled_rag_ds</span><span class="p">)</span>
 </span></code></pre></div>
 To generate a dataset from a <code>seed_data</code> and directly save the generated_dataset:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">dataset_generator</span><span class="o">.</span><span class="n">generate_and_save_dataset</span><span class="p">(</span><span class="s2">&quot;./synth_rag_dataset.json&quot;</span><span class="p">,</span> <span class="n">sampled_rag_ds</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">dataset_generator</span><span class="o">.</span><span class="n">generate_and_save_dataset</span><span class="p">(</span><span class="s2">"./synth_rag_dataset.json"</span><span class="p">,</span> <span class="n">sampled_rag_ds</span><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="generate-from-documents">📄 Generate from Documents<a class="headerlink" href="#generate-from-documents" title="Permanent link">&para;</a></h2>
 <p><div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.dataset.generator</span><span class="w"> </span><span class="kn">import</span> <span class="n">SimpleDatasetGenerator</span>
@@ -1308,9 +1308,9 @@ To generate a dataset from a <code>seed_data</code> and directly save the genera
 </span><span id="__span-5-3"><a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
 </span><span id="__span-5-4"><a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># Raw documents</span>
 </span><span id="__span-5-5"><a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a><span class="n">documents</span> <span class="o">=</span> <span class="p">[</span>
-</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">Document</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Safety procedures for Model X-500: Always wear protective equipment...&quot;</span><span class="p">),</span>
-</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">Document</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Maintenance schedule: Weekly inspection of hydraulic systems...&quot;</span><span class="p">),</span>
-</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">Document</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">&quot;Emergency shutdown: Press red button and follow evacuation protocol...&quot;</span><span class="p">)</span>
+</span><span id="__span-5-6"><a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>    <span class="n">Document</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"Safety procedures for Model X-500: Always wear protective equipment..."</span><span class="p">),</span>
+</span><span id="__span-5-7"><a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>    <span class="n">Document</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"Maintenance schedule: Weekly inspection of hydraulic systems..."</span><span class="p">),</span>
+</span><span id="__span-5-8"><a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>    <span class="n">Document</span><span class="p">(</span><span class="n">text</span><span class="o">=</span><span class="s2">"Emergency shutdown: Press red button and follow evacuation protocol..."</span><span class="p">)</span>
 </span><span id="__span-5-9"><a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a><span class="p">]</span>
 </span><span id="__span-5-10"><a id="__codelineno-5-10" name="__codelineno-5-10" href="#__codelineno-5-10"></a>
 </span><span id="__span-5-11"><a id="__codelineno-5-11" name="__codelineno-5-11" href="#__codelineno-5-11"></a><span class="c1"># Generator creation</span>
@@ -1321,7 +1321,7 @@ To generate a dataset from a <code>seed_data</code> and directly save the genera
 </span><span id="__span-5-16"><a id="__codelineno-5-16" name="__codelineno-5-16" href="#__codelineno-5-16"></a><span class="c1"># Dataset Generation</span>
 </span><span id="__span-5-17"><a id="__codelineno-5-17" name="__codelineno-5-17" href="#__codelineno-5-17"></a><span class="n">generated_dataset</span> <span class="o">=</span> <span class="n">dataset_generator</span><span class="o">.</span><span class="n">generate_dataset</span><span class="p">(</span><span class="n">seed_data</span><span class="o">=</span><span class="n">documents</span><span class="p">)</span>
 </span><span id="__span-5-18"><a id="__codelineno-5-18" name="__codelineno-5-18" href="#__codelineno-5-18"></a>
-</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;Samples </span><span class="si">{</span><span class="n">generated_dataset</span><span class="o">.</span><span class="n">samples</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</span><span id="__span-5-19"><a id="__codelineno-5-19" name="__codelineno-5-19" href="#__codelineno-5-19"></a><span class="nb">print</span><span class="p">(</span><span class="sa">f</span><span class="s2">"Samples </span><span class="si">{</span><span class="n">generated_dataset</span><span class="o">.</span><span class="n">samples</span><span class="si">}</span><span class="s2">"</span><span class="p">)</span>
 </span></code></pre></div>
 The output of the generated dataset is a <code>RAGDataset</code> object and the samples are <code>EvalSample</code> type (see <a href="../../../rago/data_objects/eval_sample.py">Eval Sample Class</a>)</p>
 <hr />
@@ -1448,10 +1448,10 @@ The output of the generated dataset is a <code>RAGDataset</code> object and the 
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../../javascripts/katex.js"></script>
       

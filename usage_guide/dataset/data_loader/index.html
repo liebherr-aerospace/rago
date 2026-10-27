@@ -25,7 +25,7 @@
       
       
       <link rel="icon" href="../../../assets/images/favicon.png">
-      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.1">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.8.0">
     
     
       
@@ -33,10 +33,10 @@
       
     
     
-      <link rel="stylesheet" href="../../../assets/stylesheets/main.484c7ddc.min.css">
+      <link rel="stylesheet" href="../../../assets/stylesheets/main.57a0d79d.min.css">
       
         
-        <link rel="stylesheet" href="../../../assets/stylesheets/palette.ab4e12ef.min.css">
+        <link rel="stylesheet" href="../../../assets/stylesheets/palette.fb2fffe2.min.css">
       
       
 
@@ -1247,12 +1247,12 @@
 <p>Then, to load a particular dataset simply call the load_dataset of <code>QADatasetLoader</code>.</p>
 <p><div class="language-python highlight"><pre><span></span><code><span id="__span-1-1"><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">QADataset</span>
 </span><span id="__span-1-2"><a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>
-</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">ds</span> <span class="o">=</span> <span class="n">QADataset</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;hotpot_qa&quot;</span><span class="p">)</span>
+</span><span id="__span-1-3"><a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="n">ds</span> <span class="o">=</span> <span class="n">QADataset</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="s2">"hotpot_qa"</span><span class="p">)</span>
 </span></code></pre></div>
 The first argument is the class of the dataset you want to create <code>QAdataset</code> (i.e. only query and answer) or <code>RAGdataset</code> if you want the Retriever corpus as well:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-2-1"><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.dataset</span><span class="w"> </span><span class="kn">import</span> <span class="n">RAGDataset</span>
 </span><span id="__span-2-2"><a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>
-</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">rag_ds</span> <span class="o">=</span> <span class="n">RAGDataset</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="s2">&quot;hotpot_qa&quot;</span><span class="p">)</span>
+</span><span id="__span-2-3"><a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">rag_ds</span> <span class="o">=</span> <span class="n">RAGDataset</span><span class="o">.</span><span class="n">load_dataset</span><span class="p">(</span><span class="s2">"hotpot_qa"</span><span class="p">)</span>
 </span></code></pre></div>
 <p>When the dataset is first loaded it is saved to <code>cache_dir</code> (default to "./data" at root dir) or <code>save_path</code> if specified. Then, when loading the dataset again with same caching arguments it will be simply loaded from the cached version.</p>
 <h2 id="dataset-format">📐 Dataset Format<a class="headerlink" href="#dataset-format" title="Permanent link">&para;</a></h2>
@@ -1267,17 +1267,17 @@ The first argument is the class of the dataset you want to create <code>QAdatase
 <p>Here an example usage of the EvalSample Object:</p>
 <div class="language-python highlight"><pre><span></span><code><span id="__span-3-1"><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">rago.data_objects</span><span class="w"> </span><span class="kn">import</span> <span class="n">EvalSample</span>
 </span><span id="__span-3-2"><a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>
-</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">eval_sample</span> <span class="o">=</span> <span class="n">EvalSample</span><span class="p">(</span><span class="s2">&quot;How old is thomas&quot;</span><span class="p">,</span> <span class="n">context</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;Thomas is 12.&quot;</span><span class="p">,</span> <span class="s2">&quot;Thomas was born 12 years ago.&quot;</span><span class="p">])</span>
+</span><span id="__span-3-3"><a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="n">eval_sample</span> <span class="o">=</span> <span class="n">EvalSample</span><span class="p">(</span><span class="s2">"How old is thomas"</span><span class="p">,</span> <span class="n">context</span> <span class="o">=</span> <span class="p">[</span><span class="s2">"Thomas is 12."</span><span class="p">,</span> <span class="s2">"Thomas was born 12 years ago."</span><span class="p">])</span>
 </span></code></pre></div>
 <p>To quickly access one argument of all samples from a dataset one can directly access it from the dataset:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">query</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-4-1"><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="n">ds</span><span class="p">[</span><span class="s2">"train"</span><span class="p">]</span><span class="o">.</span><span class="n">query</span>
 </span></code></pre></div>
 <p>This returns a list containing the query of each element in the dataset.</p>
 <p>Finally sometimes we only want to use a subset of the dataset (for instance if the dataset is to big and apply the algorithm on the full dataset is prohibitively expansive). Then we can sample a smaller version of the dataset from the original dataset:</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">sampled_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-5-1"><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="n">sampled_ds</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">"train"</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">)</span>
 </span></code></pre></div>
 <p>For a <code>RAGDataset</code> we need to specify how the corpus should be constructed. It must contains all the reference documents otherwise some questions are unanswerable. But we can specify how many distractor documents (by opposition to ref documents) we want per sample with the param <code>max_num_distractor_documents_per_sample</code>.</p>
-<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">sampled_rag_ds</span> <span class="o">=</span> <span class="n">rag_ds</span><span class="p">[</span><span class="s2">&quot;train&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_num_distractor_documents_per_sample</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
+<div class="language-python highlight"><pre><span></span><code><span id="__span-6-1"><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="n">sampled_rag_ds</span> <span class="o">=</span> <span class="n">rag_ds</span><span class="p">[</span><span class="s2">"train"</span><span class="p">]</span><span class="o">.</span><span class="n">sample</span><span class="p">(</span><span class="n">size</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span> <span class="n">seed</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">max_num_distractor_documents_per_sample</span> <span class="o">=</span> <span class="mi">2</span><span class="p">)</span>
 </span></code></pre></div>
 <h2 id="custom-datasets-with-processors">🔧 Custom Datasets with Processors<a class="headerlink" href="#custom-datasets-with-processors" title="Permanent link">&para;</a></h2>
 <p>RAGO provides built-in loaders for popular datasets (HotpotQA and CRAG) with predefined formats. However, you can load <strong>any custom dataset</strong> by defining a <strong>processor</strong> that converts your data format into RAGO's internal structure. Processors are defined in <a href="../../../rago/dataset/processor/">Processor Codes</a> and handle the transformation from raw dataset formats (JSON, CSV, HuggingFace datasets) to <code>EvalSample</code> objects. To add support for a new dataset, simply create a processor class that inherits from <code>BaseProcessor</code> and implements the required conversion logic.</p>
@@ -1405,10 +1405,10 @@ The first argument is the class of the dataset you want to create <code>QAdatase
     
       
       
-      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+      <script id="__config" type="application/json">{"annotate": null, "base": "../../..", "features": ["navigation.sections", "navigation.expand", "navigation.top", "navigation.tracking", "navigation.indexes", "navigation.footer", "toc.follow", "toc.integrate", "search.suggest", "search.highlight", "search.share", "content.code.copy", "content.code.annotate", "content.tabs.link"], "search": "../../../assets/javascripts/workers/search.a7633da7.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
     
     
-      <script src="../../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      <script src="../../../assets/javascripts/bundle.c21346df.min.js"></script>
       
         <script src="../../../javascripts/katex.js"></script>
       
