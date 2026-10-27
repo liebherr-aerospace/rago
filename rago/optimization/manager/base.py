@@ -48,7 +48,7 @@ class EvalMode(StrEnum):
 
 
 @dataclass
-class RAGCandidateEval(DataObject):
+class ModelCandidateEval(DataObject):
     """Performance and config of a model on train and test set."""
 
     config: TunableModelConfig
@@ -355,11 +355,11 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         best_trials = self.get_n_best_trials(number)
         return [self.config_space.sample(trial) for trial in best_trials]
 
-    def run_experiment(self) -> tuple[optuna.Study, RAGCandidateEval]:
+    def run_experiment(self) -> tuple[optuna.Study, ModelCandidateEval]:
         """Carry out the optimization and test the result.
 
         :return: The optimization and best result evaluation.
-        :rtype: tuple[optuna.Study, RAGCandidateResult]
+        :rtype: tuple[optuna.Study, ModelCandidateEval]
         """
         self.optimize()
         best_candidate_result = self.test()
@@ -402,22 +402,22 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
         return evaluation
 
-    def test(self) -> RAGCandidateEval:
+    def test(self) -> ModelCandidateEval:
         """Eval the best candidate of the optimization on the test set and save the result.
 
         :return: The config and score on train and test set.
-        :rtype: RAGCandidateEval
+        :rtype: ModelCandidateEval
         """
         best_trial = self.manager.best_trial
         best_results = self.test_trial(best_trial)
         DataObject.save_to_json(best_results, str(self.experiment_repo.path_experiment / "best_rag_results.json"))
         return best_results
 
-    def test_trial(self, trial: optuna.trial.FrozenTrial) -> RAGCandidateEval:
+    def test_trial(self, trial: optuna.trial.FrozenTrial) -> ModelCandidateEval:
         """Eval a trial on the test set.
 
         :return: The config and scores on train and test set.
-        :rtype: RAGCandidateEval
+        :rtype: ModelCandidateEval
         """
         self.logger.info("[PROCESS] Evaluating best trial on test set...")
         test_dataset = self.datasets["test"]
@@ -431,7 +431,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
                 for metric_name, metric_value in single_eval.items():
                     test_results[metric_name].append(metric_value.score)
 
-        return RAGCandidateEval(
+        return ModelCandidateEval(
             config=config,
             train_score=trial.value,
             mean_evals={m_name: np.mean(values).item() for m_name, values in test_results.items()},

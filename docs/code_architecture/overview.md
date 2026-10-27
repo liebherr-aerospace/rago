@@ -397,7 +397,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
     @abstractmethod
     def eval_trial(self, trial, dataset: RAGDataset) -> float: ...
 
-    def test(self) -> RAGCandidateEval: ...  # evaluates the best trial on datasets["test"]
+    def test(self) -> ModelCandidateEval: ...  # evaluates the best trial on datasets["test"]
 
 # Direct optimization
 class SimpleDirectOptunaManager[ConfigT: TunableModelConfig](BaseOptunaManager[BaseEvaluator, ConfigT]):
