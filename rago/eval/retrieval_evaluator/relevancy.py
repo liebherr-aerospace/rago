@@ -4,11 +4,12 @@ from __future__ import annotations
 
 import warnings
 
-from rago.data_objects import EvalSample, Metric, RAGOutput
-from rago.eval.retrieval import ContextRetrievalEvaluator
+from rago.data_objects import EvalSample, Metric, RetrievalOutput
+from rago.eval.base import BaseIndependentEvaluator, register_evaluator
 
 
-class RelevancyEvaluator(ContextRetrievalEvaluator):
+@register_evaluator("relevancy")
+class RelevancyEvaluator(BaseIndependentEvaluator[RetrievalOutput]):
     """Deprecated: use :class:`ContextRetrievalEvaluator`, which also returns precision and context_f1."""
 
     def __init__(self) -> None:
@@ -19,7 +20,7 @@ class RelevancyEvaluator(ContextRetrievalEvaluator):
             stacklevel=2,
         )
 
-    def evaluate(self, candidate_output: RAGOutput, eval_sample: EvalSample) -> dict[str, Metric]:
+    def evaluate(self, candidate_output: RetrievalOutput, eval_sample: EvalSample) -> Metric:
         """Evaluate the proportion of the expected context contained in the retrieved context.
 
         :param candidate_output: The RAG's output to the query.
@@ -29,4 +30,10 @@ class RelevancyEvaluator(ContextRetrievalEvaluator):
         :return: The evaluation result with a ``"relevancy"`` key.
         :rtype: dict[str, Metric]
         """
-        return {"relevancy": Metric(self.compute_relevancy(candidate_output, eval_sample))}
+        if not eval_sample.context:
+            return Metric(1.0)
+        if not candidate_output.retrieved_context:
+            return Metric(0.0)
+        retrieved_text = "\n".join(doc.text for doc in candidate_output.retrieved_context)
+        nb_found = sum(ctx.text in retrieved_text for ctx in eval_sample.context)
+        return Metric(nb_found / len(eval_sample.context))

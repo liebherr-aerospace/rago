@@ -2,14 +2,13 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
-from pydantic import Field
 from pydantic.dataclasses import dataclass
-from .base import DataObject
+
+from .model_output import ModelOutput
+
 
 @dataclass
-class Metric(DataObject):
+class Metric(ModelOutput):
     """Contains the evaluation score and explanation given to an output according to a particular metric.
 
     :param score:  The score given to the RAG output.
@@ -18,6 +17,6 @@ class Metric(DataObject):
     :type explanation: Optional[str]
     """
 
-    score: float  = Field(default = 0)
+    score: float
 
-    explanation: Optional[str] = Field(default=None)
+

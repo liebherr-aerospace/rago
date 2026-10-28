@@ -4,13 +4,12 @@ from typing import ClassVar
 
 from sentence_transformers import SentenceTransformer
 
-from rago.data_objects import EvalSample, Metric, RAGOutput
-
-from .base import BaseIndependentEvaluator, register_evaluator
+from rago.data_objects import EvalSample, GenerationOutput, Metric
+from rago.eval.base import BaseIndependentEvaluator, register_evaluator
 
 
 @register_evaluator("similarity")
-class SimilarityScore(BaseIndependentEvaluator[RAGOutput]):
+class SimilarityScore(BaseIndependentEvaluator[GenerationOutput]):
     """Defines a evaluator that evaluates the similarity between generated answer and reference answer."""
 
     metrics: ClassVar[list[str]] = ["similarity"]
@@ -26,7 +25,7 @@ class SimilarityScore(BaseIndependentEvaluator[RAGOutput]):
         """
         self.model = SentenceTransformer(model_name)
 
-    def evaluate(self, candidate_output: RAGOutput, eval_sample: EvalSample) -> dict[str, Metric]:
+    def evaluate(self, candidate_output: GenerationOutput, eval_sample: EvalSample) -> Metric:
         """Evaluate the candidate RAG output using the eval_sample information.
 
         :param candidate_output: The RAG's output to the query.
@@ -36,26 +35,11 @@ class SimilarityScore(BaseIndependentEvaluator[RAGOutput]):
         :return: The evaluation result.
         :rtype: EvalOutputType
         """
-        predictions = self.get_predictions(candidate_output)
         references = self.get_targets(eval_sample)
-        embeddings_1 = self.model.encode(predictions, normalize_embeddings=True)
+        embeddings_1 = self.model.encode(candidate_output.answer, normalize_embeddings=True)
         embeddings_2 = self.model.encode(references, normalize_embeddings=True)
         score = (embeddings_1 * embeddings_2).sum().item()
-        return {
-            "similarity": Metric(score),
-        }
-
-    def get_predictions(self, outputs: RAGOutput) -> list[str]:
-        """Get the rag outputs answer.
-
-        :param outputs: _description_
-        :type outputs: RAGOutput | Sequence[RAGOutput]
-        :return: _description_
-        :rtype: list[str]
-        """
-        if outputs.answer is None:
-            raise ValueError
-        return [outputs.answer]
+        return Metric(score)
 
     def get_targets(self, eval_samples: EvalSample) -> list[str]:
         """Get the eval samples ref answer.

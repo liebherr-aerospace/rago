@@ -1,4 +1,4 @@
-"""Define the abstract evaluator classes that evaluate one or more RAG output using context information."""
+"""Define the abstract evaluator classes that evaluate one or more Model output using context information."""
 
 from __future__ import annotations
 
@@ -7,12 +7,15 @@ from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
 
 import numpy as np
 
-from rago.data_objects import DataObject, EvalSample, Metric
+from rago.data_objects import EvalSample, Metric, ModelOutput
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
+
+
 
 EVALUATORS_REGISTRY: dict[str, type[BaseEvaluator]] = {}
+
 
 EvaluatorType = TypeVar("EvaluatorType", bound="BaseEvaluator")
 
@@ -33,7 +36,6 @@ def register_evaluator(name: str) -> Callable[[type[EvaluatorType]], type[Evalua
     return decorator
 
 
-OutputType = TypeVar("OutputType", bound=DataObject)
 EvalOutputType = TypeVar("EvalOutputType", bound=Union[Metric, dict[str, Metric]])
 
 
@@ -53,7 +55,7 @@ class UnRegisteredEvaluatorError(ValueError):
         super().__init__(f"There is no evaluator registered with name: {name}.")
 
 
-class BaseEvaluator[OutputType: DataObject](ABC):
+class BaseEvaluator[ModelOutputT: ModelOutput](ABC):
     """Abstract class that defines the evaluator that evaluates RAG outputs using context information.
 
     The RAG outputs can contain: an answer, a set of retrieved contexts or both.
@@ -67,7 +69,7 @@ class BaseEvaluator[OutputType: DataObject](ABC):
     """
 
     @classmethod
-    def load(cls, name: str, **kwargs: Any) -> BaseEvaluator:  # noqa: ANN401
+    def load(cls, name: str, **kwargs: Any) -> BaseEvaluator[ModelOutputT]:  # noqa: ANN401
         """Load evaluator from the evaluator registry.
 
         :param name: The name of the evaluator to load.
@@ -90,7 +92,7 @@ class BaseEvaluator[OutputType: DataObject](ABC):
         return list(EVALUATORS_REGISTRY.keys())
 
     @abstractmethod
-    def evaluate(self, candidate_output: OutputType, eval_sample: EvalSample) -> dict[str, Metric]:
+    def evaluate(self, candidate_output: ModelOutputT, eval_sample: EvalSample) -> Metric:
         """Evaluate the candidate RAG output using the eval_sample information.
 
         :param candidate_output: The RAG's output to the query.
@@ -104,9 +106,9 @@ class BaseEvaluator[OutputType: DataObject](ABC):
     @abstractmethod
     def evaluate_n_wise(
         self,
-        candidate_outputs: list[OutputType],
+        candidate_outputs: list[ModelOutputT],
         eval_sample: EvalSample,
-    ) -> list[dict[str, Metric]]:
+    ) -> Sequence[Metric]:
         """Compare and evaluate the list of candidate outputs using the eval_sample.
 
         :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
@@ -134,14 +136,14 @@ class BaseEvaluator[OutputType: DataObject](ABC):
         return score
 
 
-class BaseIndependentEvaluator[OutputType: DataObject](BaseEvaluator[OutputType]):
+class BaseIndependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT]):
     """Abstract Class for the evaluators that can not evaluate two answers at the same time."""
 
     def evaluate_n_wise(
         self,
-        candidate_outputs: list[OutputType],
+        candidate_outputs: list[ModelOutputT],
         eval_sample: EvalSample,
-    ) -> list[dict[str, Metric]]:
+    ) -> Sequence[Metric]:
         """Compare and evaluate the list of candidate outputs using the eval_sample.
 
         :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
@@ -155,7 +157,7 @@ class BaseIndependentEvaluator[OutputType: DataObject](BaseEvaluator[OutputType]
         return results_candidate_answer
 
 
-class BaseDependentEvaluator[OutputType: DataObject](BaseEvaluator[OutputType]):
+class BaseDependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT]):
     """Abstract class for evaluators that produce different results when the outputs are evaluated pairwise."""
 
     def shuffle_answers(self, num_answers: int) -> list[int]:

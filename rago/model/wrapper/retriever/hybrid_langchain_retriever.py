@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
-from rago.data_objects import RetrievedContext
+from rago.data_objects import ModelInput, RetrievalOutput, RetrievedContext
 from rago.model.configs.retriever_config.langchain import HybridLangchainRetrieverConfig
 from rago.model.wrapper.context_post_processor.llama_index_post_processor import LLamaIndexContextPostProcessorWrapper
 from rago.model.wrapper.retriever.base import Retriever
@@ -111,7 +111,7 @@ class HybridLangchainRetrieverWrapper(Retriever[HybridLangchainRetrieverConfig])
             )
         return normalized
 
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
         """Get the texts relevant to the query by combining all sub-retriever results.
 
         Each sub-retriever's scores are normalized to [0, 1], then multiplied by
@@ -127,7 +127,7 @@ class HybridLangchainRetrieverWrapper(Retriever[HybridLangchainRetrieverConfig])
         embeddings: dict[str, list[float] | None] = {}
 
         for retriever, weight in self.retrievers:
-            results = self._normalize_scores(retriever.get_retriever_output(query))
+            results = self._normalize_scores(retriever.get_output(model_input))
             for ctx in results:
                 score = (ctx.score or 0.0) * weight
                 combined[ctx.text] = combined.get(ctx.text, 0.0) + score
@@ -140,6 +140,6 @@ class HybridLangchainRetrieverWrapper(Retriever[HybridLangchainRetrieverConfig])
         ]
 
         if self.nodes_post_processors is not None:
-            retrieved_contexts = self.nodes_post_processors.post_process_context(query, retrieved_contexts)
+            retrieved_contexts = self.nodes_post_processors.post_process_context(model_input.query, retrieved_contexts)
 
-        return retrieved_contexts
+        return RetrievalOutput(retrieved_contexts)

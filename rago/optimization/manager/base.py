@@ -12,30 +12,28 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
-from collections import defaultdict
 from typing import TYPE_CHECKING, Optional, Self
 
-import numpy as np
 import optuna
 from pydantic.dataclasses import dataclass
 
 from rago.dataset.generator.simple import SeedDataType, SimpleDatasetGenerator
-from rago.eval import BaseEvaluator
 from rago.model.configs.tunable_model_config import (
     TunableModelConfig,
 )
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
-    from rago.data_objects import EvalSample, RAGOutput
+    from rago.data_objects import EvalSample, ModelInput, ModelOutput
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
+    from rago.eval import BaseEvaluator
     from rago.model.wrapper.tunable_model import TunableModel
     from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 from enum import StrEnum
 
-from rago.data_objects import DataObject, Metric
+from rago.data_objects import DataObject, GenerationOutput, Metric, RetrievalOutput
 from rago.model.wrapper.tunable_model import BuildContext
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
@@ -53,8 +51,7 @@ class ModelCandidateEval(DataObject):
 
     config: TunableModelConfig
     train_score: float
-    mean_evals: dict[str, float]
-    full_evals: dict[str, list[float]]
+    evals: list[list[Metric]]
 
 
 @dataclass
@@ -70,12 +67,10 @@ class OptimParams:
     show_progress_bar: bool = True
 
 
-class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: TunableModelConfig](ABC):
+class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, ConfigT: TunableModelConfig](ABC):
     """An Abstract Class that defines the optimization manager."""
 
     manager: optuna.Study
-    model_cls: type[TunableModel[ConfigT]]
-    config_space: TunableModelConfigSpace[ConfigT]
     logger: logging.Logger
 
     def __init__(
@@ -83,10 +78,9 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         *,
         params: Optional[OptimParams] = None,
         datasets: dict[str, RAGDataset],
-        optim_evaluator: EvaluatorType,
-        optim_metric_name: str,
-        test_evaluators: list[BaseEvaluator],
-        model_cls: type[TunableModel[ConfigT]],
+        optim_evaluator: BaseEvaluator[ModelOutputT],
+        test_evaluators: list[BaseEvaluator[ModelOutputT]],
+        model_cls: type[TunableModel[ModelInputT, ModelOutputT, ConfigT]],
         config_space: TunableModelConfigSpace[ConfigT],
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
@@ -118,7 +112,6 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         self.params = params if params is not None else OptimParams()
         self.datasets = datasets
         self.optim_evaluator = optim_evaluator
-        self.optim_metric_name = optim_metric_name
         self.test_evaluators = test_evaluators
         self.model_cls = model_cls
         self.config_space = config_space
@@ -137,10 +130,9 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         seed_data: SeedDataType,
         dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
         splits: tuple[float, float],
-        optim_evaluator: EvaluatorType,
-        optim_metric_name: str,
-        test_evaluators: list[BaseEvaluator],
-        model_cls: type[TunableModel[ConfigT]],
+        optim_evaluator: BaseEvaluator[ModelOutputT],
+        test_evaluators: list[BaseEvaluator[ModelOutputT]],
+        model_cls: type[TunableModel[ModelInputT, ModelOutputT, ConfigT]],
         config_space: TunableModelConfigSpace[ConfigT],
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
@@ -177,7 +169,6 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
             params=params,
             datasets=cls.get_dataset(seed_data, dataset_generator_config).split_dataset(splits, ["train", "test"]),
             optim_evaluator=optim_evaluator,
-            optim_metric_name=optim_metric_name,
             test_evaluators=test_evaluators,
             model_cls=model_cls,
             config_space=config_space,
@@ -283,7 +274,8 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         :return: True if the trial should be pruned, False otherwise.
         :rtype: bool
         """
-        return trial.should_prune() and score < self.manager.best_trial.value
+        best_score = self.manager.best_trial.value
+        return trial.should_prune() and best_score is not None and score < best_score
 
     def _save_trial_metrics(self, trial: optuna.trial.BaseTrial, trial_eval: dict[str, Metric]) -> None:
         """Save all metrics from trial evaluation as user attributes.
@@ -296,7 +288,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         for m_name, m_value in trial_eval.items():
             trial.set_user_attr(m_name, m_value.score)
 
-    def make_model(self, config: ConfigT, dataset: RAGDataset) -> TunableModel[ConfigT]:
+    def make_model(self, config: ConfigT, dataset: RAGDataset) -> TunableModel[ModelInputT, ModelOutputT, ConfigT]:
         """Build a model from a config, using the dataset corpus as input chunks.
 
         :param config: The model configuration.
@@ -312,7 +304,11 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
             BuildContext(prompt_config=self.prompt_config, inputs_chunks=inputs_chunks),
         )
 
-    def sample_model(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel[ConfigT]:
+    def sample_model(
+            self,
+            trial: optuna.trial.BaseTrial,
+            dataset: RAGDataset,
+            ) -> TunableModel[ModelInputT, ModelOutputT, ConfigT]:
         """Sample a model from trial.
 
         :param trial: Trial to use to sample the model.
@@ -369,8 +365,8 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         self,
         evaluator: BaseEvaluator,
         eval_sample: EvalSample,
-        model: TunableModel[ConfigT],
-    ) -> dict[str, Metric]:
+        model: TunableModel[ModelInputT, ModelOutputT, ConfigT],
+    ) -> Metric:
         """Calculate and return the current score.
 
         :param evaluator: Evaluator used to evaluate output on sample.
@@ -385,11 +381,13 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         """
         self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
         self.logger.debug("[PROCESS] Query: %s", eval_sample.query)
-        candidate = model.get_output(eval_sample.query)
-        self.logger.info("[PROCESS] Query: %s | Generated response: %s", eval_sample.query, candidate.answer)
+        model_input = model.get_input(eval_sample)
+        candidate = model.get_output(model_input)
+        if isinstance(candidate, GenerationOutput):
+            self.logger.info("[PROCESS] Query: %s | Generated response: %s", eval_sample.query, candidate.answer)
 
         # Log retrieved chunks for visibility during retriever-only optimisation
-        if candidate.retrieved_context:
+        if isinstance(candidate, RetrievalOutput):
             for i, ctx in enumerate(candidate.retrieved_context):
                 self.logger.info(
                     "[RETRIEVED] #%d  score=%.4f  text=%s",
@@ -423,17 +421,19 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput], ConfigT: Tunabl
         test_dataset = self.datasets["test"]
         config = self.config_space.sample(trial)
         model = self.make_model(config, test_dataset)
-
-        test_results: dict[str, list[float]] = defaultdict(list[float])
+        if trial.value is None:
+            msg = "Best trial has no value."
+            raise ValueError(msg)
+        test_results: list[list[Metric]] = []
         for evaluator in self.test_evaluators:
+            test_results.append([])
             for test_sample in test_dataset.samples:
                 single_eval = self.single_eval(evaluator, test_sample, model)
-                for metric_name, metric_value in single_eval.items():
-                    test_results[metric_name].append(metric_value.score)
+                test_results[-1].append(single_eval)
+
 
         return ModelCandidateEval(
             config=config,
             train_score=trial.value,
-            mean_evals={m_name: np.mean(values).item() for m_name, values in test_results.items()},
-            full_evals=test_results,
+            evals= test_results,
         )

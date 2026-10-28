@@ -2,10 +2,16 @@
 
 from __future__ import annotations
 
-from rago.data_objects import Metric
-from rago.eval.llm_evaluator.base import BaseLLMEvaluator, JudgeError
+from typing import TYPE_CHECKING
 
+from rago.eval.base import register_evaluator
 
+from .base import BaseLLMEvaluator, JudgeError, LLMMetric
+
+if TYPE_CHECKING:
+    from collections.abc import Sequence
+
+@register_evaluator("simple_judge")
 class SimpleLLMEvaluator(BaseLLMEvaluator):
     """A simple evaluator of answers using an LM.
 
@@ -18,7 +24,7 @@ class SimpleLLMEvaluator(BaseLLMEvaluator):
     This make this bias disappear when comparing two RAG configs on many answers.
     """
 
-    def parse_evaluation(self, evaluation: str) -> dict[str, Metric]:
+    def parse_evaluation(self, evaluation: str) -> LLMMetric:
         """Parse the judge LM output evaluation string and return the result.
 
         :param evaluation: The evaluation given by the judge to parse to get the score
@@ -28,7 +34,7 @@ class SimpleLLMEvaluator(BaseLLMEvaluator):
         :rtype: dict[str, Metric]
         """
         score = self.get_score_from_string_score(evaluation)
-        return {"correctness": Metric(score=score)}
+        return LLMMetric(score)
 
     def get_score_from_string_score(self, score_string: str) -> float:
         """Get the float evaluation score from the string score.
@@ -46,7 +52,7 @@ class SimpleLLMEvaluator(BaseLLMEvaluator):
             raise ValueError(score_string)
         return score
 
-    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> list[dict[str, Metric]]:
+    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> Sequence[LLMMetric]:
         """Parse the judge LM output evaluation string and return the results for each outputs.
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
@@ -66,7 +72,7 @@ class SimpleLLMEvaluator(BaseLLMEvaluator):
             raise JudgeError(evaluation)
 
         results = [
-            {"correctness": Metric(score=self.get_score_from_string_score(evaluation_score.strip()))}
+            LLMMetric(score=self.get_score_from_string_score(evaluation_score.strip()))
             for evaluation_score in evaluation_scores
         ]
 

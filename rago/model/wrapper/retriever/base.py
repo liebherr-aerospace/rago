@@ -3,20 +3,27 @@
 from __future__ import annotations
 
 from abc import abstractmethod
-from typing import TYPE_CHECKING
 
-from rago.data_objects import RAGOutput
+from rago.data_objects import EvalSample, ModelInput, RetrievalOutput
 from rago.model.configs.retriever_config.base import RetrieverConfig
 from rago.model.wrapper.tunable_model import TunableModel
 
-if TYPE_CHECKING:
-    from rago.data_objects import RetrievedContext
 
-
-class Retriever[ConfigT: RetrieverConfig](TunableModel[ConfigT]):
+class Retriever[ConfigT: RetrieverConfig](TunableModel[ModelInput, RetrievalOutput, ConfigT]):
     """A retriever that retrieves information relevant to answer a query from a database (non-parametric knowledge)."""
 
-    def get_output(self, query: str) -> RAGOutput:
+    def get_input(self, eval_sample: EvalSample) -> ModelInput:
+        """Extract the retriever from the eval sample.
+
+        :param eval_sample: The eval sample to extract the input from.
+        :type eval_sample: EvalSample
+        :return: The extracted retriever input.
+        :rtype: ModelInput
+        """
+        return ModelInput(eval_sample.query)
+
+    @abstractmethod
+    def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
         """Retrieve the context relevant to *query*, without generating an answer.
 
         :param query: The query.
@@ -24,15 +31,4 @@ class Retriever[ConfigT: RetrieverConfig](TunableModel[ConfigT]):
         :return: Output with ``answer=None`` and populated ``retrieved_context``.
         :rtype: RAGOutput
         """
-        return RAGOutput(answer=None, retrieved_context=self.get_retriever_output(query))
 
-    @abstractmethod
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
-        """Get the information relevant to answer a query from the retriever's database.
-
-        :param query: The query.
-        :type query: str
-        :return: The list of texts extracted of the retriever non-parametric knowledge.
-        :rtype: list[str]
-        """
-        ...

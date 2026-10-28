@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from rago.data_objects import GenerationOutput, ReaderInput
 from rago.model.configs.reader_config.llama_index import LLamaIndexReaderConfig
 from rago.model.constructors.llama_index.reader_factory import ReaderFactory
 from rago.model.wrapper.reader.base import Reader
@@ -13,7 +14,6 @@ if TYPE_CHECKING:
     from llama_index.core.llms import LLM
     from llama_index.core.response_synthesizers.base import RESPONSE_TEXT_TYPE, BaseSynthesizer
 
-    from rago.data_objects import RetrievedContext
     from rago.prompts import PromptConfig
 
 
@@ -63,7 +63,7 @@ class LlamaIndexWrapperReader(Reader[LLamaIndexReaderConfig]):
         reader = ReaderFactory.make(config, prompt_template_str, llm)
         return cls(reader, prompt_config)
 
-    def get_reader_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> str:
+    def _get_output(self, model_input: ReaderInput) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
         :param query: The query the reader needs to answer.
@@ -73,11 +73,11 @@ class LlamaIndexWrapperReader(Reader[LLamaIndexReaderConfig]):
         :return: The reader output answer.
         :rtype: str
         """
-        context = [context.text for context in retrieved_context] if retrieved_context is not None else []
-        reader_output = self.lama_index_reader.get_response(query, context)
+        context = [context.text for context in model_input.retrieved_context]
+        reader_output = self.lama_index_reader.get_response(model_input.query, context)
         return self.parse_reader_output(reader_output)
 
-    def parse_reader_output(self, reader_output: RESPONSE_TEXT_TYPE) -> str:
+    def parse_reader_output(self, reader_output: RESPONSE_TEXT_TYPE) -> GenerationOutput:
         """Parse the output of the reader to obtain a string answer.
 
         :param reader_output: The raw reader output.
@@ -87,7 +87,7 @@ class LlamaIndexWrapperReader(Reader[LLamaIndexReaderConfig]):
         """
         match reader_output:
             case str():
-                return reader_output
+                return GenerationOutput(reader_output)
             case _:
                 answer = "Invalid answer."
-                return answer
+                return GenerationOutput(answer)

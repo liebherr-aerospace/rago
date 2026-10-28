@@ -5,27 +5,34 @@ from __future__ import annotations
 from typing import Any, ClassVar, cast
 
 import evaluate
-import numpy as np
+from pydantic.dataclasses import dataclass
 
-from rago.data_objects import EvalSample, Metric, RAGOutput
+from rago.data_objects import EvalSample, GenerationOutput, Metric
 from rago.eval.base import BaseIndependentEvaluator, register_evaluator
 
 
+@dataclass
+class BertScoreMetric(Metric):
+    """Contains the main evaluation score and additional scores computed from BertScore."""
+
+    score: float
+    additional_scores: dict[str, float]
+
 @register_evaluator("bert_score")
-class BertScore(BaseIndependentEvaluator[RAGOutput]):
+class BertScore(BaseIndependentEvaluator[GenerationOutput]):
     """Define the Bert score that uses variants of the bert model to compute correctness by cosine similarity."""
 
     metrics: ClassVar[list[str]] = ["precision", "recall", "f1"]
 
-    def __init__(self) -> None:
+    def __init__(self, metric: str) -> None:
         """Instantiate a BertScore by loading it from evaluate."""
         self.bert_metrics = evaluate.load("bertscore")
+        if metric not in self.metrics:
+            msg = f"{metric} is not a valid BertScore metric. Choose a metric name among: {self.metrics}"
+            raise ValueError(msg)
+        self.metric = metric
 
-    def evaluate(
-        self,
-        outputs: RAGOutput,
-        eval_samples: EvalSample,
-    ) -> dict[str, Metric]:
+    def evaluate(self, candidate_output: GenerationOutput, eval_sample: EvalSample) -> BertScoreMetric:
         """Evaluate the candidate output using the eval_sample information.
 
         :param candidate_output: The RAG's output to the query.
@@ -35,22 +42,15 @@ class BertScore(BaseIndependentEvaluator[RAGOutput]):
         :return: The evaluation result.
         :rtype: EvalOutputType
         """
-        predictions = self.get_predictions(outputs)
-        references = self.get_targets(eval_samples)
-        results = self.bert_metrics.compute(predictions=[predictions], references=[references], lang="en")
+        references = self.get_targets(eval_sample)
+        results = self.bert_metrics.compute(predictions=[candidate_output.answer], references=[references], lang="en")
+        if results is None:
+            msg = "Error with the BertScore backend"
+            raise ValueError(msg)
         results.pop("hashcode")
         results = cast("dict[str, list[float]]", results)
         return self.get_evaluations(results)
 
-    def get_predictions(self, outputs: RAGOutput) -> str:
-        """Extract the rag answer from its ouput.
-
-        :param outputs: The RAG output
-        :type outputs: RAGOutput
-        :return: The answer of the RAG.
-        :rtype: list[str]
-        """
-        return outputs.answer if outputs.answer is not None else ""
 
     def get_targets(self, eval_samples: EvalSample) -> str:
         """Extract the reference answer from the eval sample.
@@ -65,7 +65,10 @@ class BertScore(BaseIndependentEvaluator[RAGOutput]):
             raise ValueError
         return eval_samples.reference_answer
 
-    def get_evaluations(self, results: dict[str, Any]) -> dict[str, Metric]:
+    def _get_mean_scores(self, scores: list[float]) -> float:
+        return sum(scores)/min(len(scores), 1)
+
+    def get_evaluations(self, results: dict[str, Any]) -> BertScoreMetric:
         """Convert the dictionary to a dictionary of Metrics.
 
         :param results: The dictionary resulting from the Bert score eval.
@@ -74,7 +77,10 @@ class BertScore(BaseIndependentEvaluator[RAGOutput]):
         :rtype: dict[str, Evaluation] | list[dict[str, Evaluation]]
         """
         scores = cast("dict[str, list[float]]", results)
-        mean_scores = {
-            "bert_score_" + metric_name: Metric(np.mean(metrics).item()) for metric_name, metrics in scores.items()
-        }
-        return mean_scores
+        if self.metric not in scores:
+            msg = f"{self.metric} is not a valid BertScore metric. Choose a metric name among: {self.metrics}"
+            raise ValueError(msg)
+
+        score = self._get_mean_scores(scores.pop(self.metric))
+        additional_scores ={metric_name: self._get_mean_scores(metrics) for metric_name, metrics in scores.items()}
+        return BertScoreMetric(score, additional_scores)

@@ -10,8 +10,8 @@ from rago.data_objects.document import Document
 from rago.data_objects.rag_config import RAGConfig
 from rago.dataset import RAGDataset
 from rago.dataset.generator import DatasetGeneratorConfig
-from rago.eval.llm_evaluator.base import LLMEvaluatorConfig
-from rago.eval.llm_evaluator.simple import SimpleLLMEvaluator
+from rago.eval.generation_evaluator.llm_evaluator.base import LLMEvaluatorConfig
+from rago.eval.generation_evaluator.llm_evaluator.simple import SimpleLLMEvaluator
 from rago.model.configs.llm_config.langchain import LangchainOllamaConfig
 from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager.base import OptimParams

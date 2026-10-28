@@ -38,3 +38,5 @@ class EvalSample(DataObject):
     reference_answer: Optional[str] = Field(default=None, min_length=1)
     reference_score: Optional[float] = Field(default=None)
     metadata: dict[str, Any] = Field(default_factory=dict)
+
+

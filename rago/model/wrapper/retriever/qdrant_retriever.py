@@ -33,7 +33,7 @@ from qdrant_client.models import (
 )
 from sentence_transformers import CrossEncoder
 
-from rago.data_objects import RetrievedContext
+from rago.data_objects import ModelInput, RetrievalOutput, RetrievedContext
 from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 from rago.model.wrapper.retriever.base import Retriever
 
@@ -403,7 +403,7 @@ class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
     # Query execution
     # ---------------------------------------------------------------------- #
 
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
         """Execute a hybrid search and return scored contexts.
 
         :param query: The user query.
@@ -420,7 +420,7 @@ class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
         prefetches: list[Prefetch] = []
 
         # Dense
-        dense_vector = self._embed_dense(query)
+        dense_vector = self._embed_dense(model_input.query)
         prefetches.append(
             Prefetch(
                 query=dense_vector,
@@ -430,7 +430,7 @@ class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
         )
 
         # Sparse / BM25
-        sparse_obj = self._embed_sparse(query)
+        sparse_obj = self._embed_sparse(model_input.query)
         indices = sparse_obj["indices"]
         values = sparse_obj["values"]
         if hasattr(indices, "tolist"):
@@ -458,7 +458,7 @@ class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
 
         # ── Optional ColBERT re-score (3-stage) ──────────────────────────────
         if cfg.late_interaction_rescore and self.late_interaction_embedder is not None:
-            colbert_vector = self._embed_late_interaction(query)
+            colbert_vector = self._embed_late_interaction(model_input.query)
             logger.info("Running 3-stage hybrid query: prefetch → fusion → ColBERT re-score")
             results = self.client.query_points(
                 collection_name=coll.collection_name,
@@ -516,11 +516,11 @@ class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
                 cfg.reranker_top_n,
             )
             retrieved = _rerank(
-                query=query,
+                query=model_input.query,
                 contexts=retrieved,
                 model_name=cfg.reranker_model,
                 top_n=cfg.reranker_top_n,
             )
             logger.info("After reranking: %d results", len(retrieved))
 
-        return retrieved
+        return RetrievalOutput(retrieved)
