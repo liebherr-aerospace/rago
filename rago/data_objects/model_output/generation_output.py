@@ -6,6 +6,6 @@ from .base import ModelOutput
 
 @dataclass
 class GenerationOutput(ModelOutput):
-    """Base Generation Model Ouptut format for Generation Tunable Models."""
+    """Generation Model Output format for Generation Tunable Models."""
 
     answer: str
