@@ -99,7 +99,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         """
         super().__init__()
 
-        self.judge: LLMAgent = judge if judge is not None else LangchainLLMAgent.make_from_backend()
+        self.judge: LLMAgent = judge if judge is not None else LangchainLLMAgent.make()
         eval_prompts = EvalPrompts() if eval_prompts is None else eval_prompts
         self.eval_prompt = PromptTemplate(eval_prompts.evaluation_prompt)
         self.pairwise_eval_prompt = PromptTemplate(eval_prompts.pairwise_evaluation_prompt)
@@ -180,6 +180,8 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
             candidate_answer=candidate_output.answer,
             query=eval_sample.query,
             source_context_prompt=source_context_prompt,
+            reference_answer = eval_sample.reference_answer,
+            reference_score = eval_sample.reference_score,
         )
         return prompt
 
@@ -332,7 +334,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         :rtype: BaseLLMEvaluator
         """
         config = config if config is not None else LLMEvaluatorConfig()
-        llm = LLMAgentFactory.make(config.judge) if config.judge is not None else LangchainLLMAgent.make_from_backend()
+        llm = LLMAgentFactory.make(config.judge) if config.judge is not None else LangchainLLMAgent.make()
         return cls(
             judge=llm,
             min_score=config.min_score,

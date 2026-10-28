@@ -4,7 +4,10 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from rago.data_objects import GenerationOutput
+from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 from rago.model.constructors.langchain.llm_factory import LangchainLLMFactory
+from rago.model.wrapper.llm_agent.message import Message, Role
 from rago.model.wrapper.reader.base import Reader
 from rago.prompts import PromptConfig
 
@@ -12,18 +15,23 @@ if TYPE_CHECKING:
     from langchain_core.language_models import BaseLLM
 
     from rago.data_objects import RetrievedContext
-    from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 
 
-class LangchainWrapperReader(Reader):
+class LangchainWrapperReader(Reader[LangchainReaderConfig]):
     """Wrapper to around a Langchain reader."""
 
-    def __init__(self, langchain_reader: BaseLLM, prompt_config: PromptConfig, prompt_template: str) -> None:
+    def __init__(
+            self,
+            langchain_reader: BaseLLM,
+            prompt_config: PromptConfig,
+            prompt_template: str,
+            config: LangchainReaderConfig) -> None:
         """Instantiate a Langchain LLM wrapper.
 
         :param langchain_reader: THe langchain, reader to wrap.
         :type langchain_reader: Runnable
         """
+        self.config = config
         self.langchain_reader = langchain_reader
         self.prompt_config = prompt_config
         self.prompt_template = prompt_template
@@ -31,7 +39,7 @@ class LangchainWrapperReader(Reader):
     @classmethod
     def make(
         cls,
-        config: LangchainReaderConfig,
+        config: Optional[LangchainReaderConfig] = None,
         llm: Optional[BaseLLM] = None,
         prompt_config: Optional[PromptConfig] = None,
     ) -> LangchainWrapperReader:
@@ -44,6 +52,8 @@ class LangchainWrapperReader(Reader):
         :return: The wrapper around the reader.
         :rtype: LangchainWrapperReader
         """
+        if config is None:
+            config = LangchainReaderConfig()
         if llm is None:
             if config.llm is None:
                 raise ValueError(config.llm)
@@ -56,9 +66,10 @@ class LangchainWrapperReader(Reader):
             langchain_reader=llm,
             prompt_config=prompt_config,
             prompt_template=prompt_template_str,
+            config = config,
         )
 
-    def get_reader_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> str:
+    def _get_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
         :param query: The query the reader needs to answer.
@@ -77,6 +88,7 @@ class LangchainWrapperReader(Reader):
         )
 
         prompt = self.prompt_template.format(query_str=query, context_str=context_prompt)
-        string_answer = self.langchain_reader.invoke(prompt)
+        messages = [Message.get_langchain_message( Message(prompt, Role.USER))]
+        string_answer = self.langchain_reader.invoke(messages, think = False)
 
-        return string_answer
+        return GenerationOutput(answer=string_answer)

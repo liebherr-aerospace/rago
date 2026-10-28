@@ -6,7 +6,8 @@ from typing import TYPE_CHECKING, Optional
 
 from langchain_core.documents import Document
 
-from rago.data_objects import RetrievedContext
+from rago.data_objects import RetrievalOutput, RetrievedContext
+from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.constructors.langchain.retriever_factory.base_factory import RetrieverFactory
 from rago.model.wrapper.context_post_processor.llama_index_post_processor import LLamaIndexContextPostProcessorWrapper
 from rago.model.wrapper.retriever.base import Retriever
@@ -14,15 +15,15 @@ from rago.model.wrapper.retriever.base import Retriever
 if TYPE_CHECKING:
     from langchain_core.retrievers import BaseRetriever
 
-    from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 
 
-class LangchainRetrieverWrapper(Retriever):
+class LangchainRetrieverWrapper(Retriever[LangchainRetrieverConfig]):
     """A retriever that retrieves information relevant to answer a query from a database (non-parametric knowledge)."""
 
     def __init__(
         self,
         langchain_retriever: BaseRetriever,
+        config: LangchainRetrieverConfig,
         nodes_post_processors: Optional[LLamaIndexContextPostProcessorWrapper] = None,
     ) -> None:
         """Instantiate a retriever with a Langchain retriever and optionally post-processors.
@@ -33,6 +34,7 @@ class LangchainRetrieverWrapper(Retriever):
         :type nodes_post_processors: Optional[LLamaIndexContextPostProcessorWrapper], optional
         """
         self.langchain_retriever = langchain_retriever
+        self.config = config
         self.nodes_post_processors = nodes_post_processors
 
     @classmethod
@@ -60,9 +62,9 @@ class LangchainRetrieverWrapper(Retriever):
         else:
             nodes_post_processors = None
 
-        return cls(retriever, nodes_post_processors)
+        return cls(retriever, config, nodes_post_processors)
 
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, query: str) -> RetrievalOutput:
         """Get the texts relevant to the query from the retriever database.
 
         :param query: The query.
@@ -76,4 +78,4 @@ class LangchainRetrieverWrapper(Retriever):
         ]
         if self.nodes_post_processors is not None:
             retrieved_context = self.nodes_post_processors.post_process_context(query, retrieved_context)
-        return retrieved_context
+        return RetrievalOutput(retrieved_context= retrieved_context)

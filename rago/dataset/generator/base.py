@@ -60,7 +60,7 @@ class BaseDatasetGenerator[DataType, DatasetType: QADataset]:
         :type generation_prompt: str, optional
         """
         super().__init__()
-        self.generator = generator if generator is not None else LangchainLLMAgent.make_from_backend()
+        self.generator = generator if generator is not None else LangchainLLMAgent.make()
         self.generation_prompt = PromptTemplate(generation_prompt)
 
     @abstractmethod
@@ -137,7 +137,7 @@ class BaseDatasetGenerator[DataType, DatasetType: QADataset]:
         :rtype: BaseDatasetGenerator
         """
         config = config if config is not None else DatasetGeneratorConfig()
-        llm = LLMAgentFactory.make(config.llm) if config.llm is not None else LangchainLLMAgent.make_from_backend()
+        llm = LLMAgentFactory.make(config.llm) if config.llm is not None else LangchainLLMAgent.make()
 
         dataset_generator = cls(
             generator=llm,

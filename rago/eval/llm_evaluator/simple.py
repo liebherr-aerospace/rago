@@ -3,9 +3,11 @@
 from __future__ import annotations
 
 from rago.data_objects import Metric
+from rago.eval.base import register_evaluator
 from rago.eval.llm_evaluator.base import BaseLLMEvaluator, JudgeError
 
 
+@register_evaluator("simple_llm_judge")
 class SimpleLLMEvaluator(BaseLLMEvaluator):
     """A simple evaluator of answers using an LM.
 

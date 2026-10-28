@@ -8,6 +8,7 @@ from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from rago.data_objects import Metric
+from rago.eval.base import register_evaluator
 from rago.eval.llm_evaluator.base import EvalPrompts, JudgeError, PolicyOnError
 from rago.eval.llm_evaluator.simple import SimpleLLMEvaluator
 from rago.prompts import (
@@ -38,7 +39,7 @@ class EvalOutputTags:
     explanation_tag: str = Field(default=DEFAULT_EXPLANATION_TAG, min_length=1)
     score_i_tag_template: str = Field(default=DEFAULT_SCORE_I_TAG_TEMPLATE, min_length=1)
 
-
+@register_evaluator("cot_llm_judge")
 class CoTLLMEvaluator(SimpleLLMEvaluator):
     """An evaluator of answers using an LLM prompted with chain of thought (CoT)."""
 
@@ -74,6 +75,8 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
         self.score_i_tag_template = eval_output_tags.score_i_tag_template
         eval_prompts.evaluation_prompt = eval_prompts.evaluation_prompt.format(
             candidate_answer="{candidate_answer}",
+            reference_answer= "{reference_answer}",
+            reference_score = "{reference_score}",
             query="{query}",
             source_context_prompt="{source_context_prompt}",
             min_score="{min_score}",
@@ -114,7 +117,8 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
         :return: The evaluation result.
         :rtype: dict[str, Metric]
         """
-        splitted_eval = evaluation.split(self.score_tag)
+        evaluation = evaluation.lower()
+        splitted_eval = evaluation.split(self.score_tag.lower())
         expected_number_of_instance_of_score_tag = 2
         if len(splitted_eval) != expected_number_of_instance_of_score_tag:
             raise JudgeError(evaluation)
@@ -130,7 +134,7 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
         :return: The explanation without its tag.
         :rtype: str
         """
-        explanation_splitted = explanation_with_explanation_tag.split(self.explanation_tag)
+        explanation_splitted = explanation_with_explanation_tag.split(self.explanation_tag.lower())
         number_of_components_in_reasoning = 2
         if len(explanation_splitted) != number_of_components_in_reasoning:
             raise JudgeError(explanation_with_explanation_tag)
@@ -153,21 +157,22 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
         :return: The evaluation results of each answers.
         :rtype: list[dict[str, Metric]]
         """
-        reasoning_with_tag, rest_to_parse = self.get_last_n_remaining_answer(
+        rest_to_parse, score_i = self.get_last_n_remaining_answer(
             evaluation,
             expected_number_of_score,
             evaluation,
         )
-        explanation = self.remove_explanation_tag(reasoning_with_tag)
-        scores = []
+
+        scores = [score_i]
         for i in range(1, expected_number_of_score):
-            score_i, rest_to_parse = self.get_last_n_remaining_answer(
+            rest_to_parse, score_i = self.get_last_n_remaining_answer(
                 rest_to_parse,
                 expected_number_of_score - i,
                 evaluation,
             )
-            scores.append(score_i)
-        scores.append(rest_to_parse)
+            scores.insert(0, score_i)
+        explanation = self.remove_explanation_tag(rest_to_parse)
+
         eval_results = [
             {"correctness": Metric(score=self.get_score_from_string_score(score_str), explanation=explanation)}
             for score_str in scores

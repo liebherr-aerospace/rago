@@ -16,10 +16,11 @@ if TYPE_CHECKING:
     from llama_index.core.llms import LLM
     from llama_index.core.retrievers import BaseRetriever
 
-    from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
+from rago.data_objects import RetrievalOutput
+from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
 
 
-class LlamaIndexRetrieverWrapper(Retriever):
+class LlamaIndexRetrieverWrapper(Retriever[LlamaIndexRetrieverConfig]):
     """A retriever using llama_index retrievers."""
 
     llama_index_retriever: BaseRetriever
@@ -74,7 +75,7 @@ class LlamaIndexRetrieverWrapper(Retriever):
         )
         return cls(retriever, nodes_post_processors)
 
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, query: str) -> RetrievalOutput:
         """Get the texts relevant to the query from the retriever database.
 
         :param query: The query.
@@ -89,4 +90,4 @@ class LlamaIndexRetrieverWrapper(Retriever):
 
         if self.nodes_post_processors is not None:
             retrieved_context = self.nodes_post_processors.post_process_context(query, retrieved_context)
-        return retrieved_context
+        return RetrievalOutput(retrieved_context = retrieved_context)

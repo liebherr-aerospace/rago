@@ -18,7 +18,7 @@ from rago.optimization.search_space.tunable_model_config_space import TunableMod
 
 
 @dataclass
-class RAGConfigSpace(TunableModelConfigSpace):
+class RAGConfigSpace(TunableModelConfigSpace[RAGConfig]):
     """Config space that samples a full :class:`RAGConfig` (reader **and** retriever).
 
     Both ``retriever_space`` and ``reader_space`` default to sensible config

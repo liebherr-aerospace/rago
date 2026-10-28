@@ -2,18 +2,16 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, Optional
+from typing import Optional
 
-from rago.data_objects import RetrievedContext
+from rago.data_objects import RetrievalOutput, RetrievedContext
+from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.wrapper.context_post_processor.llama_index_post_processor import LLamaIndexContextPostProcessorWrapper
 from rago.model.wrapper.retriever.base import Retriever
 from rago.model.wrapper.retriever.langchain_retriever import LangchainRetrieverWrapper
 
-if TYPE_CHECKING:
-    from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 
-
-class HybridLangchainRetrieverWrapper(Retriever):
+class HybridLangchainRetrieverWrapper(Retriever[LangchainRetrieverConfig]):
     """A hybrid retriever that combines an arbitrary number of sub-retrievers with weighted scoring.
 
     Each sub-retriever's results are independently normalized then multiplied by
@@ -23,6 +21,7 @@ class HybridLangchainRetrieverWrapper(Retriever):
     def __init__(
         self,
         retrievers: list[tuple[Retriever, float]],
+        config: LangchainRetrieverConfig,
         nodes_post_processors: Optional[LLamaIndexContextPostProcessorWrapper] = None,
     ) -> None:
         """Instantiate a hybrid retriever.
@@ -33,14 +32,15 @@ class HybridLangchainRetrieverWrapper(Retriever):
         :param nodes_post_processors: The context post-processors, defaults to None.
         :type nodes_post_processors: Optional[LLamaIndexContextPostProcessorWrapper], optional
         """
+        self.config = config
         self.retrievers = retrievers
         self.nodes_post_processors = nodes_post_processors
 
     @classmethod
     def make(
         cls,
-        config: LangchainRetrieverConfig,
-        inputs_chunks: list[str],
+        config: Optional[LangchainRetrieverConfig] = None,
+        inputs_chunks: Optional[list[str]] = None,
     ) -> HybridLangchainRetrieverWrapper:
         """Generate a hybrid retriever from a config and document chunks.
 
@@ -51,6 +51,8 @@ class HybridLangchainRetrieverWrapper(Retriever):
         :return: The hybrid retriever.
         :rtype: HybridLangchainRetrieverWrapper
         """
+        if config is None:
+            config = LangchainRetrieverConfig(type = "HybridRetriever", hybrid_weight=0.5)
         if config.hybrid_weight is None:
             error_msg = "HybridRetriever requires a hybrid_weight."
             raise ValueError(error_msg)
@@ -77,6 +79,7 @@ class HybridLangchainRetrieverWrapper(Retriever):
 
         return cls(
             retrievers=retrievers,
+            config = config,
             nodes_post_processors=nodes_post_processors,
         )
 
@@ -110,7 +113,7 @@ class HybridLangchainRetrieverWrapper(Retriever):
             )
         return normalized
 
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, query: str) -> RetrievalOutput:
         """Get the texts relevant to the query by combining all sub-retriever results.
 
         Each sub-retriever's scores are normalized to [0, 1], then multiplied by
@@ -126,7 +129,7 @@ class HybridLangchainRetrieverWrapper(Retriever):
         embeddings: dict[str, list[float] | None] = {}
 
         for retriever, weight in self.retrievers:
-            results = self._normalize_scores(retriever.get_retriever_output(query))
+            results = self._normalize_scores(retriever.get_output(query).retrieved_context)
             for ctx in results:
                 score = (ctx.score or 0.0) * weight
                 combined[ctx.text] = combined.get(ctx.text, 0.0) + score
@@ -141,4 +144,4 @@ class HybridLangchainRetrieverWrapper(Retriever):
         if self.nodes_post_processors is not None:
             retrieved_contexts = self.nodes_post_processors.post_process_context(query, retrieved_contexts)
 
-        return retrieved_contexts
+        return RetrievalOutput(retrieved_context = retrieved_contexts)

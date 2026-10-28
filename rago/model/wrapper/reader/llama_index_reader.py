@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from rago.data_objects import GenerationOutput
 from rago.model.constructors.llama_index.reader_factory import LLamaIndexReaderConfig, ReaderFactory
 from rago.model.wrapper.reader.base import Reader
 from rago.prompts import PromptConfig
@@ -15,13 +16,17 @@ if TYPE_CHECKING:
     from rago.data_objects import RetrievedContext
 
 
-class LlamaIndexWrapperReader(Reader):
+class LlamaIndexWrapperReader(Reader[LLamaIndexReaderConfig]):
     """Defines a wrapper around a llama-index reader."""
 
     lama_index_reader: BaseSynthesizer
     prompt_config: PromptConfig
 
-    def __init__(self, lama_index_reader: BaseSynthesizer, prompt_config: PromptConfig) -> None:
+    def __init__(
+            self,
+            lama_index_reader: BaseSynthesizer,
+            prompt_config: PromptConfig,
+            config: LLamaIndexReaderConfig) -> None:
         """Initialize a wrapper around a llama index reader from the llama_index_reader and its prompt_config.
 
         :param lama_index_reader: the llama-index reader to wrap around.
@@ -31,11 +36,12 @@ class LlamaIndexWrapperReader(Reader):
         """
         self.lama_index_reader = lama_index_reader
         self.prompt_config = prompt_config
+        self.config = config
 
     @classmethod
     def make(
         cls,
-        config: LLamaIndexReaderConfig,
+        config: Optional[LLamaIndexReaderConfig] = None,
         llm: Optional[LLM] = None,
         prompt_config: Optional[PromptConfig] = None,
     ) -> LlamaIndexWrapperReader:
@@ -50,6 +56,8 @@ class LlamaIndexWrapperReader(Reader):
         :return: The wrapper around the prompt.
         :rtype: LlamaIndexWrapperReader
         """
+        if config is None:
+            config = LLamaIndexReaderConfig()
         prompt_config = prompt_config if prompt_config is not None else PromptConfig()
         prompt_template_str = cls.get_prompt_template_string(prompt_config)
         context_prompt_template = prompt_config.context_template.format(source_context="{context_str}")
@@ -58,9 +66,9 @@ class LlamaIndexWrapperReader(Reader):
             query_str="{query_str}",
         )
         reader = ReaderFactory.make(config, prompt_template_str, llm)
-        return cls(reader, prompt_config)
+        return cls(reader, prompt_config, config)
 
-    def get_reader_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> str:
+    def _get_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
         :param query: The query the reader needs to answer.
@@ -72,7 +80,7 @@ class LlamaIndexWrapperReader(Reader):
         """
         context = [context.text for context in retrieved_context] if retrieved_context is not None else []
         reader_output = self.lama_index_reader.get_response(query, context)
-        return self.parse_reader_output(reader_output)
+        return GenerationOutput(answer=self.parse_reader_output(reader_output))
 
     def parse_reader_output(self, reader_output: RESPONSE_TEXT_TYPE) -> str:
         """Parse the output of the reader to obtain a string answer.

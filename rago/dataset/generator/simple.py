@@ -4,12 +4,14 @@ from __future__ import annotations
 
 import re
 from typing import TYPE_CHECKING, Optional
-from uuid import uuid4
+
+from tqdm import tqdm
 
 from rago.data_objects import Document, EvalSample
 from rago.dataset.generator import BaseDatasetGenerator
 from rago.dataset.rag_dataset import RAGDataset
 from rago.prompts import DEFAULT_DATASET_GENERATION_PROMPT
+from rago.utils import get_document_hash
 
 if TYPE_CHECKING:
     from rago.model.wrapper.llm_agent import LLMAgent
@@ -53,10 +55,15 @@ class SimpleDatasetGenerator(BaseDatasetGenerator[SeedDataType, RAGDataset]):
         if seed_data is None:
             raise ValueError
         samples: list[EvalSample] = seed_data.samples.copy() if isinstance(seed_data, RAGDataset) else []
-        corpus = seed_data.corpus if isinstance(seed_data, RAGDataset) else {str(uuid4()): doc for doc in seed_data}
-        for document in corpus.values():
+        corpus = (
+            seed_data.corpus
+            if isinstance(seed_data, RAGDataset)
+            else {get_document_hash(doc.text): doc for doc in seed_data})
+        for document in tqdm(corpus.values()):
             new_samples = self.generate_eval_samples_from_documents(document)
-            samples += new_samples
+            if len(new_samples)==0:
+                new_samples = [EvalSample("NaN", [document])]
+            samples += new_samples[:1]
 
         return RAGDataset(samples=samples, corpus=corpus)
 

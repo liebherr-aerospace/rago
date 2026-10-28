@@ -2,20 +2,23 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import TYPE_CHECKING, Optional
 
+from rago.data_objects import GenerationOutput
+from rago.model.configs.tunable_model_config import TunableModelConfig
+from rago.model.wrapper.tunable_model import TunableModel
 from rago.prompts import AMBIGQA_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT, PromptConfig
 
 if TYPE_CHECKING:
     from rago.data_objects import RetrievedContext
 
 
-class Reader(ABC):
+class Reader[TunableModelConfigType: TunableModelConfig](TunableModel[GenerationOutput, TunableModelConfigType]):
     """A Reader takes as input a query (and optionally a context) and outputs a string response."""
 
     @abstractmethod
-    def get_reader_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> str:
+    def _get_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
         :param query: The query the reader needs to answer.

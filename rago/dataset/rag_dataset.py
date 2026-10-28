@@ -77,7 +77,7 @@ attr: {", ".join(list(next(iter(self.corpus.values())).__annotations__.keys()))}
         self,
         size: float,
         seed: Optional[int] = None,
-        num_distractor_documents_per_sample: int = 10,
+        num_distractor_documents_per_sample: int | None = None,
         **kwargs: Any,  # noqa: ANN401, ARG002
     ) -> RAGDataset:
         """Return a sampled subset of the dataset with corpus.
@@ -94,7 +94,11 @@ attr: {", ".join(list(next(iter(self.corpus.values())).__annotations__.keys()))}
         if seed is not None:
             random.seed(seed)
         samples = self.get_num_samples(size)
-        corpus = self.sample_corpus(samples, num_distractor_documents_per_sample)
+        corpus = (
+            self.sample_corpus(samples, num_distractor_documents_per_sample)
+            if num_distractor_documents_per_sample is not None
+            else self.corpus
+            )
         return self.__class__(samples=samples, corpus=corpus)
 
     def sample_corpus(

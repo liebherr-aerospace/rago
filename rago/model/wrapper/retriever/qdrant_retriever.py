@@ -33,13 +33,13 @@ from qdrant_client.models import (
 )
 from sentence_transformers import CrossEncoder
 
-from rago.data_objects import RetrievedContext
+from rago.data_objects import RetrievalOutput, RetrievedContext
+from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 from rago.model.wrapper.retriever.base import Retriever
 
 if TYPE_CHECKING:
     from qdrant_client import QdrantClient
 
-    from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 
 logger = logging.getLogger(__name__)
 
@@ -267,7 +267,7 @@ class _FastEmbedLateInteractionAdapter:
         return list(self._model.embed(texts))
 
 
-class QdrantRetrieverWrapper(Retriever):
+class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
     """Retrieve documents from a Qdrant collection using hybrid search.
 
     The wrapper holds a ``QdrantClient`` and the embedding providers needed to
@@ -402,7 +402,7 @@ class QdrantRetrieverWrapper(Retriever):
     # Query execution
     # ---------------------------------------------------------------------- #
 
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, query: str) -> RetrievalOutput:
         """Execute a hybrid search and return scored contexts.
 
         :param query: The user query.
@@ -522,4 +522,4 @@ class QdrantRetrieverWrapper(Retriever):
             )
             logger.info("After reranking: %d results", len(retrieved))
 
-        return retrieved
+        return RetrievalOutput(retrieved_context = retrieved)

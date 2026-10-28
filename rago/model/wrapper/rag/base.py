@@ -1,5 +1,4 @@
 """Define the RAG used to answer queries."""
-
 from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
@@ -8,7 +7,9 @@ from pydantic.dataclasses import dataclass
 
 from rago.data_objects import RAGOutput
 from rago.model.configs.reader_config.base import ReaderConfig  # noqa: TC001
+from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 from rago.model.configs.retriever_config.base import RetrieverConfig  # noqa: TC001
+from rago.model.configs.retriever_config.langchain import LangchainRetrieverConfig
 from rago.model.configs.retriever_config.qdrant import QdrantRetrieverConfig
 from rago.model.configs.tunable_model_config import TunableModelConfig
 from rago.model.wrapper.reader.reader_wrapper_factory import ReaderWrapperFactory
@@ -34,7 +35,7 @@ class RAGConfig(TunableModelConfig):
     retriever: RetrieverConfig
 
 
-class RAG(TunableModel):
+class RAG(TunableModel[RAGOutput, RAGConfig]):
     """A RAG answers queries based on its parametric (llm params) and non-parametric (database) knowledge."""
 
     def __init__(self, reader: Reader, retriever: Retriever) -> None:
@@ -47,11 +48,15 @@ class RAG(TunableModel):
         """
         self.reader = reader
         self.retriever = retriever
+        self.config = RAGConfig(
+            reader = self.reader.config,
+            retriever = self.retriever.config,
+        )
 
     @classmethod
     def make(
         cls,
-        rag_config: RAGConfig,
+        config: Optional[RAGConfig] = None,
         prompt_config: Optional[PromptConfig] = None,
         inputs_chunks: Optional[list[str]] = None,
     ) -> RAG:
@@ -66,24 +71,26 @@ class RAG(TunableModel):
         :return: The rag instance corresponding to the input config.
         :rtype: RAG
         """
+        if config is None:
+            config = RAGConfig(LangchainReaderConfig(), LangchainRetrieverConfig())
         if prompt_config is None:
             prompt_config = PromptConfig()
         reader = ReaderWrapperFactory.make(
-            rag_config.reader,
+            config.reader,
             prompt_config=prompt_config,
         )
 
         # Qdrant retrievers query an external collection; no local chunks needed.
-        if not isinstance(rag_config.retriever, QdrantRetrieverConfig) and inputs_chunks is None:
+        if not isinstance(config.retriever, QdrantRetrieverConfig) and inputs_chunks is None:
             raise ValueError(inputs_chunks)
         retriever = RetrieverWrapperFactory.make(
-            config=rag_config.retriever,
+            config=config.retriever,
             input_chunks=inputs_chunks or [],
         )
 
         return cls(reader, retriever)
 
-    def get_output(self, query: str) -> RAGOutput:
+    def _get_output(self, query: str) -> RAGOutput:
         """Get the rag response to a query.
 
         :param query: The query the rag needs to answer.
@@ -91,10 +98,6 @@ class RAG(TunableModel):
         :return: The rag's response to the input query.
         :rtype: RAGOutput
         """
-        retrieved_context = self.retriever.get_retriever_output(query)
-        answer = self.reader.get_reader_output(query, retrieved_context)
-        return RAGOutput(answer=answer, retrieved_context=retrieved_context)
-
-    def get_rag_output(self, query: str) -> RAGOutput:
-        """Return output via :meth:`get_output`."""
-        return self.get_output(query)
+        retrieval_output = self.retriever.get_output(query)
+        reader_output = self.reader.get_output(query, retrieval_output.retrieved_context)
+        return RAGOutput(answer=reader_output.answer, retrieved_context=retrieval_output.retrieved_context)

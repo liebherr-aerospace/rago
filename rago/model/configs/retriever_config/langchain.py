@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from rago.model.configs.encoder_config.langchain import LangchainEncoderConfig  # noqa: TC001
@@ -15,7 +16,7 @@ from rago.model.configs.retriever_config.base import RetrieverConfig
 class LangchainRetrieverConfig(RetrieverConfig):
     """Configuration of the langchain retriever."""
 
-    type: str
+    type: str = Field(default = "VectorIndexRetriever")
     similarity_function: Optional[str] = None
     search_type: Optional[str] = None
     search_kwargs: Optional[dict[str, Any]] = None

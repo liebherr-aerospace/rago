@@ -12,17 +12,22 @@ from rago.model.wrapper.llm_agent.message import Message
 if TYPE_CHECKING:
     import llama_index.core.llms.llm as llama_index_llm
 
-    from rago.model.configs.llm_config.llama_index import LLamaIndexLLMConfig
 
+from rago.model.configs.llm_config.llama_index import LLamaIndexLLMConfig
 from rago.model.constructors.llama_index.llm_factory import LLamaIndexLLMFactory
 
 
-class LlamaIndexLLMAgent(LLMAgent):
+class LlamaIndexLLMAgent(LLMAgent[LLamaIndexLLMConfig]):
     """A Language Model (LM) to answer queries using LlamaIndex as a backend."""
 
     language_model: llama_index_llm.LLM
 
-    def __init__(self, language_model: llama_index_llm.LLM, system_prompt: Optional[str] = None) -> None:
+    def __init__(
+            self,
+            language_model: llama_index_llm.LLM,
+            system_prompt: Optional[str] = None,
+            output_prompt: Optional[str] = None,
+            ) -> None:
         """Instantiate a LlamaIndex model with the llama-index model and its system Prompt.
 
         :param language_model: The LlamaIndex LM to use.
@@ -31,14 +36,15 @@ class LlamaIndexLLMAgent(LLMAgent):
         System is the standard name for commands given to the LLM on how to behave.
         :type system_prompt:  Optional[str]
         """
-        super().__init__(system_prompt)
+        super().__init__(system_prompt, output_prompt)
         self.language_model = language_model
 
     @classmethod
-    def make_from_backend(
+    def make(
         cls,
-        llm_config: Optional[LLamaIndexLLMConfig] = None,
+        config: Optional[LLamaIndexLLMConfig] = None,
         system_prompt: Optional[str] = None,
+        output_prompt: Optional[str] = None,
     ) -> LlamaIndexLLMAgent:
         """Build a llm agent from its config and the config used by its backend.
 
@@ -50,8 +56,8 @@ class LlamaIndexLLMAgent(LLMAgent):
         :return: the LLM agent
         :rtype: LlamaIndexLLMAgent
         """
-        language_model = LLamaIndexLLMFactory.make(config=llm_config)
-        return cls(language_model=language_model, system_prompt=system_prompt)
+        language_model = LLamaIndexLLMFactory.make(config=config)
+        return cls(language_model=language_model, system_prompt=system_prompt, output_prompt = output_prompt)
 
     def chat(self, chat_sequence: list[Message], **kwargs: Any) -> Message:  # noqa: ANN401
         """Chat with LM by providing new and previous interaction as sequence of message.

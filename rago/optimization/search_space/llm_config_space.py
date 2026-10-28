@@ -101,6 +101,7 @@ class OllamaLLMConfigSpace(LLMConfigSpace):
     repeat_last_n: IntParamSpace = Field(default=IntParamSpace(low=-1, high=256))
     base_url: str = Field(default=os.environ.get("TEST_OLLAMA_HOST", ""))
     client_kwargs: dict[str, bool] = Field(default={"verify": False})
+    seed: CategoricalParamSpace[int] = Field(default = CategoricalParamSpace(choices=[42]))
 
     def sample(self, trial: optuna.trial.BaseTrial) -> LangchainOllamaConfig:
         """Sample a Ollama LLM configuration from LLM configuration space.
@@ -129,6 +130,7 @@ class OllamaLLMConfigSpace(LLMConfigSpace):
             repeat_last_n=repeat_last_n,
             base_url=self.base_url,
             client_kwargs=self.client_kwargs,
+            seed = self.seed.sample(trial),
         )
 
 

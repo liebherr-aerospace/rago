@@ -69,8 +69,9 @@ class PromptTemplate:
                     processed_kwargs[key_arg] = val_arg
                 case list():
                     processed_kwargs[key_arg] = self.aggregate_strings(val_arg, sep)
+
                 case _:
-                    continue
+                    processed_kwargs[key_arg] = val_arg
         return processed_kwargs
 
     def aggregate_strings(self, list_strings: list[str], separator: str) -> str:

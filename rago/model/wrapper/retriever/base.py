@@ -2,18 +2,18 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING
+from abc import abstractmethod
 
-if TYPE_CHECKING:
-    from rago.data_objects import RetrievedContext
+from rago.data_objects import RetrievalOutput
+from rago.model.configs.retriever_config.base import RetrieverConfig
+from rago.model.wrapper.tunable_model import TunableModel
 
 
-class Retriever(ABC):
+class Retriever[RetrieverConfigType: RetrieverConfig](TunableModel[RetrievalOutput, RetrieverConfigType]):
     """A retriever that retrieves information relevant to answer a query from a database (non-parametric knowledge)."""
 
     @abstractmethod
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, query: str) -> RetrievalOutput:
         """Get the information relevant to answer a query from the retriever's database.
 
         :param query: The query.

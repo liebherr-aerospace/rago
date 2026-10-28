@@ -36,6 +36,9 @@ dependencies = [
     "fastembed>=0.4.0",
     "sentence-transformers>=3.0.0",
     "pylate>=1.5.0",
+    "langchain-text-splitters>=1.1.2",
+    "plotly>=6.7.0",
+    "nbformat>=5.10.4",
 ]
 
 [tool.hatch.build.targets.wheel]

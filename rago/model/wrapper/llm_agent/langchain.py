@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Any, Optional, cast
 
+from rago.model.configs.llm_config.langchain import LangchainLLMConfig
 from rago.model.constructors.langchain.llm_factory import LangchainLLMFactory
 from rago.model.wrapper.llm_agent.base import LLMAgent
 from rago.model.wrapper.llm_agent.message import Message, Role
@@ -15,15 +16,19 @@ if TYPE_CHECKING:
     from langchain_core.messages import BaseMessage
     from langchain_core.prompt_values import PromptValue
 
-    from rago.model.configs.llm_config.langchain import LangchainLLMConfig
 
 
-class LangchainLLMAgent(LLMAgent):
+class LangchainLLMAgent(LLMAgent[LangchainLLMConfig]):
     """A Language Model to answer queries using Langchain as a backend."""
 
     language_model: langchain_llm.BaseLLM
 
-    def __init__(self, language_model: langchain_llm.BaseLLM, system_prompt: Optional[str] = None) -> None:
+    def __init__(
+            self,
+            language_model: langchain_llm.BaseLLM,
+            system_prompt: Optional[str] = None,
+            output_prompt: Optional[str] = None,
+            ) -> None:
         """Instantiate a Langchain model with the langchain model and its system Prompt.
 
         :param language_model: The Langchain LM to use.
@@ -32,14 +37,15 @@ class LangchainLLMAgent(LLMAgent):
         System is the standard name for commands given to the LLM on how to behave.
         :type system_prompt:  Optional[str]
         """
-        super().__init__(system_prompt)
+        super().__init__(system_prompt, output_prompt)
         self.language_model = language_model
 
     @classmethod
-    def make_from_backend(
+    def make(
         cls,
         config: Optional[LangchainLLMConfig] = None,
         system_prompt: Optional[str] = None,
+        output_prompt: Optional[str] = None,
     ) -> LangchainLLMAgent:
         """Build a llm agent from its config and the config used by its backend.
 
@@ -54,6 +60,7 @@ class LangchainLLMAgent(LLMAgent):
         return LangchainLLMAgent(
             language_model=LangchainLLMFactory.make(config=config),
             system_prompt=system_prompt,
+            output_prompt = output_prompt,
         )
 
     def chat(self, chat_sequence: list[Message], **kwargs: Any) -> Message:  # noqa: ANN401
@@ -67,8 +74,9 @@ class LangchainLLMAgent(LLMAgent):
         :rtype: Message
         """
         langchain_messages = [Message.get_langchain_message(message) for message in chat_sequence]
+        bot_msg =self.language_model.invoke(langchain_messages, **kwargs)
         model_answer_message = Message(
-            self.language_model.invoke(langchain_messages, **kwargs),
+            bot_msg,
             Role.BOT,
         )
         return model_answer_message
@@ -87,7 +95,7 @@ class LangchainLLMAgent(LLMAgent):
         ]
         if TYPE_CHECKING:
             new_batch_langchain_messages = cast(
-                list[PromptValue | str | Sequence[BaseMessage | list[str] | tuple[str, str] | str | dict[str, Any]]],
+                "list[PromptValue | str | Sequence[BaseMessage | list[str] | tuple[str, str] | str | dict[str, Any]]]",
                 batch_langchain_messages,
             )
         batch_model_answer = self.language_model.batch(new_batch_langchain_messages, **kwargs)

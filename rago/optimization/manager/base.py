@@ -13,21 +13,23 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
+from pathlib import Path
 from typing import TYPE_CHECKING, Optional, Self
 
 import numpy as np
 import optuna
 from pydantic.dataclasses import dataclass
 
+from rago.data_objects import ModelOutput
 from rago.dataset.generator.simple import SeedDataType, SimpleDatasetGenerator
-from rago.eval import BaseEvaluator
-from rago.optimization.search_space.rag_config_space import RAGConfigSpace
+from rago.model.configs.tunable_model_config import TunableModelConfig
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
-    from rago.data_objects import EvalSample, RAGOutput
+    from rago.data_objects import EvalSample
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
+    from rago.eval import BaseEvaluator
     from rago.model.configs.tunable_model_config import TunableModelConfig
     from rago.model.wrapper.tunable_model import TunableModel
     from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
@@ -35,9 +37,6 @@ if TYPE_CHECKING:
 from enum import StrEnum
 
 from rago.data_objects import DataObject, Metric
-from rago.model.wrapper.rag.base import RAG, RAGConfig
-from rago.model.wrapper.reader_model import ReaderModel, ReaderModelConfig
-from rago.model.wrapper.retriever_model import RetrieverModel, RetrieverModelConfig
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
 
@@ -66,16 +65,16 @@ class OptimParams:
     path_experiments: str = "experiments"
     experiment_name: str = "experiment_001"
     log_to_file: bool = True
-    n_startup_trials: int = 50
-    n_iter: Optional[int] = None
+    n_startup_trials: int = 10
+    n_iter: Optional[int] = 100
     show_progress_bar: bool = True
 
 
-class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
+class BaseOptunaManager[OutputType: ModelOutput, ConfigType: TunableModelConfig](ABC):
     """An Abstract Class that defines the optimization manager."""
 
     manager: optuna.Study
-    config_space: TunableModelConfigSpace
+    config_space: TunableModelConfigSpace[ConfigType]
     logger: logging.Logger
 
     def __init__(
@@ -83,10 +82,11 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         *,
         params: Optional[OptimParams] = None,
         datasets: dict[str, RAGDataset],
-        optim_evaluator: EvaluatorType,
+        optim_evaluator: BaseEvaluator[OutputType],
         optim_metric_name: str,
         test_evaluators: list[BaseEvaluator],
-        config_space: Optional[TunableModelConfigSpace] = None,
+        model_class: TunableModel[OutputType, ConfigType],
+        config_space: TunableModelConfigSpace[ConfigType],
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
@@ -117,7 +117,8 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         self.optim_evaluator = optim_evaluator
         self.optim_metric_name = optim_metric_name
         self.test_evaluators = test_evaluators
-        self.config_space = config_space if config_space is not None else RAGConfigSpace()
+        self.model_class = model_class
+        self.config_space = config_space
         self.prompt_config = prompt_config if prompt_config is not None else PromptConfig()
         self.sampler = sampler
         self.pruner = pruner
@@ -133,9 +134,10 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         seed_data: SeedDataType,
         dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
         splits: tuple[float, float],
-        optim_evaluator: EvaluatorType,
+        optim_evaluator: BaseEvaluator[OutputType],
         optim_metric_name: str,
         test_evaluators: list[BaseEvaluator],
+        model_class: TunableModel[OutputType, ConfigType],
         config_space: Optional[TunableModelConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
@@ -172,6 +174,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
             optim_evaluator=optim_evaluator,
             optim_metric_name=optim_metric_name,
             test_evaluators=test_evaluators,
+            model_class = model_class,
             config_space=config_space,
             prompt_config=prompt_config,
             sampler=sampler,
@@ -201,19 +204,26 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
     def initialize_logger(self) -> None:
         """Initialize the logger."""
         self.logger = logging.getLogger(__name__)
-        stream_handler = logging.StreamHandler()
+
         formatter = logging.Formatter(
             "%(asctime)s - %(name)s - %(levelname)s - %(message)s",
         )
-        stream_handler.setFormatter(formatter)
-        self.logger.addHandler(stream_handler)
-        stream_handler.setLevel(logging.INFO)
+        if not any(isinstance(h, logging.StreamHandler) for h in self.logger.handlers):
+            stream_handler = logging.StreamHandler()
+            stream_handler.setFormatter(formatter)
+            stream_handler.setLevel(logging.INFO)
+            self.logger.addHandler(stream_handler)
+
         if self.params.log_to_file:
             log_file_path = self.experiment_repo.path_experiment / f"{self.experiment_repo.experiment_name}.log"
-            file_handler = logging.FileHandler(log_file_path)
-            file_handler.setFormatter(formatter)
-            file_handler.setLevel(logging.DEBUG)
-            self.logger.addHandler(file_handler)
+            if not any(
+            isinstance(h, logging.FileHandler) and Path(h.baseFilename) == log_file_path
+            for h in self.logger.handlers
+            ):
+                file_handler = logging.FileHandler(log_file_path)
+                file_handler.setFormatter(formatter)
+                file_handler.setLevel(logging.DEBUG)
+                self.logger.addHandler(file_handler)
         self.logger.setLevel(logging.DEBUG)
         self.logger.info("[INIT] Experiment repository Path: %s", self.experiment_repo.path_experiments)
 
@@ -288,7 +298,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         for m_name, m_value in trial_eval.items():
             trial.set_user_attr(m_name, m_value.score)
 
-    def sample_model(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel:
+    def sample_model(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel[OutputType]:
         """Sample a model (RAG, RetrieverModel, or ReaderModel) from trial.
 
         :param trial: Trial to use to sample the model.
@@ -301,27 +311,11 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         config = self.config_space.sample(trial)
         self.logger.debug("[PROCESS] Current Model Configuration Candidate: %s", config)
         inputs_chunks = [doc.text for doc in dataset.corpus.values()]
-
-        if isinstance(config, RAGConfig):
-            return RAG.make(
-                rag_config=config,
-                prompt_config=self.prompt_config,
-                inputs_chunks=inputs_chunks,
-            )
-        if isinstance(config, RetrieverModelConfig):
-            return RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
-        if isinstance(config, ReaderModelConfig):
-            return ReaderModel.make(config=config, prompt_config=self.prompt_config)
-        msg = f"Unsupported config type: {type(config)}"
-        raise TypeError(msg)
-
-    def sample_rag(self, trial: optuna.trial.BaseTrial, dataset: RAGDataset) -> TunableModel:
-        """Sample RAG from trial.
-
-        .. deprecated::
-            Use :meth:`sample_model` instead.
-        """
-        return self.sample_model(trial, dataset)
+        return self.model_class.make(
+            config=config,
+            prompt_config=self.prompt_config,
+            inputs_chunks=inputs_chunks,
+        )
 
     def load_results(self) -> optuna.study.Study:
         """Load the results of the optimization.
@@ -331,7 +325,7 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         """
         return self.experiment_repo.load_results()
 
-    def get_n_best_trials(self, number: int) -> list[optuna.trial.FrozenTrial]:
+    def get_n_best_trials(self, number: int = 1) -> list[optuna.trial.FrozenTrial]:
         """Get the top N best trials from the optimization.
 
         :param number: The number of top trials to retrieve.
@@ -380,23 +374,10 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         :rtype: float
         :raise ValueError if the given context or the evaluation score is None.
         """
-        self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
-        self.logger.debug("[PROCESS] Query: %s", eval_sample.query)
         candidate = rag_candidate.get_output(eval_sample.query)
-        self.logger.info("[PROCESS] Query: %s | Generated response: %s", eval_sample.query, candidate.answer)
 
         # Log retrieved chunks for visibility during retriever-only optimisation
-        if candidate.retrieved_context:
-            for i, ctx in enumerate(candidate.retrieved_context):
-                self.logger.info(
-                    "[RETRIEVED] #%d  score=%.4f  text=%s",
-                    i + 1,
-                    ctx.score if ctx.score is not None else 0.0,
-                    ctx.text[:200],
-                )
-
         evaluation = evaluator.evaluate(candidate, eval_sample)
-        self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
         return evaluation
 
     def test(self) -> RAGCandidateEval:
@@ -407,7 +388,8 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         """
         best_trial = self.manager.best_trial
         best_rag_results = self.test_trial(best_trial)
-        DataObject.save_to_json(best_rag_results, f"experiments/{self.params.experiment_name}/best_rag_results.json")
+
+        DataObject.save_to_json(best_rag_results, self.experiment_repo.path_experiment/"best_rag_results.json")
         return best_rag_results
 
     def test_trial(self, trial: optuna.trial.FrozenTrial) -> RAGCandidateEval:
@@ -420,21 +402,11 @@ class BaseOptunaManager[EvaluatorType: BaseEvaluator[RAGOutput]](ABC):
         test_dataset = self.datasets["test"]
         config = self.config_space.sample(trial)
         inputs_chunks = [doc.text for doc in test_dataset.corpus.values()]
-
-        if isinstance(config, RAGConfig):
-            model: TunableModel = RAG.make(
-                rag_config=config,
-                prompt_config=self.prompt_config,
-                inputs_chunks=inputs_chunks,
-            )
-        elif isinstance(config, RetrieverModelConfig):
-            model = RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
-        elif isinstance(config, ReaderModelConfig):
-            model = ReaderModel.make(config=config, prompt_config=self.prompt_config)
-        else:
-            msg = f"Unsupported config type: {type(config)}"
-            raise TypeError(msg)
-
+        model = self.model_class.make(
+            config=config,
+            prompt_config=self.prompt_config,
+            inputs_chunks=inputs_chunks,
+        )
         test_results: dict[str, list[float]] = defaultdict(list[float])
         for evaluator in self.test_evaluators:
             for test_sample in test_dataset.samples:

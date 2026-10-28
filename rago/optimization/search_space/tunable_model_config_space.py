@@ -16,11 +16,11 @@ if TYPE_CHECKING:
 
 
 @dataclass
-class TunableModelConfigSpace(ConfigSpace):
+class TunableModelConfigSpace[ModelConfig: TunableModelConfig](ConfigSpace):
     """Abstract config space that samples a :class:`TunableModelConfig`."""
 
     @abstractmethod
-    def sample(self, trial: optuna.trial.BaseTrial) -> TunableModelConfig:
+    def sample(self, trial: optuna.trial.BaseTrial) -> ModelConfig:
         """Sample a model configuration from the search space.
 
         :param trial: Optuna trial used to sample hyperparameters.

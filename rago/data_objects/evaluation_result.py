@@ -10,7 +10,7 @@ from pydantic.dataclasses import dataclass
 if TYPE_CHECKING:
     from rago.data_objects.eval_sample import EvalSample
     from rago.data_objects.metric import Metric
-    from rago.data_objects.rag_output import RAGOutput
+    from rago.data_objects.model_output import RAGOutput
 
 
 @dataclass

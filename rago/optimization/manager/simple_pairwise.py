@@ -3,14 +3,16 @@
 from __future__ import annotations
 
 import gc
+import time
 from collections import defaultdict
 from typing import TYPE_CHECKING, Optional
 
 import numpy as np
 import optuna
 
-from rago.data_objects import RAGOutput
+from rago.data_objects import GenerationOutput, RAGOutput
 from rago.eval import BaseEvaluator
+from rago.model.configs.tunable_model_config import TunableModelConfig
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
@@ -21,20 +23,17 @@ if TYPE_CHECKING:
     from rago.data_objects import RAGOutput
     from rago.data_objects.eval_sample import EvalSample
     from rago.dataset import RAGDataset
-    from rago.model.configs.tunable_model_config import TunableModelConfig
     from rago.model.wrapper.tunable_model import TunableModel
     from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 from rago.data_objects import Metric
 from rago.eval import BaseLLMEvaluator, EvalPrompts, SimpleLLMEvaluator
 from rago.model.wrapper.llm_agent import LangchainLLMAgent
-from rago.model.wrapper.rag.base import RAG, RAGConfig
-from rago.model.wrapper.reader_model import ReaderModel, ReaderModelConfig
-from rago.model.wrapper.retriever_model import RetrieverModel, RetrieverModelConfig
 from rago.optimization.manager.base import BaseOptunaManager, OptimParams
 from rago.prompts import DEFAULT_REFERENCE_EVAL_PROMPT
 
 
-class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
+class SimplePairWiseOptunaManager[OutputType: GenerationOutput, ConfigType: TunableModelConfig](
+    BaseOptunaManager[OutputType, ConfigType]):
     """A simple direct optimization manager calling Optuna to optimize Reader parameters.
 
     The Optimization manager is instantiated with Optuna Study.
@@ -48,6 +47,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         optim_evaluator: BaseLLMEvaluator,
         optim_metric_name: str,
         test_evaluators: list[BaseEvaluator],
+        model_class: TunableModel[OutputType, ConfigType],
         config_space: Optional[TunableModelConfigSpace] = None,
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
@@ -80,7 +80,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         self.num_initial_trials = num_initial_rags
         if optim_evaluator is None:
             optim_evaluator = SimpleLLMEvaluator(
-                judge=LangchainLLMAgent.make_from_backend(),
+                judge=LangchainLLMAgent.make(),
                 eval_prompts=EvalPrompts(DEFAULT_REFERENCE_EVAL_PROMPT),
             )
         super().__init__(
@@ -89,6 +89,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
             optim_evaluator=optim_evaluator,
             optim_metric_name=optim_metric_name,
             test_evaluators=test_evaluators,
+            model_class= model_class,
             config_space=config_space,
             prompt_config=prompt_config,
             sampler=sampler,
@@ -117,86 +118,79 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         """Initialize the optimization by getting the first best RAG configuration."""
         self.logger.info("[INIT OPTIM] Run First Round of the Battle RAG...")
         dataset = self.datasets["train"]
-        rags, trials = self.instantiate_simple_rags()
+        models, trials = self.instantiate_models()
         answers_candidates: list[list[str]] = [[] for _ in range(self.num_initial_trials)]
         scores: list[list[float]] = [[] for _ in range(self.num_initial_trials)]
         for n, test_sample in enumerate(dataset.samples):
             self.logger.debug("[INIT OPTIM] Iteration %s", n)
             if test_sample.context is not None:
-                self.logger.debug("[INIT OPTIM] Test Eval Sample: %s", test_sample)
-                rag_outputs = [rag_cand.get_output(test_sample.query) for rag_cand in rags]
+                start = time.time()
+                model_outputs = [model_cand.get_output(test_sample.query) for model_cand in models]
+                end = time.time()
+                self.logger.debug("[INIT OPTIM] RAGs generation time (s): %s", end- start)
+                start = time.time()
                 evaluations = self.optim_evaluator.evaluate_n_wise(
-                    rag_outputs,
+                    model_outputs,
                     test_sample,
                 )
-
+                end = time.time()
+                self.logger.debug("[INIT OPTIM] Evaluation time (s): %s", end- start)
+                self.logger.debug(
+                    "[INIT OPTIM] Evaluation scores: [%s, %s]",
+                    evaluations[0]["correctness"].score, evaluations[1]["correctness"].score)
                 answers_candidates, scores = self.update_answers_scores(
-                    rag_outputs,
+                    model_outputs,
                     evaluations,
                     answers_candidates,
                     scores,
                 )
+
         best_trial, best_answer, best_scores = self.get_best_candidate(
             trials,
             answers_candidates,
             scores,
         )
-        self.logger.info("[INIT OPTIM] Best Answer: %s", best_answer)
-        self.logger.info("[INIT OPTIM] Best Score: %s", best_scores)
-        self.logger.debug(
-            "[INIT OPTIM] Eval Sample Before Update: %s",
-            dataset.samples,
+        self.update_eval_sample_reference(
+            best_answer,
+            best_scores,
         )
-        if (best_answer is not None) and (best_scores is not None):
-            self.update_eval_sample_reference(
-                best_answer,
-                best_scores,
-            )
-            mean_best_score = np.mean(best_scores)
-            self.manager.tell(best_trial, float(mean_best_score))
 
-    def _make_model(self, config: TunableModelConfig) -> TunableModel:
-        """Instantiate a model from a config, dispatching by type."""
-        inputs_chunks = [doc.text for doc in self.datasets["train"].corpus.values()]
-        if isinstance(config, RAGConfig):
-            return RAG.make(
-                rag_config=config,
-                prompt_config=self.prompt_config,
-                inputs_chunks=inputs_chunks,
-            )
-        if isinstance(config, RetrieverModelConfig):
-            return RetrieverModel.make(config=config, inputs_chunks=inputs_chunks)
-        if isinstance(config, ReaderModelConfig):
-            return ReaderModel.make(config=config, prompt_config=self.prompt_config)
-        msg = f"Unsupported config type: {type(config)}"
-        raise TypeError(msg)
+        for trial, score_list in zip(trials, scores, strict=True):
+            mean_score = np.nanmean(score_list)
+            if np.isnan(mean_score):
+                mean_score = 0.0
+            self.manager.tell(trial, float(mean_score))
 
-    def instantiate_simple_rags(self) -> tuple[list[TunableModel], list[optuna.Trial]]:
+    def instantiate_models(self) -> tuple[list[TunableModel[OutputType, ConfigType]], list[optuna.Trial]]:
         """Instantiate models for the initial pairwise comparison.
 
         :return: The model candidates and the trials.
         :rtype: tuple[list[TunableModel], list[optuna.Trial]]
         """
         trials: list[optuna.Trial] = []
-        models: list[TunableModel] = []
+        models: list[TunableModel[OutputType, ConfigType]] = []
+        inputs_chunks = [doc.text for doc in self.datasets["train"].corpus.values()]
         for _ in range(self.num_initial_trials):
             trials.append(self.manager.ask())
             config = self.config_space.sample(trials[-1])
             self.logger.info("[PROCESS] Current Config: %s", config)
-            models.append(self._make_model(config))
+            models.append(self.model_class.make(
+                config,
+                prompt_config=self.prompt_config,
+                inputs_chunks=inputs_chunks))
         return (models, trials)
 
     def update_answers_scores(
         self,
-        rag_output: list[RAGOutput],
+        model_output: list[RAGOutput],
         evaluation: list[dict[str, Metric]],
         answers: list[list[str]],
         scores: list[list[float]],
     ) -> tuple[list[list[str]], list[list[float]]]:
         """Update the list of the candidate answers and scores and log it.
 
-        :param rag_output: The candidate rag output
-        :type rag_output: RagOutput
+        :param model_output: The candidate rag output
+        :type model_output: RagOutput
         :param evaluation: The list of the candidate evaluation
         :type evaluation: dict[str, Metric]
         :param answers: The list of the candidate answers
@@ -204,14 +198,10 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :param scores: The list of the candidate scores
         :type scores: list[float]
         """
-        for idx, (out, e) in enumerate(zip(rag_output, evaluation, strict=False)):
-            self.logger.debug("[INIT OPTIM] Candidate RAG Output: %s", rag_output)
-            self.logger.debug("[INIT OPTIM] Candidate Evaluation: %s", evaluation)
+        for idx, (out, e) in enumerate(zip(model_output, evaluation, strict=False)):
             if out.answer is not None:
                 answers[idx].append(out.answer)
-            self.logger.debug("[INIT OPTIM] Candidate All Answers: %s", answers)
             scores[idx].append(e[self.optim_metric_name].score)
-            self.logger.debug("[INIT OPTIM] Candidate All Scores: %s", scores)
         return answers, scores
 
     def get_best_candidate(
@@ -229,7 +219,7 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :return: A tuple containing the trial, answers, its associated scores.
         :rtype: tuple[optuna.Trial, list[str], list[float]]
         """
-        avg_scores = [np.mean(score_list) for score_list in scores]
+        avg_scores = [np.nanmean(score_list) for score_list in scores]
         best_index = np.argmax(avg_scores)
         self.logger.debug("[INIT OPTIM] Best index: %s", best_index)
         return trial[best_index], answers[best_index], scores[best_index]
@@ -253,13 +243,12 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
             for idx, (answer, s) in enumerate(zip(answers, scores, strict=False)):
                 self.datasets["train"].samples[idx].reference_answer = answer
                 self.datasets["train"].samples[idx].reference_score = s
-            self.logger.debug("[PROCESS] Eval Sample Update: %s", self.datasets["train"].samples)
 
     def get_current_score_answer(
         self,
         evaluator: BaseEvaluator,
         eval_sample: EvalSample,
-        rag_candidate: TunableModel,
+        model_candidate: TunableModel[OutputType, ConfigType],
     ) -> tuple[str, dict[str, Metric]]:
         """Get the current score and answer.
 
@@ -271,11 +260,9 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :rtype: tuple[str, float]
         :raise ValueError if the given context or the score or answer is None.
         """
-        self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
         if eval_sample.context is not None:
-            candidate = rag_candidate.get_output(eval_sample.query)
+            candidate = model_candidate.get_output(eval_sample.query)
             evaluation = evaluator.evaluate(candidate, eval_sample)
-            self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
             if candidate.answer is not None:
                 return candidate.answer, evaluation
         msg_error = "None values found."
@@ -294,39 +281,36 @@ class SimplePairWiseOptunaManager(BaseOptunaManager[BaseLLMEvaluator]):
         :rtype: float
         """
         rag_candidate = self.sample_model(trial, dataset)
-        self.logger.info("[PROCESS] Trial %s", trial.number)
         if len(self.manager.best_trials) > 0:
             self.logger.info(
-                "[PROCESS] Best is trial %s",
+                "[Trial %s] Best is trial %s",
+                trial.number,
                 self.manager.best_trial.number,
             )
-            self.logger.info("[PROCESS] Best Value: %s", self.manager.best_trial.values)
+            self.logger.info("[Trial %s] Best Value: %s", trial.number, self.manager.best_trial.values)
         trial_eval: dict[str, Metric] = defaultdict(Metric)
         score_list: list[float] = []
         answer_list = []
         for n, test_sample in enumerate(dataset.samples):
-            self.logger.debug("[PROCESS] Iteration %s", n)
+            self.logger.debug("[Trial %s] Iteration %s",trial.number, n)
+            start = time.time()
             answer_eval, single_eval = self.get_current_score_answer(self.optim_evaluator, test_sample, rag_candidate)
-            self.logger.info(
-                "[PROCESS] Trial %s | Sample %s | Query: %s | Generated response: %s | Scores: %s",
-                trial.number,
-                n,
-                test_sample.query,
-                answer_eval,
-                single_eval,
-            )
+            end = time.time()
+            self.logger.info("[Trial %s] Generation & evaluation time: %s", trial.number, end -start)
+            self.logger.info("[Trial %s] Score: %s", trial.number, single_eval["correctness"].score)
             trial_eval = {
                 name: Metric(self.optim_evaluator.update_avg_score(trial_eval[name].score, metric.score, n))
                 for name, metric in single_eval.items()
             }
+            self.logger.info("[Trial %s] Avg Score: %s", trial.number, trial_eval["correctness"].score)
             single_score = single_eval[self.optim_metric_name].score
             answer_list.append(answer_eval)
             score_list.append(single_score)
             trial.report(single_score, n)
             mean_score = trial_eval[self.optim_metric_name].score
-            self.logger.debug("[PROCESS] Mean score for current iteration: %s", mean_score)
+
             if self._should_prune(trial, mean_score):
-                self.logger.debug("[PROCESS] Pruning...")
+                self.logger.debug("[Trial %s] Pruning...")
                 self._save_trial_metrics(trial, trial_eval)
                 gc.collect()
                 return mean_score

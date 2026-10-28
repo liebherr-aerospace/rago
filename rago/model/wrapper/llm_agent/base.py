@@ -2,18 +2,20 @@
 
 from __future__ import annotations
 
-from abc import ABC, abstractmethod
+from abc import abstractmethod
 from typing import Any, Optional
 
+from rago.data_objects import GenerationOutput
 from rago.model.wrapper.llm_agent.message import Message, Role
+from rago.model.wrapper.tunable_model import TunableModel, TunableModelConfig
 
 
-class LLMAgent(ABC):
+class LLMAgent[ConfigType:TunableModelConfig](TunableModel[GenerationOutput, ConfigType]):
     """Define an LLM Agent that answer queries or chat discussions."""
 
     system_message: Optional[Message]
 
-    def __init__(self, system_prompt: Optional[str] = None) -> None:
+    def __init__(self, system_prompt: Optional[str] = None, output_prompt: Optional[str] = None) -> None:
         """Instantiate a Language Model with an eventual system prompt.
 
         :param system_prompt: The system prompt used by the model.
@@ -21,6 +23,7 @@ class LLMAgent(ABC):
         :type system_prompt: Optional[str]
         """
         self.system_message = Message(system_prompt, Role.SYSTEM) if system_prompt is not None else None
+        self.output_prompt = output_prompt
 
     @abstractmethod
     def chat(self, chat_sequence: list[Message], **kwargs: Any) -> Message:  # noqa: ANN401
@@ -65,7 +68,7 @@ class LLMAgent(ABC):
         :rtype: str
         """
         message_sequence = self.get_message_sequence_from_query(prompt)
-        return self.chat(message_sequence, **kwargs).text
+        return self.chat(message_sequence, **kwargs, think = False).text
 
     def get_message_sequence_from_query(self, query: str) -> list[Message]:
         """Get the message sequence to send to the LM by adding the LM system prompt if it exists.
@@ -81,3 +84,7 @@ class LLMAgent(ABC):
         user_message = Message(query, Role.USER)
         message_sequence.append(user_message)
         return message_sequence
+
+    def _get_output(self, query: str) -> GenerationOutput:
+        prompt = self.output_prompt.format(query = query) if self.output_prompt is not None else query
+        return GenerationOutput(answer = self.query(prompt))

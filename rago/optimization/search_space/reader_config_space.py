@@ -9,21 +9,21 @@ from pydantic.dataclasses import dataclass
 from rago.model.configs.reader_config.base import ReaderConfig
 from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 from rago.model.configs.reader_config.llama_index import LLamaIndexReaderConfig
-from rago.optimization.search_space.config_space import ConfigSpace
 from rago.optimization.search_space.llm_config_space import (
     HFLLMConfigSpace,
     OllamaLlamaIndexLLMConfigSpace,
     OllamaLLMConfigSpace,
 )
 from rago.optimization.search_space.param_space import CategoricalParamSpace
+from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
 
 
 @dataclass
-class ReaderConfigSpace(ConfigSpace):
+class ReaderConfigSpace[ReaderConfigType: ReaderConfig](TunableModelConfigSpace[ReaderConfigType]):
     """Space of containing all the possible reader configurations."""
 
     @abstractmethod
-    def sample(self, trial: optuna.trial.BaseTrial) -> ReaderConfig:
+    def sample(self, trial: optuna.trial.BaseTrial) -> ReaderConfigType:
         """Sample a configuration from configuration space.
 
         :param trial: Trial used to sample the configuration
@@ -34,7 +34,7 @@ class ReaderConfigSpace(ConfigSpace):
 
 
 @dataclass
-class LangchainReaderConfigSpace(ReaderConfigSpace):
+class LangchainReaderConfigSpace(ReaderConfigSpace[LangchainReaderConfig]):
     """Space of containing all the possible reader configurations by using Langchain."""
 
     llm_config: OllamaLLMConfigSpace = Field(default=OllamaLLMConfigSpace())
@@ -51,7 +51,7 @@ class LangchainReaderConfigSpace(ReaderConfigSpace):
 
 
 @dataclass
-class LlamaIndexReaderConfigSpace(ReaderConfigSpace):
+class LlamaIndexReaderConfigSpace(ReaderConfigSpace[LLamaIndexReaderConfig]):
     """Space of containing all the possible reader configurations by using llama index."""
 
     type_config: CategoricalParamSpace = Field(
