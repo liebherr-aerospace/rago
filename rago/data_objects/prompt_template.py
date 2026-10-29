@@ -70,7 +70,11 @@ class PromptTemplate:
                 case list():
                     processed_kwargs[key_arg] = self.aggregate_strings(val_arg, sep)
                 case _:
-                    continue
+                    try:
+                        processed_kwargs[key_arg] = str(val_arg)
+                    except Exception as exc:
+                        msg = f"invalid input prompt: {key_arg} of type {type(val_arg)}"
+                        raise TypeError(msg) from exc
         return processed_kwargs
 
     def aggregate_strings(self, list_strings: list[str], separator: str) -> str:
