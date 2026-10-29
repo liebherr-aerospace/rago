@@ -46,11 +46,11 @@ class TunableModel[InputT: ModelInput, OutputT: ModelOutput, ConfigT: TunableMod
         ...
 
     def get_output(self, model_input: InputT) -> OutputT:
-        """Produce an output for the given *query*.
+        """Produce an output for the given model input.
 
-        :param query: The user query.
-        :type query: str
-        :return: The model output (answer and/or retrieved context).
+        :param model_input: The input to the tunable model.
+        :type model_input: InputT
+        :return: The model output.
         :rtype: OutputT
         """
         start = time.time()

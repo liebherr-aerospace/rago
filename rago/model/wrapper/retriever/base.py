@@ -25,11 +25,11 @@ class Retriever[ConfigT: RetrieverConfig](TunableModel[ModelInput, RetrievalOutp
 
     @abstractmethod
     def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
-        """Retrieve the context relevant to *query*, without generating an answer.
+        """Retrieve the context relevant to model input, without generating an answer.
 
-        :param query: The query.
-        :type query: str
-        :return: Output with ``answer=None`` and populated ``retrieved_context``.
-        :rtype: RAGOutput
+        :param model_input: The ModelInput containing the query to answer.
+        :type query: ModelInput
+        :return: The retrieval output containing the retrieved context.
+        :rtype: RetrievalOutput
         """
 

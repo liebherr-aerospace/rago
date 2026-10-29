@@ -406,10 +406,10 @@ class QdrantRetrieverWrapper(Retriever[QdrantRetrieverConfig]):
     def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
         """Execute a hybrid search and return scored contexts.
 
-        :param query: The user query.
-        :type query: str
+        :param model_input: The input to use for retrieval.
+        :type model_input: ModelInput
         :return: Retrieved contexts sorted by descending score.
-        :rtype: list[RetrievedContext]
+        :rtype: RetrievalOutput
         """
         cfg = self.config
         coll = cfg.collection

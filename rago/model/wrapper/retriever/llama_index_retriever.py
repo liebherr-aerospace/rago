@@ -83,10 +83,10 @@ class LlamaIndexRetrieverWrapper(Retriever[LlamaIndexRetrieverConfig]):
     def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
         """Get the texts relevant to the query from the retriever database.
 
-        :param query: The query.
-        :type query: str
+        :param model_input: The input to use for retrieval.
+        :type model_input: ModelInput
         :return: The texts relevant to the query from the retriever database.
-        :rtype: list[str]
+        :rtype: RetrievalOutput
         """
         nodes_with_scores = self.llama_index_retriever.retrieve(model_input.query)
         retrieved_context = [

@@ -112,22 +112,22 @@ class HybridLangchainRetrieverWrapper(Retriever[HybridLangchainRetrieverConfig])
         return normalized
 
     def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
-        """Get the texts relevant to the query by combining all sub-retriever results.
+        """Get the texts relevant to the model input by combining all sub-retriever results.
 
         Each sub-retriever's scores are normalized to [0, 1], then multiplied by
         the associated weight.  Duplicate contexts (same text) are merged by
         summing their weighted scores.
 
-        :param query: The query.
-        :type query: str
+        :param model_input: The input to use for retrieval.
+        :type model_input: ModelInput
         :return: The texts relevant to the query, sorted by combined score descending.
-        :rtype: list[RetrievedContext]
+        :rtype: RetrievalOutput
         """
         combined: dict[str, float] = {}
         embeddings: dict[str, list[float] | None] = {}
 
         for retriever, weight in self.retrievers:
-            results = self._normalize_scores(retriever.get_output(model_input))
+            results = self._normalize_scores(retriever.get_output(model_input).retrieved_context)
             for ctx in results:
                 score = (ctx.score or 0.0) * weight
                 combined[ctx.text] = combined.get(ctx.text, 0.0) + score

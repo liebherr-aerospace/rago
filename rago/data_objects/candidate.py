@@ -7,7 +7,7 @@ from .model_output import ModelOutput
 
 @dataclass
 class Candidate[ModelOutputT: ModelOutput]:
-    """Contains the data generate for a candidate trial."""
+    """Contains the data generate by model and evaluator for a candidate trial."""
 
     output: ModelOutputT
     metric: Metric

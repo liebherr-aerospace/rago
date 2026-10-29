@@ -172,7 +172,8 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         aligned_scores = [scores[inverse_shuffle_mapping[idx]] for idx in range(num_candidates)]
         return aligned_scores
 
-    def get_filled_eval_prompt(self, candidate_output: GenerationOutput, reference: DependentEvaluatorReference[GenerationOutput]) -> str:
+    def get_filled_eval_prompt(
+            self, candidate_output: GenerationOutput, reference: DependentEvaluatorReference[GenerationOutput]) -> str:
         """Get the prompt used by the judge language model to evaluate the output filled with the necessary information.
 
         :param candidate_output: The RAG output evaluated.

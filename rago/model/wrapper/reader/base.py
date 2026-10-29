@@ -20,7 +20,7 @@ class Reader[ConfigT: ReaderConfig](TunableModel[ReaderInput, GenerationOutput, 
         :param eval_sample: The eval sample to extract the input from.
         :type eval_sample: EvalSample
         :return: The extracted model input.
-        :rtype: InputT
+        :rtype: ReaderInput
         """
         retrieved_context = (
             [RetrievedContext(context.text) for context in eval_sample.context]
@@ -31,12 +31,10 @@ class Reader[ConfigT: ReaderConfig](TunableModel[ReaderInput, GenerationOutput, 
     def _get_output(self, model_input: ReaderInput) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
-        :param query: The query the reader needs to answer.
-        :type query: str
-        :param retrieved_context: The context retrieved to help answer the query if set, defaults to None.
-        :type retrieved_context: Optional[list[str]], optional
-        :return: The reader output answer.
-        :rtype: str
+        :param model_input: The input to use for generation.
+        :type model_input: ReaderInput
+        :return: The reader generation.
+        :rtype: GenerationOutput
         """
         ...
 
