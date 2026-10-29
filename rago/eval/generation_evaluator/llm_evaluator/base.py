@@ -124,7 +124,11 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
             max_score=str(self.max_score),
         )
 
-    def evaluate(self, candidate_output: GenerationOutput, reference: DependentEvaluatorReference[GenerationOutput]) -> Metric:
+    def evaluate(
+            self,
+            candidate_output: GenerationOutput,
+            reference: DependentEvaluatorReference[GenerationOutput],
+            ) -> Metric:
         """Evaluate the candidate output on the eval_sample.
 
         :param candidate_output: The RAG output to evaluate.
