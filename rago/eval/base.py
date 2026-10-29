@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, TypeVar, Union, cast
 
 import numpy as np
+from pydantic import Field
+from pydantic.dataclasses import dataclass
 
-from rago.data_objects import EvalSample, Metric, ModelOutput
+from rago.data_objects import Candidate, EvalSample, Metric, ModelOutput
 
 if TYPE_CHECKING:
     from collections.abc import Callable, Sequence
@@ -19,6 +21,14 @@ EVALUATORS_REGISTRY: dict[str, type[BaseEvaluator]] = {}
 
 EvaluatorType = TypeVar("EvaluatorType", bound="BaseEvaluator")
 
+@dataclass
+class EvaluatorReference:
+    """Contains the references information used by the Evaluator to evaluate the samples."""
+
+    eval_sample: EvalSample
+
+
+EvalOutputType = TypeVar("EvalOutputType", bound=Union[Metric, dict[str, Metric]])
 
 def register_evaluator(name: str) -> Callable[[type[EvaluatorType]], type[EvaluatorType]]:
     """Register an evaluator.
@@ -34,10 +44,6 @@ def register_evaluator(name: str) -> Callable[[type[EvaluatorType]], type[Evalua
         return cls
 
     return decorator
-
-
-EvalOutputType = TypeVar("EvalOutputType", bound=Union[Metric, dict[str, Metric]])
-
 
 class UnRegisteredEvaluatorError(ValueError):
     """Exception raised when attempting to access a processor that is not registered.
@@ -55,7 +61,7 @@ class UnRegisteredEvaluatorError(ValueError):
         super().__init__(f"There is no evaluator registered with name: {name}.")
 
 
-class BaseEvaluator[ModelOutputT: ModelOutput](ABC):
+class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](ABC):
     """Abstract class that defines the evaluator that evaluates RAG outputs using context information.
 
     The RAG outputs can contain: an answer, a set of retrieved contexts or both.
@@ -69,7 +75,7 @@ class BaseEvaluator[ModelOutputT: ModelOutput](ABC):
     """
 
     @classmethod
-    def load(cls, name: str, **kwargs: Any) -> BaseEvaluator[ModelOutputT]:  # noqa: ANN401
+    def load(cls, name: str, **kwargs: Any) -> BaseEvaluator[ModelOutputT, ReferenceT]:  # noqa: ANN401
         """Load evaluator from the evaluator registry.
 
         :param name: The name of the evaluator to load.
@@ -92,7 +98,7 @@ class BaseEvaluator[ModelOutputT: ModelOutput](ABC):
         return list(EVALUATORS_REGISTRY.keys())
 
     @abstractmethod
-    def evaluate(self, candidate_output: ModelOutputT, eval_sample: EvalSample) -> Metric:
+    def evaluate(self, candidate_output: ModelOutputT, reference: ReferenceT) -> Metric:
         """Evaluate the candidate RAG output using the eval_sample information.
 
         :param candidate_output: The RAG's output to the query.
@@ -107,7 +113,7 @@ class BaseEvaluator[ModelOutputT: ModelOutput](ABC):
     def evaluate_n_wise(
         self,
         candidate_outputs: list[ModelOutputT],
-        eval_sample: EvalSample,
+        reference: ReferenceT,
     ) -> Sequence[Metric]:
         """Compare and evaluate the list of candidate outputs using the eval_sample.
 
@@ -136,13 +142,13 @@ class BaseEvaluator[ModelOutputT: ModelOutput](ABC):
         return score
 
 
-class BaseIndependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT]):
+class BaseIndependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT, EvaluatorReference]):
     """Abstract Class for the evaluators that can not evaluate two answers at the same time."""
 
     def evaluate_n_wise(
         self,
         candidate_outputs: list[ModelOutputT],
-        eval_sample: EvalSample,
+        reference: EvaluatorReference,
     ) -> Sequence[Metric]:
         """Compare and evaluate the list of candidate outputs using the eval_sample.
 
@@ -153,11 +159,17 @@ class BaseIndependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOut
         :return: The evaluation results containing the eventual scores and explanations for each outputs.
         :rtype: list[dict[str, Metric]]
         """
-        results_candidate_answer = [self.evaluate(out, eval_sample) for out in candidate_outputs]
+        results_candidate_answer = [self.evaluate(out, reference) for out in candidate_outputs]
         return results_candidate_answer
 
+@dataclass
+class DependentEvaluatorReference[ModelOutputT: ModelOutput](EvaluatorReference):
+    """Contains the references information used by the Evaluator to evaluate the samples."""
 
-class BaseDependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT]):
+    eval_sample: EvalSample
+    ref_candidate: Optional[Candidate[ModelOutputT]] = Field(default = None)
+
+class BaseDependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT, DependentEvaluatorReference]):
     """Abstract class for evaluators that produce different results when the outputs are evaluated pairwise."""
 
     def shuffle_answers(self, num_answers: int) -> list[int]:

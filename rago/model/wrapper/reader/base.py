@@ -13,7 +13,8 @@ from rago.prompts import AMBIGQA_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT, PromptCon
 class Reader[ConfigT: ReaderConfig](TunableModel[ReaderInput, GenerationOutput, ConfigT]):
     """A Reader takes as input a query (and optionally a context) and outputs a string response."""
 
-    def get_input(self, eval_sample: EvalSample) -> ReaderInput:
+    @classmethod
+    def get_input(cls, eval_sample: EvalSample) -> ReaderInput:
         """Extract the model from the eval sample.
 
         :param eval_sample: The eval sample to extract the input from.

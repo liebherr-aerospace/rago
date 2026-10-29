@@ -59,8 +59,9 @@ class TunableModel[InputT: ModelInput, OutputT: ModelOutput, ConfigT: TunableMod
         output.time = end -start
         return output
 
+    @classmethod
     @abstractmethod
-    def get_input(self, eval_sample: EvalSample) -> InputT:
+    def get_input(cls, eval_sample: EvalSample) -> InputT:
         """Extract the model from the eval sample.
 
         :param eval_sample: The eval sample to extract the input from.

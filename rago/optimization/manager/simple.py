@@ -3,21 +3,23 @@
 from __future__ import annotations
 
 import gc
-from collections import defaultdict
 from typing import TYPE_CHECKING
 
 if TYPE_CHECKING:
+
     import optuna
 
     from rago.dataset import RAGDataset
-from rago.data_objects import Metric
-from rago.eval import BaseEvaluator
+
+
+from rago.data_objects import Metric, ModelInput, ModelOutput
 from rago.model.configs.tunable_model_config import TunableModelConfig
 
 from .base import BaseOptunaManager
 
 
-class SimpleDirectOptunaManager[ConfigT: TunableModelConfig](BaseOptunaManager[BaseEvaluator, ConfigT]):
+class SimpleDirectOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, ConfigT: TunableModelConfig](
+    BaseOptunaManager[ModelInputT, ModelOutputT, ConfigT]):
     """A simple direct optimization manager calling Optuna to optimize parameters.
 
     The Optimization manager is instantiated with Optuna Study.
@@ -46,9 +48,9 @@ class SimpleDirectOptunaManager[ConfigT: TunableModelConfig](BaseOptunaManager[B
     ) -> float:
         """Evaluate a RAG config on the dataset made by dataset_generator.
 
-        :param trial: the RAG config to test
+        :param trial: The RAG config to test
         :type trial: optuna.trial.BaseTrial
-        :return: the dictionary containing the metrics
+        :return: The dictionary containing the metrics
         :rtype: float
         """
         model = self.sample_model(trial, dataset)
@@ -59,25 +61,21 @@ class SimpleDirectOptunaManager[ConfigT: TunableModelConfig](BaseOptunaManager[B
                 self.manager.best_trial.number,
             )
             self.logger.info("[PROCESS] Best value: %s", self.manager.best_trial.values)
-        trial_eval: dict[str, Metric] = defaultdict(Metric)
-        for n, test_sample in enumerate(dataset.samples):
-            self.logger.debug("[PROCESS] Iteration: %s", n)
-            single_eval = self.single_eval(self.optim_evaluator, test_sample, model)
-            trial_eval = {
-                metric_name: Metric(
-                    self.optim_evaluator.update_avg_score(trial_eval[metric_name].score, metric.score, n),
-                )
-                for metric_name, metric in single_eval.items()
-            }
-            mean_score = trial_eval[self.optim_metric_name].score
+        mean_score = 0
+        metrics: list[Metric] = []
+        for step, (idx, test_sample) in enumerate(self.get_samples_and_ids(trial, dataset.samples)):
+            self.logger.debug("[PROCESS] Iteration: %s", step)
+            sample_metric = self.single_eval(self.optim_evaluator, test_sample, model)
+            metrics.append(sample_metric)
+            mean_score = self.optim_evaluator.update_avg_score(mean_score, sample_metric.score, step)
             self.logger.debug("[PROCESS] Mean score for current iteration: %s", mean_score)
-            trial.report(single_eval[self.optim_metric_name].score, n)
+            self.report(trial, sample_metric.score, idx, mean_score)
             if self._should_prune(trial, mean_score):
                 self.logger.debug("[PROCESS] Pruning...")
-                self._save_trial_metrics(trial, trial_eval)
+                self._save_trial_metrics(trial, metrics)
                 gc.collect()
                 return mean_score
 
         gc.collect()
-        self._save_trial_metrics(trial, trial_eval)
+        self._save_trial_metrics(trial, metrics)
         return mean_score

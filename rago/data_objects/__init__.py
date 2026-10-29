@@ -7,8 +7,10 @@ from rago.data_objects.metric import Metric
 from rago.data_objects.prompt_template import PromptTemplate
 from rago.data_objects.model_output import ModelOutput, RetrievalOutput,  GenerationOutput, RAGOutput
 from rago.data_objects.model_input import ModelInput, ReaderInput
+from .candidate import Candidate
 
 __all__ = [
+    "Candidate",
     "DataObject",
     "RetrievedContext",
     "Document",

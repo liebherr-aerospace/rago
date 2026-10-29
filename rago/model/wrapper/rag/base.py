@@ -45,8 +45,8 @@ class RAG(TunableModel[ModelInput, RAGOutput, RAGConfig]):
         """
         self.reader = reader
         self.retriever = retriever
-
-    def get_input(self, eval_sample: EvalSample) -> ModelInput:
+    @classmethod
+    def get_input(cls, eval_sample: EvalSample) -> ModelInput:
         """Extract the RAG input from the eval sample.
 
         :param eval_sample: The eval sample to extract the input from.

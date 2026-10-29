@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import Optional
 
+from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from rago.model.configs.llm_config.langchain import LangchainLLMConfig  # noqa: TC001
@@ -14,4 +15,4 @@ from rago.model.configs.reader_config.base import ReaderConfig
 class LangchainReaderConfig(ReaderConfig):
     """Configuration parameters of the reader."""
 
-    llm: Optional[LangchainLLMConfig] = None
+    llm: Optional[LangchainLLMConfig] = Field(default = None)

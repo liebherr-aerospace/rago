@@ -12,10 +12,14 @@ from __future__ import annotations
 
 import logging
 from abc import ABC, abstractmethod
+from collections import defaultdict
 from typing import TYPE_CHECKING, Optional, Self
 
+import numpy as np
 import optuna
+from pydantic import Field
 from pydantic.dataclasses import dataclass
+from transformers import set_seed
 
 from rago.dataset.generator.simple import SeedDataType, SimpleDatasetGenerator
 from rago.model.configs.tunable_model_config import (
@@ -34,6 +38,7 @@ if TYPE_CHECKING:
 from enum import StrEnum
 
 from rago.data_objects import DataObject, GenerationOutput, Metric, RetrievalOutput
+from rago.eval import EvaluatorReference
 from rago.model.wrapper.tunable_model import BuildContext
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
@@ -58,16 +63,22 @@ class ModelCandidateEval(DataObject):
 class OptimParams:
     """Parameters of the optimization."""
 
-    direction: str = "maximize"
-    path_experiments: str = "experiments"
-    experiment_name: str = "experiment_001"
-    log_to_file: bool = True
-    n_startup_trials: int = 50
-    n_iter: Optional[int] = None
-    show_progress_bar: bool = True
+    direction: str = Field(default = "maximize")
+    path_experiments: str = Field(default = "experiments")
+    experiment_name: str =  Field(default ="experiment_001")
+    log_to_file: bool =  Field(default =True)
+    n_startup_trials: int =  Field(default =50)
+    n_iter: Optional[int] =  Field(default =None)
+    seed: Optional[int] =  Field(default =None)
+    show_progress_bar: bool =  Field(default =True)
 
 
-class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, ConfigT: TunableModelConfig](ABC):
+class BaseOptunaManager[
+    ModelInputT: ModelInput,
+    ModelOutputT: ModelOutput,
+    EvaluatorReferenceT: EvaluatorReference,
+    ConfigT: TunableModelConfig,
+    ](ABC):
     """An Abstract Class that defines the optimization manager."""
 
     manager: optuna.Study
@@ -78,8 +89,8 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         *,
         params: Optional[OptimParams] = None,
         datasets: dict[str, RAGDataset],
-        optim_evaluator: BaseEvaluator[ModelOutputT],
-        test_evaluators: list[BaseEvaluator[ModelOutputT]],
+        optim_evaluator: BaseEvaluator[ModelOutputT, EvaluatorReferenceT],
+        test_evaluators: list[BaseEvaluator[ModelOutputT, EvaluatorReference]],
         model_cls: type[TunableModel[ModelInputT, ModelOutputT, ConfigT]],
         config_space: TunableModelConfigSpace[ConfigT],
         prompt_config: Optional[PromptConfig] = None,
@@ -110,6 +121,7 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         :type pruner: Optional[optuna.pruners.BasePruner], optional
         """
         self.params = params if params is not None else OptimParams()
+        self.set_random_seed(self.params.seed)
         self.datasets = datasets
         self.optim_evaluator = optim_evaluator
         self.test_evaluators = test_evaluators
@@ -122,6 +134,16 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         self.initialize_logger()
         self.initialize_optuna_study()
 
+    def set_random_seed(self, seed: int | None) -> None:
+        """If seed is set, sets the random seed used in the optim.
+
+        :param seed: The seed to use or None.
+        :type seed: int | None
+        """
+        self.rng = np.random.default_rng(seed)
+        if seed is not None:
+            set_seed(seed)
+
     @classmethod
     def from_seed_data(  # noqa: PLR0913
         cls,
@@ -130,8 +152,8 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         seed_data: SeedDataType,
         dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
         splits: tuple[float, float],
-        optim_evaluator: BaseEvaluator[ModelOutputT],
-        test_evaluators: list[BaseEvaluator[ModelOutputT]],
+        optim_evaluator: BaseEvaluator[ModelOutputT, EvaluatorReferenceT],
+        test_evaluators: list[BaseEvaluator[ModelOutputT, EvaluatorReference]],
         model_cls: type[TunableModel[ModelInputT, ModelOutputT, ConfigT]],
         config_space: TunableModelConfigSpace[ConfigT],
         prompt_config: Optional[PromptConfig] = None,
@@ -261,7 +283,7 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         :rtype: float
         """
 
-    def _should_prune(self, trial: optuna.Trial, score: float) -> bool:
+    def _should_prune(self, trial: optuna.trial.BaseTrial, score: float) -> bool:
         """Determine if a trial should be pruned based on its current score.
 
         A trial is pruned if Optuna's pruner suggests it AND the current score
@@ -277,7 +299,7 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         best_score = self.manager.best_trial.value
         return trial.should_prune() and best_score is not None and score < best_score
 
-    def _save_trial_metrics(self, trial: optuna.trial.BaseTrial, trial_eval: dict[str, Metric]) -> None:
+    def _save_trial_metrics(self, trial: optuna.trial.BaseTrial, metrics: list[Metric]) -> None:
         """Save all metrics from trial evaluation as user attributes.
 
         :param trial: The trial to save metrics to.
@@ -285,8 +307,13 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         :param trial_eval: Dictionary of metric names to Metric objects.
         :type trial_eval: dict[str, Metric]
         """
-        for m_name, m_value in trial_eval.items():
-            trial.set_user_attr(m_name, m_value.score)
+        values_by_key: defaultdict[str, list[float]] = defaultdict(list)
+        for metric in metrics:
+            for name, value in metric.__dict__.items():
+                if isinstance(value, float):
+                    values_by_key[name].append(value)
+        for name, values in values_by_key.items():
+            trial.set_user_attr(name, sum(values)/len(values))
 
     def make_model(self, config: ConfigT, dataset: RAGDataset) -> TunableModel[ModelInputT, ModelOutputT, ConfigT]:
         """Build a model from a config, using the dataset corpus as input chunks.
@@ -361,6 +388,47 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
         best_candidate_result = self.test()
         return self.manager, best_candidate_result
 
+    def get_samples_and_ids(
+            self, trial: optuna.trial.BaseTrial, samples: list[EvalSample]) ->list[tuple[int, EvalSample]]:
+        """Return the trials along with there ids (shuffled if wilcoxon pruner is used).
+
+        :param trial: The current trial.
+        :type trial: optuna.trial.BaseTrial
+        :param samples: The samples to use.
+        :type samples: list[EvalSample]
+        :return: The trials along with their ids.
+        :rtype: list[tuple[int, EvalSample]]
+        """
+        if isinstance(trial, optuna.trial.Trial) and isinstance(self.pruner, optuna.pruners.WilcoxonPruner):
+            samples_ids = self.rng.permutation(len(samples))
+            samples = [samples[idx] for idx in samples_ids]
+        else:
+            samples_ids = list(range(len(samples)))
+        return list(zip(samples_ids, samples, strict=False))
+
+    def report(
+            self,
+            trial: optuna.trial.BaseTrial,
+            sample_score: float,
+            idx_sample: int,
+            mean_score: float,
+            )-> None:
+        """Report the trial current perf.
+
+        :param trial: The current trial.
+        :type trial: optuna.trial.BaseTrial.
+        :param sample_score: The score for the current sample.
+        :type: sample_score: float
+        :param idx_sample: The id of the current sample.
+        :type idx_sample: int
+        :param mean_score: The current mean score of the trial.
+        :type mean_score: float:
+        """
+        if isinstance(self.pruner, optuna.pruners.WilcoxonPruner):
+            trial.report(sample_score, idx_sample)
+        else:
+            trial.report(mean_score, idx_sample)
+
     def single_eval(
         self,
         evaluator: BaseEvaluator,
@@ -430,8 +498,6 @@ class BaseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, Conf
             for test_sample in test_dataset.samples:
                 single_eval = self.single_eval(evaluator, test_sample, model)
                 test_results[-1].append(single_eval)
-
-
         return ModelCandidateEval(
             config=config,
             train_score=trial.value,

@@ -12,7 +12,8 @@ from rago.model.wrapper.tunable_model import TunableModel
 class Retriever[ConfigT: RetrieverConfig](TunableModel[ModelInput, RetrievalOutput, ConfigT]):
     """A retriever that retrieves information relevant to answer a query from a database (non-parametric knowledge)."""
 
-    def get_input(self, eval_sample: EvalSample) -> ModelInput:
+    @classmethod
+    def get_input(cls, eval_sample: EvalSample) -> ModelInput:
         """Extract the retriever from the eval sample.
 
         :param eval_sample: The eval sample to extract the input from.
