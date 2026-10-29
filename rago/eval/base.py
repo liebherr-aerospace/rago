@@ -169,7 +169,8 @@ class DependentEvaluatorReference[ModelOutputT: ModelOutput](EvaluatorReference)
     eval_sample: EvalSample
     ref_candidate: Optional[Candidate[ModelOutputT]] = Field(default = None)
 
-class BaseDependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT, DependentEvaluatorReference]):
+class BaseDependentEvaluator[ModelOutputT: ModelOutput](
+    BaseEvaluator[ModelOutputT, DependentEvaluatorReference[ModelOutputT]]):
     """Abstract class for evaluators that produce different results when the outputs are evaluated pairwise."""
 
     def shuffle_answers(self, num_answers: int) -> list[int]:

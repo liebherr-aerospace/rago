@@ -8,7 +8,7 @@ import evaluate
 from pydantic.dataclasses import dataclass
 
 from rago.data_objects import EvalSample, GenerationOutput, Metric
-from rago.eval.base import BaseIndependentEvaluator, register_evaluator
+from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
 
 
 @dataclass
@@ -32,7 +32,7 @@ class BertScore(BaseIndependentEvaluator[GenerationOutput]):
             raise ValueError(msg)
         self.metric = metric
 
-    def evaluate(self, candidate_output: GenerationOutput, eval_sample: EvalSample) -> BertScoreMetric:
+    def evaluate(self, candidate_output: GenerationOutput, reference: EvaluatorReference) -> BertScoreMetric:
         """Evaluate the candidate output using the eval_sample information.
 
         :param candidate_output: The RAG's output to the query.
@@ -42,7 +42,7 @@ class BertScore(BaseIndependentEvaluator[GenerationOutput]):
         :return: The evaluation result.
         :rtype: EvalOutputType
         """
-        references = self.get_targets(eval_sample)
+        references = self.get_targets(reference.eval_sample)
         results = self.bert_metrics.compute(predictions=[candidate_output.answer], references=[references], lang="en")
         if results is None:
             msg = "Error with the BertScore backend"

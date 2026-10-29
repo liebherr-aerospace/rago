@@ -5,7 +5,7 @@ from typing import ClassVar
 from sentence_transformers import SentenceTransformer
 
 from rago.data_objects import EvalSample, GenerationOutput, Metric
-from rago.eval.base import BaseIndependentEvaluator, register_evaluator
+from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
 
 
 @register_evaluator("similarity")
@@ -25,7 +25,7 @@ class SimilarityScore(BaseIndependentEvaluator[GenerationOutput]):
         """
         self.model = SentenceTransformer(model_name)
 
-    def evaluate(self, candidate_output: GenerationOutput, eval_sample: EvalSample) -> Metric:
+    def evaluate(self, candidate_output: GenerationOutput, reference: EvaluatorReference) -> Metric:
         """Evaluate the candidate RAG output using the eval_sample information.
 
         :param candidate_output: The RAG's output to the query.
@@ -35,7 +35,7 @@ class SimilarityScore(BaseIndependentEvaluator[GenerationOutput]):
         :return: The evaluation result.
         :rtype: EvalOutputType
         """
-        references = self.get_targets(eval_sample)
+        references = self.get_targets(reference.eval_sample)
         embeddings_1 = self.model.encode(candidate_output.answer, normalize_embeddings=True)
         embeddings_2 = self.model.encode(references, normalize_embeddings=True)
         score = (embeddings_1 * embeddings_2).sum().item()

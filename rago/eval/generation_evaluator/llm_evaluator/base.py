@@ -10,7 +10,7 @@ from pydantic import Field
 from pydantic.dataclasses import dataclass
 
 from rago.data_objects import EvalSample, GenerationOutput, Metric, PromptTemplate
-from rago.eval.base import BaseDependentEvaluator
+from rago.eval.base import BaseDependentEvaluator, DependentEvaluatorReference
 from rago.model.configs.llm_config.base import LLMConfig  # noqa: TC001
 from rago.model.wrapper.llm_agent import LangchainLLMAgent, LLMAgent
 from rago.model.wrapper.llm_agent.llm_agent_factory import LLMAgentFactory
@@ -124,7 +124,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
             max_score=str(self.max_score),
         )
 
-    def evaluate(self, candidate_output: GenerationOutput, eval_sample: EvalSample) -> Metric:
+    def evaluate(self, candidate_output: GenerationOutput, reference: DependentEvaluatorReference[GenerationOutput]) -> Metric:
         """Evaluate the candidate output on the eval_sample.
 
         :param candidate_output: The RAG output to evaluate.
@@ -134,7 +134,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         :return: The evaluation score.
         :rtype: dict[str, Metric]
         """
-        eval_prompt = self.get_filled_eval_prompt(candidate_output=candidate_output, eval_sample=eval_sample)
+        eval_prompt = self.get_filled_eval_prompt(candidate_output=candidate_output, reference=reference)
         evaluation = self.judge.query(eval_prompt)
         scores = self.get_evaluation_result_from_evaluation(evaluation)
         return scores
@@ -142,7 +142,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
     def evaluate_n_wise(
         self,
         candidate_outputs: list[GenerationOutput],
-        eval_sample: EvalSample,
+        reference: DependentEvaluatorReference[GenerationOutput],
     ) -> Sequence[LLMMetric]:
         """Evaluate the list of candidate outputs using the eval_sample information by passing them to the judge LM.
 
@@ -158,7 +158,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         shuffled_candidates_outputs = [candidate_outputs[idx] for idx in shuffled_ids]
         eval_prompt = self.get_filled_n_wise_eval_prompt(
             candidates_outputs=shuffled_candidates_outputs,
-            eval_sample=eval_sample,
+            eval_sample=reference.eval_sample,
         )
         evaluation = self.judge.query(eval_prompt)
         scores = self.get_pairwise_evaluation_result_from_evaluation(evaluation, num_candidates)
@@ -168,7 +168,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         aligned_scores = [scores[inverse_shuffle_mapping[idx]] for idx in range(num_candidates)]
         return aligned_scores
 
-    def get_filled_eval_prompt(self, candidate_output: GenerationOutput, eval_sample: EvalSample) -> str:
+    def get_filled_eval_prompt(self, candidate_output: GenerationOutput, reference: DependentEvaluatorReference[GenerationOutput]) -> str:
         """Get the prompt used by the judge language model to evaluate the output filled with the necessary information.
 
         :param candidate_output: The RAG output evaluated.
@@ -179,14 +179,14 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         :rtype: str
         """
         source_context_content = (
-            [context.text for context in eval_sample.context] if eval_sample.context is not None else None
+            [context.text for context in reference.eval_sample.context]
+            if reference.eval_sample.context is not None else None
         )
         source_context_prompt = self.get_filled_source_context_prompt(source_context_content)
-        if candidate_output.answer is None:
-            raise ValueError(candidate_output.answer)
+
         prompt = self.eval_prompt.get_filled_prompt(
-            candidate_answer=candidate_output.answer,
-            query=eval_sample.query,
+            candidate_answer=candidate_output.answer ,
+            query=reference.eval_sample.query,
             source_context_prompt=source_context_prompt,
         )
         return prompt

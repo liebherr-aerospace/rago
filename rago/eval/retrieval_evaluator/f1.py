@@ -4,8 +4,8 @@ from __future__ import annotations
 
 from pydantic.dataclasses import dataclass
 
-from rago.data_objects import EvalSample, Metric, RetrievalOutput
-from rago.eval.base import BaseIndependentEvaluator, register_evaluator
+from rago.data_objects import Metric, RetrievalOutput
+from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
 
 from .precision import PrecisionEvaluator
 from .relevancy import RelevancyEvaluator
@@ -37,7 +37,7 @@ class F1Evaluator(BaseIndependentEvaluator[RetrievalOutput]):
         self.precision = PrecisionEvaluator()
         self.relevancy = RelevancyEvaluator()
 
-    def evaluate(self, candidate_output: RetrievalOutput, eval_sample: EvalSample) -> F1Metric:
+    def evaluate(self, candidate_output: RetrievalOutput, reference: EvaluatorReference) -> F1Metric:
         """Evaluate the retrieved context of the candidate output.
 
         :param candidate_output: The RAG's output to the query.
@@ -47,8 +47,8 @@ class F1Evaluator(BaseIndependentEvaluator[RetrievalOutput]):
         :return: The ``relevancy``, ``precision`` and ``context_f1`` metrics.
         :rtype: dict[str, Metric]
         """
-        relevancy = self.relevancy.evaluate(candidate_output, eval_sample).score
-        precision = self.precision.evaluate(candidate_output, eval_sample).score
+        relevancy = self.relevancy.evaluate(candidate_output, reference).score
+        precision = self.precision.evaluate(candidate_output, reference).score
         denominator = relevancy + precision
         f1 = 0.0 if denominator == 0 else 2 * relevancy * precision / denominator
         return F1Metric(
