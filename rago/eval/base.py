@@ -91,6 +91,16 @@ class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](A
         return list(EVALUATORS_REGISTRY.keys())
 
     @abstractmethod
+    def get_evaluator_reference(self, eval_sample: EvalSample) -> ReferenceT:
+        """Get the evaluator reference from eval sample.
+
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+
+    @abstractmethod
     def evaluate(self, candidate_output: ModelOutputT, reference: ReferenceT) -> Metric:
         """Evaluate the candidate model's output using the reference information.
 
@@ -138,6 +148,16 @@ class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](A
 class BaseIndependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT, EvaluatorReference]):
     """Abstract Class for the evaluators that can not evaluate two answers at the same time."""
 
+    def get_evaluator_reference(self, eval_sample: EvalSample) -> EvaluatorReference:
+        """Get the evaluator reference from eval sample.
+
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+        return EvaluatorReference(eval_sample)
+
     def evaluate_n_wise(
         self,
         candidate_outputs: list[ModelOutputT],
@@ -171,6 +191,19 @@ class DependentEvaluatorReference[ModelOutputT: ModelOutput](EvaluatorReference)
 class BaseDependentEvaluator[ModelOutputT: ModelOutput](
     BaseEvaluator[ModelOutputT, DependentEvaluatorReference[ModelOutputT]]):
     """Abstract class for evaluators that produce different results when the outputs are evaluated pairwise."""
+
+    def get_evaluator_reference(
+            self, eval_sample: EvalSample,
+            ref_candidate: Optional[Candidate[ModelOutputT]] = None,
+            ) -> DependentEvaluatorReference[ModelOutputT]:
+        """Get the evaluator reference from eval sample and manager internal state.
+
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+        return DependentEvaluatorReference(eval_sample, ref_candidate)
 
     def shuffle_answers(self, num_answers: int) -> list[int]:
         """Decide whether the answers should be shuffled before being given to the LLM.

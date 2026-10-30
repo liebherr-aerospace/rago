@@ -3,11 +3,11 @@
 from __future__ import annotations
 
 import gc
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, cast
 
 import optuna
 
-from rago.data_objects import Candidate
+from rago.data_objects import Candidate, EvalSample
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
@@ -22,6 +22,7 @@ if TYPE_CHECKING:
 
 
 from rago.eval import (
+    BaseDependentEvaluator,
     BaseEvaluator,
     DependentEvaluatorReference,
     EvalPrompts,
@@ -185,6 +186,24 @@ class SimplePairWiseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOu
 
                 self.best_candidate.append(candidates[idx])
 
+    def get_evaluator_reference[ReferenceT:EvaluatorReference](
+            self,
+            evaluator: BaseEvaluator[ModelOutputT, ReferenceT],
+            eval_sample: EvalSample,
+            ref_candidate: Optional[Candidate[ModelOutputT]] = None,
+            ) -> ReferenceT:
+        """Get the evaluator reference from eval sample and manager internal state.
+
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+        if ref_candidate is None:
+            return evaluator.get_evaluator_reference(eval_sample)
+        if isinstance(evaluator, BaseDependentEvaluator):
+            return cast("ReferenceT", evaluator.get_evaluator_reference(eval_sample, ref_candidate))
+        return evaluator.get_evaluator_reference(eval_sample)
 
     def get_sample_output_and_eval(
         self,
@@ -206,10 +225,7 @@ class SimplePairWiseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOu
         self.logger.debug("[PROCESS] Eval sample: %s", eval_sample)
         model_input = model.get_input(eval_sample)
         candidate_output = model.get_output(model_input)
-        eval_ref = DependentEvaluatorReference(
-            eval_sample= eval_sample,
-            ref_candidate= ref_candidate,
-        )
+        eval_ref = self.get_evaluator_reference(evaluator, eval_sample, ref_candidate)
         evaluation = evaluator.evaluate(candidate_output, eval_ref)
         self.logger.debug("[PROCESS] Evaluation Results: %s", evaluation)
         return Candidate(candidate_output, evaluation)

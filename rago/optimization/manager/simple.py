@@ -1,4 +1,4 @@
-"""Simple class for RAG Config optimization with direct evaluation method."""
+"""Simple class for model config optimization with direct evaluation method."""
 
 from __future__ import annotations
 
@@ -11,26 +11,24 @@ if TYPE_CHECKING:
 
     from rago.dataset import RAGDataset
 
-
-from rago.data_objects import Metric, ModelInput, ModelOutput
+from rago.data_objects import EvalSample, Metric, ModelInput, ModelOutput
+from rago.eval import BaseEvaluator, EvaluatorReference
 from rago.model.configs.tunable_model_config import TunableModelConfig
 
 from .base import BaseOptunaManager
 
 
-class SimpleDirectOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, ConfigT: TunableModelConfig](
-    BaseOptunaManager[ModelInputT, ModelOutputT, ConfigT]):
+class SimpleDirectOptunaManager[
+    ModelInputT: ModelInput,
+    ModelOutputT: ModelOutput, EvaluatorReferenceT: EvaluatorReference, ConfigT: TunableModelConfig](
+    BaseOptunaManager[ModelInputT, ModelOutputT, EvaluatorReferenceT, ConfigT]):
     """A simple direct optimization manager calling Optuna to optimize parameters.
 
     The Optimization manager is instantiated with Optuna Study.
     """
 
     def optimize(self) -> None:
-        """Carry Out the optimization by simply call study.optimize.
-
-        :return: The optuna study that contains the experiment.
-        :rtype: optuna.Study
-        """
+        """Carry Out the optimization by simply call study.optimize."""
         self.logger.info("[PROCESS] Starting Optimization...")
 
         self.manager.optimize(
@@ -41,14 +39,25 @@ class SimpleDirectOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutp
         )
         self.logger.info("[RESULT] Best trial %s", self.manager.best_trial)
 
+    def get_evaluator_reference[ReferenceT: EvaluatorReference](
+            self, evaluator: BaseEvaluator[ModelOutputT, ReferenceT], eval_sample: EvalSample) -> ReferenceT:
+        """Get the evaluator reference from eval sample and manager internal state.
+
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+        return evaluator.get_evaluator_reference(eval_sample)
+
     def eval_trial(
         self,
         trial: optuna.trial.BaseTrial,
         dataset: RAGDataset,
     ) -> float:
-        """Evaluate a RAG config on the dataset made by dataset_generator.
+        """Evaluate a model config on the dataset made by dataset_generator.
 
-        :param trial: The RAG config to test
+        :param trial: The model config to test
         :type trial: optuna.trial.BaseTrial
         :return: The dictionary containing the metrics
         :rtype: float
