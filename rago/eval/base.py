@@ -18,7 +18,6 @@ if TYPE_CHECKING:
 
 EVALUATORS_REGISTRY: dict[str, type[BaseEvaluator]] = {}
 
-
 @dataclass
 class EvaluatorReference:
     """Contains the references information used by the Evaluator to evaluate the samples."""
