@@ -1,4 +1,4 @@
-"""Define an evaluator that measures the recall, precision and F1 of the retrieved context."""
+"""Define an F1 score evaluator  of the retrieved context compared to the reference eval sample's context."""
 
 from __future__ import annotations
 
@@ -7,53 +7,56 @@ from pydantic.dataclasses import dataclass
 from rago.data_objects import Metric, RetrievalOutput
 from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
 
-from .precision import PrecisionEvaluator
-from .relevancy import RelevancyEvaluator
+from .precision import RetrievalPrecisionEvaluator
+from .relevancy import RetrievalRecallEvaluator
 
 
 @dataclass
-class F1Metric(Metric):
-    """Contains the evaluation score and explanation given to an output according to a particular metric."""
+class RetrievalF1Metric(Metric):
+    """Contains the evaluation F1 score given to a retrieved context as well as recall and precision.
+
+    :param score: Harmonic mean of relevancy and precision of retrieved context.
+    :type score: float
+    :param precision: Proportion of retrieved text matching an expected text.
+    :type precision: float
+    :param recall: Proportion of expected text found in the retrieved context.
+    :type recall: float.
+    """
 
     score : float
     precision: float
-    relevancy: float
+    recall: float
 
 @register_evaluator("f1")
-class F1Evaluator(BaseIndependentEvaluator[RetrievalOutput]):
-    """Evaluator of the RAG output's retrieved context against the eval sample's context.
+class RetrievalF1Evaluator(BaseIndependentEvaluator[RetrievalOutput]):
+    """F1 score Evaluator of the retrieval output's retrieved context compared to the reference eval sample's context.
 
-    Returns three metrics:
-        - ``relevancy`` (recall): proportion of expected chunks found in the retrieved context.
-        - ``precision``: proportion of retrieved chunks matching an expected chunk.
-        - ``context_f1``: harmonic mean of ``relevancy`` and ``precision``.
-
-    If the eval sample has no context, all metrics are 1.
-    If it has context but nothing was retrieved, all metrics are 0.
+    If the eval sample in reference has no context, all metrics are 1.
+    If it has context but the retrieved context is empty, all metrics are 0.
     """
 
     def __init__(self)-> None:
         """Instantiate the F1Evaluator with a relevancy and a precision evaluator."""
-        self.precision = PrecisionEvaluator()
-        self.relevancy = RelevancyEvaluator()
+        self.precision = RetrievalRecallEvaluator()
+        self.recall = RetrievalPrecisionEvaluator()
 
-    def evaluate(self, candidate_output: RetrievalOutput, reference: EvaluatorReference) -> F1Metric:
-        """Evaluate the retrieved context of the candidate output.
+    def evaluate(self, candidate_output: RetrievalOutput, reference: EvaluatorReference) -> RetrievalF1Metric:
+        """Evaluate F1 score of the retrieved context in the candidate retrieval output.
 
-        :param candidate_output: The RAG's output to the query.
-        :type candidate_output: RAGOutput
-        :param eval_sample: The sample containing the expected context.
-        :type eval_sample: EvalSample
-        :return: The ``relevancy``, ``precision`` and ``context_f1`` metrics.
-        :rtype: dict[str, Metric]
+        :param candidate_output: The retrieval output to evaluate.
+        :type candidate_output: RetrievalOutput
+        :param reference: The reference used by the evaluator to evaluate the candidate
+        :type reference: EvaluatorReference
+        :return: The F1 metric with F1 score, recall and precision.
+        :rtype: RetrievalF1Metric
         """
-        relevancy = self.relevancy.evaluate(candidate_output, reference).score
+        recall = self.recall.evaluate(candidate_output, reference).score
         precision = self.precision.evaluate(candidate_output, reference).score
-        denominator = relevancy + precision
-        f1 = 0.0 if denominator == 0 else 2 * relevancy * precision / denominator
-        return F1Metric(
+        denominator = recall + precision
+        f1 = 0.0 if denominator == 0 else 2 * recall * precision / denominator
+        return RetrievalF1Metric(
             score = f1,
-            relevancy = relevancy,
+            recall = recall,
             precision = precision,
         )
 

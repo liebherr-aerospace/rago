@@ -1,34 +1,24 @@
-"""Deprecated evaluator measuring only the relevancy (recall) of the retrieved context."""
+"""Define an evaluator measuring the precision of a retrieval output's retrieved context."""
 
 from __future__ import annotations
-
-import warnings
 
 from rago.data_objects import Metric, RetrievalOutput
 from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
 
 
 @register_evaluator("relevancy")
-class RelevancyEvaluator(BaseIndependentEvaluator[RetrievalOutput]):
-    """Deprecated: use :class:`ContextRetrievalEvaluator`, which also returns precision and context_f1."""
-
-    def __init__(self) -> None:
-        """Warn that this evaluator is deprecated."""
-        warnings.warn(
-            "RelevancyEvaluator is deprecated, use ContextRetrievalEvaluator instead.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
+class RetrievalRecallEvaluator(BaseIndependentEvaluator[RetrievalOutput]):
+    """Evaluator of the retrieval output's retrieved context recall to the reference eval sample's context."""
 
     def evaluate(self, candidate_output: RetrievalOutput, reference: EvaluatorReference) -> Metric:
-        """Evaluate the proportion of the expected context contained in the retrieved context.
+        """Evaluate the proportion of the expected context contained in the candidate retrieved context.
 
-        :param candidate_output: The RAG's output to the query.
-        :type candidate_output: RAGOutput
-        :param eval_sample: The sample containing the expected context.
-        :type eval_sample: EvalSample
-        :return: The evaluation result with a ``"relevancy"`` key.
-        :rtype: dict[str, Metric]
+        :param candidate_output: The retrieval output to evaluate.
+        :type candidate_output: RetrievalOutput
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: EvaluatorReference
+        :return: The recall metric..
+        :rtype: Metric
         """
         if not reference.eval_sample.context:
             return Metric(1.0)

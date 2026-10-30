@@ -20,7 +20,11 @@ EVALUATORS_REGISTRY: dict[str, type[BaseEvaluator]] = {}
 
 @dataclass
 class EvaluatorReference:
-    """Contains the references information used by the Evaluator to evaluate the samples."""
+    """Contains the references information used by the Evaluator fro evaluation.
+
+    :param eval_sample: Contains the query and optional reference context.
+    :type eval_sample: EvalSample
+    """
 
     eval_sample: EvalSample
 
@@ -42,7 +46,7 @@ def register_evaluator[EvaluatorType: BaseEvaluator](name: str) -> Callable[[typ
 class UnRegisteredEvaluatorError(ValueError):
     """Exception raised when attempting to access a processor that is not registered.
 
-    This error is typically thrown when a dataset name is provided for which
+    This error is thrown when a dataset name is provided for which
     no corresponding processor has been registered in the processor registry.
     """
 
@@ -56,16 +60,11 @@ class UnRegisteredEvaluatorError(ValueError):
 
 
 class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](ABC):
-    """Abstract class that defines the evaluator that evaluates RAG outputs using context information.
-
-    The RAG outputs can contain: an answer, a set of retrieved contexts or both.
-    The context information is made of:
-        - the query
-        - (Optional) The context, the explanation and the reference answer.
+    """Abstract class that defines the evaluator that evaluates model outputs using reference information.
 
     Example Usage:
     In RAGO, this evaluator is then called by the Optimization Manager
-    to assess the performance of a particular RAG config on a given question.
+    to assess the performance of a particular model config on a given question.
     """
 
     @classmethod
@@ -93,14 +92,14 @@ class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](A
 
     @abstractmethod
     def evaluate(self, candidate_output: ModelOutputT, reference: ReferenceT) -> Metric:
-        """Evaluate the candidate RAG output using the eval_sample information.
+        """Evaluate the candidate model's output using the reference information.
 
-        :param candidate_output: The RAG's output to the query.
-        :type candidate_output: OutputType
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
+        :param candidate_output: The model's output.
+        :type candidate_output: ModelOutputT
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: ReferenceT
         :return: The evaluation result.
-        :rtype: EvalOutputType
+        :rtype: Metric
         """
 
     @abstractmethod
@@ -109,14 +108,14 @@ class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](A
         candidate_outputs: list[ModelOutputT],
         reference: ReferenceT,
     ) -> Sequence[Metric]:
-        """Compare and evaluate the list of candidate outputs using the eval_sample.
+        """Compare and evaluate the list of candidate outputs using the reference.
 
-        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
-        :type candidate_outputs: list[OutputType]
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for each outputs.
-        :rtype: list[dict[str, Metric]]
+        :param candidate_outputs: The list candidate outputs to evaluate to evaluate.
+        :type candidate_outputs: list[ModelOutputT]
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: ReferenceT
+        :return: The evaluation metric containing the for each outputs.
+        :rtype: Sequence[Metric]
         """
 
     @classmethod
@@ -127,7 +126,7 @@ class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](A
         :type score: float
         :param score_eval: The new evaluation score.
         :type score_eval: float
-        :param iteration_n: The iteration count.
+        :param iteration_n: The iteration idx (starts at 0).
         :type iteration_n: int
         :return: The updated average score.
         :rtype: float
@@ -144,21 +143,27 @@ class BaseIndependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOut
         candidate_outputs: list[ModelOutputT],
         reference: EvaluatorReference,
     ) -> Sequence[Metric]:
-        """Compare and evaluate the list of candidate outputs using the eval_sample.
+        """Compare and evaluate the list of candidate outputs using the reference.
 
-        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
-        :type candidate_outputs: list[OutputType]
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for each outputs.
-        :rtype: list[dict[str, Metric]]
+        :param candidate_outputs: The list candidate outputs to evaluate to evaluate.
+        :type candidate_outputs: list[ModelOutputT]
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: ReferenceT
+        :return: The evaluation metric containing the for each outputs.
+        :rtype: Sequence[Metric]
         """
         results_candidate_answer = [self.evaluate(out, reference) for out in candidate_outputs]
         return results_candidate_answer
 
 @dataclass
 class DependentEvaluatorReference[ModelOutputT: ModelOutput](EvaluatorReference):
-    """Contains the references information used by the Evaluator to evaluate the samples."""
+    """Contains the references information used by the Evaluator for evaluation.
+
+    :param eval_sample: Contains the query and optional reference context.
+    :type eval_sample: EvalSample
+    :param ref_candidate: Optional candidate already evaluated for reference, defaults to None.
+    :type Optional[Candidate[ModelOutputT]]
+    """
 
     eval_sample: EvalSample
     ref_candidate: Optional[Candidate[ModelOutputT]] = Field(default = None)
