@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, Optional, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import numpy as np
 from pydantic import Field
@@ -19,18 +19,13 @@ if TYPE_CHECKING:
 EVALUATORS_REGISTRY: dict[str, type[BaseEvaluator]] = {}
 
 
-EvaluatorType = TypeVar("EvaluatorType", bound="BaseEvaluator")
-
 @dataclass
 class EvaluatorReference:
     """Contains the references information used by the Evaluator to evaluate the samples."""
 
     eval_sample: EvalSample
 
-
-EvalOutputType = TypeVar("EvalOutputType", bound=Union[Metric, dict[str, Metric]])
-
-def register_evaluator(name: str) -> Callable[[type[EvaluatorType]], type[EvaluatorType]]:
+def register_evaluator[EvaluatorType: BaseEvaluator](name: str) -> Callable[[type[EvaluatorType]], type[EvaluatorType]]:
     """Register an evaluator.
 
     :param name: Evaluator name.
