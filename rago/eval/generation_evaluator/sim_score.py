@@ -1,4 +1,4 @@
-"""Define a evaluator that evaluates the similarity between generated answer and reference answer."""
+"""Define a evaluator that evaluates the similarity between generated output and reference answer."""
 
 from typing import ClassVar
 
@@ -26,13 +26,13 @@ class SimilarityScore(BaseIndependentEvaluator[GenerationOutput]):
         self.model = SentenceTransformer(model_name)
 
     def evaluate(self, candidate_output: GenerationOutput, reference: EvaluatorReference) -> Metric:
-        """Evaluate the candidate RAG output using the eval_sample information.
+        """Evaluate the candidate generation output using the answer in reference's eval_sample information.
 
-        :param candidate_output: The RAG's output to the query.
-        :type candidate_output: OutputType
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
-        :return: The evaluation result.
+        :param candidate_output: The generation output to the query.
+        :type candidate_output: GenerationOutput
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: EvaluatorReference
+        :return: The similarity metric.
         :rtype: EvalOutputType
         """
         references = self.get_targets(reference.eval_sample)

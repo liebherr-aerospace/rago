@@ -5,7 +5,7 @@ from rago.eval.base import (
     BaseIndependentEvaluator,
     EvaluatorReference,
     DependentEvaluatorReference)
-from rago.eval.retrieval_evaluator import RelevancyEvaluator, PrecisionEvaluator, F1Evaluator
+from rago.eval.retrieval_evaluator import RetrievalF1Evaluator, RetrievalPrecisionEvaluator, RetrievalRecallEvaluator
 from rago.eval.generation_evaluator.sim_score import SimilarityScore
 from rago.eval.generation_evaluator import (
     BertScore, 
@@ -24,9 +24,9 @@ __all__ = [
     "BaseIndependentEvaluator",
     "DependentEvaluatorReference",
     "EvaluatorReference",
-    "F1Evaluator",
-    "PrecisionEvaluator",
-    "RelevancyEvaluator",
+    "RetrievalF1Evaluator",
+    "RetrievalPrecisionEvaluator",
+    "RetrievalRecallEvaluator",
     "BaseLLMEvaluator",
     "CoTLLMEvaluator",
     "SimpleLLMEvaluator",

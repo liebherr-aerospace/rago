@@ -1,9 +1,9 @@
-from .f1 import F1Evaluator
-from .precision import PrecisionEvaluator
-from .relevancy import RelevancyEvaluator
+from .f1 import RetrievalF1Evaluator
+from .precision import RetrievalPrecisionEvaluator
+from .relevancy import RetrievalRecallEvaluator
 
 __all__ = [
-    "F1Evaluator",
-    "PrecisionEvaluator",
-    "RelevancyEvaluator"
+    "RetrievalF1Evaluator",
+    "RetrievalPrecisionEvaluator",
+    "RetrievalRecallEvaluator"
 ]

@@ -33,13 +33,13 @@ class BertScore(BaseIndependentEvaluator[GenerationOutput]):
         self.metric = metric
 
     def evaluate(self, candidate_output: GenerationOutput, reference: EvaluatorReference) -> BertScoreMetric:
-        """Evaluate the candidate output using the eval_sample information.
+        """Evaluate the candidate generation output using the reference information.
 
-        :param candidate_output: The RAG's output to the query.
-        :type candidate_output: OutputType
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
-        :return: The evaluation result.
+        :param candidate_output: The candidate generation output to evaluate.
+        :type candidate_output: GenerationOutput
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: EvaluatorReference
+        :return: The Bert score metrics.
         :rtype: EvalOutputType
         """
         references = self.get_targets(reference.eval_sample)

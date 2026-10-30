@@ -26,13 +26,16 @@ if TYPE_CHECKING:
 class CoTMetric(LLMMetric):
     """Contains the evaluation score and explanation given to an output according to a particular metric.
 
-    :param score:  The score given to the RAG output.
-    :type score: Optional[float]
+    :param score:  The score given to the generation output.
+    :type score: float
+    :param error_msg: Error message if judge evaluation fails and policy on error is not THROW_ERROR, defaults to None.
+    :type error_msg: Optional[str]
     :param explanation: The explanation of the score given to the output.
     :type explanation: Optional[str]
     """
 
     score: float
+    error_msg: Optional[str] = Field(default = None)
     explanation: Optional[str] = Field(default=None)
 
 @dataclass
@@ -126,8 +129,8 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
             - the judge outputs a score outside allowed interval.
             - it does not follow evaluation template.
         :raises ValueError: The score string in the evaluation can not be converted to a float.
-        :return: The evaluation result.
-        :rtype: dict[str, Metric]
+        :return: The CoT judge metric.
+        :rtype: CoTMetric
         """
         splitted_eval = evaluation.split(self.score_tag)
         expected_number_of_instance_of_score_tag = 2
@@ -165,8 +168,8 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
             - the judge outputs a score outside allowed interval.
             - it does not follow evaluation template.
         :raises ValueError: Any of the scores in the evaluation is not a float.
-        :return: The evaluation results of each answers.
-        :rtype: list[dict[str, Metric]]
+        :return: The CoT judge metric for each generation.
+        :rtype: Sequence[CoTMetric]
         """
         reasoning_with_tag, rest_to_parse = self.get_last_n_remaining_answer(
             evaluation,
