@@ -11,7 +11,7 @@ from rago.prompts import AMBIGQA_SYSTEM_PROMPT, DEFAULT_SYSTEM_PROMPT, PromptCon
 
 
 class Reader[ConfigT: ReaderConfig](TunableModel[ReaderInput, GenerationOutput, ConfigT]):
-    """A Reader takes as input a query (and optionally a context) and outputs a string response."""
+    """A Reader takes as input a query and context in a ReaderInput and outputs its answer in a GenerationOutput."""
 
     @classmethod
     def get_input(cls, eval_sample: EvalSample) -> ReaderInput:
@@ -31,9 +31,9 @@ class Reader[ConfigT: ReaderConfig](TunableModel[ReaderInput, GenerationOutput, 
     def _get_output(self, model_input: ReaderInput) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
-        :param model_input: The input to use for generation.
+        :param model_input: The query and context the reader needs to answer.
         :type model_input: ReaderInput
-        :return: The reader generation.
+        :return: The reader output Generation.
         :rtype: GenerationOutput
         """
         ...

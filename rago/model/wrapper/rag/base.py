@@ -75,9 +75,9 @@ class RAG(TunableModel[ModelInput, RAGOutput, RAGConfig]):
     def _get_output(self, model_input: ModelInput) -> RAGOutput:
         """Get the rag response to a query.
 
-        :param query: The query the rag needs to answer.
-        :type query: str
-        :return: The rag's response to the input query.
+        :param model_input: The query the rag needs to answer.
+        :type model_input: ModelInput
+        :return: The rag's output to the input query.
         :rtype: RAGOutput
         """
         retriever_output = self.retriever.get_output(model_input)

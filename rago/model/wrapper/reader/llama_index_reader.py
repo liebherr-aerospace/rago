@@ -12,7 +12,8 @@ from rago.model.wrapper.tunable_model import BuildContext
 
 if TYPE_CHECKING:
     from llama_index.core.llms import LLM
-    from llama_index.core.response_synthesizers.base import RESPONSE_TEXT_TYPE, BaseSynthesizer
+    from llama_index.core.response_synthesizers.base import BaseSynthesizer
+    from llama_index.core.types import RESPONSE_TEXT_TYPE
 
     from rago.prompts import PromptConfig
 
@@ -66,12 +67,10 @@ class LlamaIndexWrapperReader(Reader[LLamaIndexReaderConfig]):
     def _get_output(self, model_input: ReaderInput) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
-        :param query: The query the reader needs to answer.
-        :type query: str
-        :param retrieved_context: The context retrieved to help answer the query if set, defaults to None.
-        :type retrieved_context: Optional[list[str]], optional
-        :return: The reader output answer.
-        :rtype: str
+        :param query: The query and context the reader needs to answer.
+        :type ReaderInput: ReaderInput
+        :return: The reader output Generation.
+        :rtype: GenerationOutput
         """
         context = [context.text for context in model_input.retrieved_context]
         reader_output = self.lama_index_reader.get_response(model_input.query, context)
