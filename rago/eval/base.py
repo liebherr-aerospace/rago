@@ -1,23 +1,34 @@
-"""Define the abstract evaluator classes that evaluate one or more RAG output using context information."""
+"""Define the abstract evaluator classes that evaluate one or more Model output using context information."""
 
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import TYPE_CHECKING, Any, TypeVar, Union, cast
+from typing import TYPE_CHECKING, Any, Optional, cast
 
 import numpy as np
+from pydantic import Field
+from pydantic.dataclasses import dataclass
 
-from rago.data_objects import DataObject, EvalSample, Metric
+from rago.data_objects import Candidate, EvalSample, Metric, ModelOutput
 
 if TYPE_CHECKING:
-    from collections.abc import Callable
+    from collections.abc import Callable, Sequence
+
+
 
 EVALUATORS_REGISTRY: dict[str, type[BaseEvaluator]] = {}
 
-EvaluatorType = TypeVar("EvaluatorType", bound="BaseEvaluator")
+@dataclass
+class EvaluatorReference:
+    """Contains the references information used by the Evaluator fro evaluation.
 
+    :param eval_sample: Contains the query and optional reference context.
+    :type eval_sample: EvalSample
+    """
 
-def register_evaluator(name: str) -> Callable[[type[EvaluatorType]], type[EvaluatorType]]:
+    eval_sample: EvalSample
+
+def register_evaluator[EvaluatorType: BaseEvaluator](name: str) -> Callable[[type[EvaluatorType]], type[EvaluatorType]]:
     """Register an evaluator.
 
     :param name: Evaluator name.
@@ -32,15 +43,10 @@ def register_evaluator(name: str) -> Callable[[type[EvaluatorType]], type[Evalua
 
     return decorator
 
-
-OutputType = TypeVar("OutputType", bound=DataObject)
-EvalOutputType = TypeVar("EvalOutputType", bound=Union[Metric, dict[str, Metric]])
-
-
 class UnRegisteredEvaluatorError(ValueError):
     """Exception raised when attempting to access a processor that is not registered.
 
-    This error is typically thrown when a dataset name is provided for which
+    This error is thrown when a dataset name is provided for which
     no corresponding processor has been registered in the processor registry.
     """
 
@@ -53,21 +59,16 @@ class UnRegisteredEvaluatorError(ValueError):
         super().__init__(f"There is no evaluator registered with name: {name}.")
 
 
-class BaseEvaluator[OutputType: DataObject](ABC):
-    """Abstract class that defines the evaluator that evaluates RAG outputs using context information.
-
-    The RAG outputs can contain: an answer, a set of retrieved contexts or both.
-    The context information is made of:
-        - the query
-        - (Optional) The context, the explanation and the reference answer.
+class BaseEvaluator[ModelOutputT: ModelOutput, ReferenceT: EvaluatorReference](ABC):
+    """Abstract class that defines the evaluator that evaluates model outputs using reference information.
 
     Example Usage:
     In RAGO, this evaluator is then called by the Optimization Manager
-    to assess the performance of a particular RAG config on a given question.
+    to assess the performance of a particular model config on a given question.
     """
 
     @classmethod
-    def load(cls, name: str, **kwargs: Any) -> BaseEvaluator:  # noqa: ANN401
+    def load(cls, name: str, **kwargs: Any) -> BaseEvaluator[ModelOutputT, ReferenceT]:  # noqa: ANN401
         """Load evaluator from the evaluator registry.
 
         :param name: The name of the evaluator to load.
@@ -90,31 +91,41 @@ class BaseEvaluator[OutputType: DataObject](ABC):
         return list(EVALUATORS_REGISTRY.keys())
 
     @abstractmethod
-    def evaluate(self, candidate_output: OutputType, eval_sample: EvalSample) -> dict[str, Metric]:
-        """Evaluate the candidate RAG output using the eval_sample information.
+    def get_evaluator_reference(self, eval_sample: EvalSample) -> ReferenceT:
+        """Get the evaluator reference from eval sample.
 
-        :param candidate_output: The RAG's output to the query.
-        :type candidate_output: OutputType
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+
+    @abstractmethod
+    def evaluate(self, candidate_output: ModelOutputT, reference: ReferenceT) -> Metric:
+        """Evaluate the candidate model's output using the reference information.
+
+        :param candidate_output: The model's output.
+        :type candidate_output: ModelOutputT
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: ReferenceT
         :return: The evaluation result.
-        :rtype: EvalOutputType
+        :rtype: Metric
         """
 
     @abstractmethod
     def evaluate_n_wise(
         self,
-        candidate_outputs: list[OutputType],
-        eval_sample: EvalSample,
-    ) -> list[dict[str, Metric]]:
-        """Compare and evaluate the list of candidate outputs using the eval_sample.
+        candidate_outputs: list[ModelOutputT],
+        reference: ReferenceT,
+    ) -> Sequence[Metric]:
+        """Compare and evaluate the list of candidate outputs using the reference.
 
-        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
-        :type candidate_outputs: list[OutputType]
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for each outputs.
-        :rtype: list[dict[str, Metric]]
+        :param candidate_outputs: The list candidate outputs to evaluate to evaluate.
+        :type candidate_outputs: list[ModelOutputT]
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: ReferenceT
+        :return: The evaluation metric containing the for each outputs.
+        :rtype: Sequence[Metric]
         """
 
     @classmethod
@@ -125,7 +136,7 @@ class BaseEvaluator[OutputType: DataObject](ABC):
         :type score: float
         :param score_eval: The new evaluation score.
         :type score_eval: float
-        :param iteration_n: The iteration count.
+        :param iteration_n: The iteration idx (starts at 0).
         :type iteration_n: int
         :return: The updated average score.
         :rtype: float
@@ -134,29 +145,65 @@ class BaseEvaluator[OutputType: DataObject](ABC):
         return score
 
 
-class BaseIndependentEvaluator[OutputType: DataObject](BaseEvaluator[OutputType]):
+class BaseIndependentEvaluator[ModelOutputT: ModelOutput](BaseEvaluator[ModelOutputT, EvaluatorReference]):
     """Abstract Class for the evaluators that can not evaluate two answers at the same time."""
+
+    def get_evaluator_reference(self, eval_sample: EvalSample) -> EvaluatorReference:
+        """Get the evaluator reference from eval sample.
+
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+        return EvaluatorReference(eval_sample)
 
     def evaluate_n_wise(
         self,
-        candidate_outputs: list[OutputType],
-        eval_sample: EvalSample,
-    ) -> list[dict[str, Metric]]:
-        """Compare and evaluate the list of candidate outputs using the eval_sample.
+        candidate_outputs: list[ModelOutputT],
+        reference: EvaluatorReference,
+    ) -> Sequence[Metric]:
+        """Compare and evaluate the list of candidate outputs using the reference.
 
-        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
-        :type candidate_outputs: list[OutputType]
-        :param eval_sample: The sample to evaluate the candidate output on.
-        :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for each outputs.
-        :rtype: list[dict[str, Metric]]
+        :param candidate_outputs: The list candidate outputs to evaluate to evaluate.
+        :type candidate_outputs: list[ModelOutputT]
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: ReferenceT
+        :return: The evaluation metric containing the for each outputs.
+        :rtype: Sequence[Metric]
         """
-        results_candidate_answer = [self.evaluate(out, eval_sample) for out in candidate_outputs]
+        results_candidate_answer = [self.evaluate(out, reference) for out in candidate_outputs]
         return results_candidate_answer
 
+@dataclass
+class DependentEvaluatorReference[ModelOutputT: ModelOutput](EvaluatorReference):
+    """Contains the references information used by the Evaluator for evaluation.
 
-class BaseDependentEvaluator[OutputType: DataObject](BaseEvaluator[OutputType]):
+    :param eval_sample: Contains the query and optional reference context.
+    :type eval_sample: EvalSample
+    :param ref_candidate: Optional candidate already evaluated for reference, defaults to None.
+    :type Optional[Candidate[ModelOutputT]]
+    """
+
+    eval_sample: EvalSample
+    ref_candidate: Optional[Candidate[ModelOutputT]] = Field(default = None)
+
+class BaseDependentEvaluator[ModelOutputT: ModelOutput](
+    BaseEvaluator[ModelOutputT, DependentEvaluatorReference[ModelOutputT]]):
     """Abstract class for evaluators that produce different results when the outputs are evaluated pairwise."""
+
+    def get_evaluator_reference(
+            self, eval_sample: EvalSample,
+            ref_candidate: Optional[Candidate[ModelOutputT]] = None,
+            ) -> DependentEvaluatorReference[ModelOutputT]:
+        """Get the evaluator reference from eval sample and manager internal state.
+
+        :param eval_sample: The eval_sample to use as reference.
+        :type eval_sample: EvalSample.
+        :return: The reference to pass to the evaluator.
+        :rtype: EvaluatorReferenceT
+        """
+        return DependentEvaluatorReference(eval_sample, ref_candidate)
 
     def shuffle_answers(self, num_answers: int) -> list[int]:
         """Decide whether the answers should be shuffled before being given to the LLM.

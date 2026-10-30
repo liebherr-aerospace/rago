@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING, Optional
 
+from rago.data_objects import GenerationOutput, ReaderInput
 from rago.model.configs.reader_config.langchain import LangchainReaderConfig
 from rago.model.constructors.langchain.llm_factory import LangchainLLMFactory
 from rago.model.wrapper.reader.base import Reader
@@ -12,7 +13,6 @@ from rago.model.wrapper.tunable_model import BuildContext
 if TYPE_CHECKING:
     from langchain_core.language_models import BaseLLM
 
-    from rago.data_objects import RetrievedContext
     from rago.prompts import PromptConfig
 
 
@@ -62,25 +62,19 @@ class LangchainWrapperReader(Reader[LangchainReaderConfig]):
             prompt_template=prompt_template_str,
         )
 
-    def get_reader_output(self, query: str, retrieved_context: Optional[list[RetrievedContext]] = None) -> str:
+    def _get_output(self, model_input: ReaderInput) -> GenerationOutput:
         """Get the reader output answer to the input query and optional retrieved context.
 
-        :param query: The query the reader needs to answer.
-        :type query: str
-        :param retrieved_context: The context retrieved to help answer the query if set, defaults to None.
-        :type retrieved_context: Optional[list[str]], optional
-        :return: The reader output answer.
-        :rtype: str
+        :param model_input: The query and context the reader needs to answer.
+        :type model_input: ReaderInput
+        :return: The reader output Generation.
+        :rtype: GenerationOutput
         """
-        context_prompt = (
-            ""
-            if retrieved_context is None
-            else self.prompt_config.context_template.format(
-                source_context="\n".join([context.text for context in retrieved_context]),
+        context_prompt = self.prompt_config.context_template.format(
+                source_context="\n".join([context.text for context in model_input.retrieved_context]),
             )
-        )
 
-        prompt = self.prompt_template.format(query_str=query, context_str=context_prompt)
+        prompt = self.prompt_template.format(query_str=model_input.query, context_str=context_prompt)
         string_answer = self.langchain_reader.invoke(prompt)
 
-        return string_answer
+        return GenerationOutput(string_answer)

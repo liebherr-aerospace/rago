@@ -7,18 +7,36 @@ from typing import TYPE_CHECKING, Optional, override
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from rago.data_objects import Metric
-from rago.eval.llm_evaluator.base import EvalPrompts, JudgeError, PolicyOnError
-from rago.eval.llm_evaluator.simple import SimpleLLMEvaluator
+from rago.eval.base import register_evaluator
 from rago.prompts import (
     DEFAULT_COT_SCORE_TAG,
     DEFAULT_EXPLANATION_TAG,
     DEFAULT_SCORE_I_TAG_TEMPLATE,
 )
 
+from .base import EvalPrompts, JudgeError, PolicyOnError
+from .simple import LLMMetric, SimpleLLMEvaluator
+
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from rago.model.wrapper.llm_agent.base import LLMAgent
 
+@dataclass
+class CoTMetric(LLMMetric):
+    """Contains the evaluation score and explanation given to an output according to a particular metric.
+
+    :param score:  The score given to the generation output.
+    :type score: float
+    :param error_msg: Error message if judge evaluation fails and policy on error is not THROW_ERROR, defaults to None.
+    :type error_msg: Optional[str]
+    :param explanation: The explanation of the score given to the output.
+    :type explanation: Optional[str]
+    """
+
+    score: float
+    error_msg: Optional[str] = Field(default = None)
+    explanation: Optional[str] = Field(default=None)
 
 @dataclass
 class EvalOutputTags:
@@ -38,7 +56,7 @@ class EvalOutputTags:
     explanation_tag: str = Field(default=DEFAULT_EXPLANATION_TAG, min_length=1)
     score_i_tag_template: str = Field(default=DEFAULT_SCORE_I_TAG_TEMPLATE, min_length=1)
 
-
+@register_evaluator("cot_evaluator")
 class CoTLLMEvaluator(SimpleLLMEvaluator):
     """An evaluator of answers using an LLM prompted with chain of thought (CoT)."""
 
@@ -101,7 +119,7 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
         )
 
     @override
-    def parse_evaluation(self, evaluation: str) -> dict[str, Metric]:
+    def parse_evaluation(self, evaluation: str) -> CoTMetric:
         """Parse the judge LM output evaluation string and return the result.
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
@@ -111,8 +129,8 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
             - the judge outputs a score outside allowed interval.
             - it does not follow evaluation template.
         :raises ValueError: The score string in the evaluation can not be converted to a float.
-        :return: The evaluation result.
-        :rtype: dict[str, Metric]
+        :return: The CoT judge metric.
+        :rtype: CoTMetric
         """
         splitted_eval = evaluation.split(self.score_tag)
         expected_number_of_instance_of_score_tag = 2
@@ -120,7 +138,7 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
             raise JudgeError(evaluation)
         explanation = self.remove_explanation_tag(splitted_eval[0])
         score = self.get_score_from_string_score(splitted_eval[-1])
-        return {"correctness": Metric(score=score, explanation=explanation)}
+        return CoTMetric(score=score, explanation=explanation)
 
     def remove_explanation_tag(self, explanation_with_explanation_tag: str) -> str:
         """Return the explanation string without explanation tag.
@@ -138,7 +156,7 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
         return explanation.strip()
 
     @override
-    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> list[dict[str, Metric]]:
+    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> Sequence[CoTMetric]:
         """Parse the judge LM output evaluation string and return the results for each outputs.
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
@@ -150,8 +168,8 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
             - the judge outputs a score outside allowed interval.
             - it does not follow evaluation template.
         :raises ValueError: Any of the scores in the evaluation is not a float.
-        :return: The evaluation results of each answers.
-        :rtype: list[dict[str, Metric]]
+        :return: The CoT judge metric for each generation.
+        :rtype: Sequence[CoTMetric]
         """
         reasoning_with_tag, rest_to_parse = self.get_last_n_remaining_answer(
             evaluation,
@@ -169,7 +187,7 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
             scores.append(score_i)
         scores.append(rest_to_parse)
         eval_results = [
-            {"correctness": Metric(score=self.get_score_from_string_score(score_str), explanation=explanation)}
+            CoTMetric(score=self.get_score_from_string_score(score_str), explanation=explanation)
             for score_str in scores
         ]
         return eval_results

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from pydantic.dataclasses import dataclass
 
-from rago.data_objects import RAGOutput
+from rago.data_objects import EvalSample, ModelInput, RAGOutput, ReaderInput
 from rago.model.configs.reader_config.base import ReaderConfig  # noqa: TC001
 from rago.model.configs.retriever_config.base import RetrieverConfig  # noqa: TC001
 from rago.model.configs.tunable_model_config import TunableModelConfig
@@ -32,7 +32,7 @@ class RAGConfig(TunableModelConfig):
     retriever: RetrieverConfig
 
 
-class RAG(TunableModel[RAGConfig]):
+class RAG(TunableModel[ModelInput, RAGOutput, RAGConfig]):
     """A RAG answers queries based on its parametric (llm params) and non-parametric (database) knowledge."""
 
     def __init__(self, reader: Reader[ReaderConfig], retriever: Retriever[RetrieverConfig]) -> None:
@@ -45,6 +45,16 @@ class RAG(TunableModel[RAGConfig]):
         """
         self.reader = reader
         self.retriever = retriever
+    @classmethod
+    def get_input(cls, eval_sample: EvalSample) -> ModelInput:
+        """Extract the RAG input from the eval sample.
+
+        :param eval_sample: The eval sample to extract the input from.
+        :type eval_sample: EvalSample
+        :return: The extracted RAG input.
+        :rtype: ModelInput
+        """
+        return ModelInput(eval_sample.query)
 
     @classmethod
     def make(cls, config: RAGConfig, ctx: Optional[BuildContext] = None) -> RAG:
@@ -62,18 +72,15 @@ class RAG(TunableModel[RAGConfig]):
         retriever = RetrieverWrapperFactory.make(config.retriever, ctx)
         return cls(reader, retriever)
 
-    def get_output(self, query: str) -> RAGOutput:
+    def _get_output(self, model_input: ModelInput) -> RAGOutput:
         """Get the rag response to a query.
 
-        :param query: The query the rag needs to answer.
-        :type query: str
-        :return: The rag's response to the input query.
+        :param model_input: The query the rag needs to answer.
+        :type model_input: ModelInput
+        :return: The rag's output to the input query.
         :rtype: RAGOutput
         """
-        retrieved_context = self.retriever.get_retriever_output(query)
-        answer = self.reader.get_reader_output(query, retrieved_context)
-        return RAGOutput(answer=answer, retrieved_context=retrieved_context)
-
-    def get_rag_output(self, query: str) -> RAGOutput:
-        """Return output via :meth:`get_output`."""
-        return self.get_output(query)
+        retriever_output = self.retriever.get_output(model_input)
+        reader_input = ReaderInput(model_input.query, retriever_output.retrieved_context)
+        reader_output = self.reader.get_output(reader_input)
+        return RAGOutput(answer=reader_output.answer, retrieved_context=retriever_output.retrieved_context)

@@ -6,7 +6,7 @@ from typing import TYPE_CHECKING, Optional
 
 from llama_index.core.schema import TextNode
 
-from rago.data_objects import RetrievedContext
+from rago.data_objects import ModelInput, RetrievalOutput, RetrievedContext
 from rago.model.configs.retriever_config.llama_index import LlamaIndexRetrieverConfig
 from rago.model.constructors.llama_index.retriever_factory import RetrieverFactory
 from rago.model.wrapper.context_post_processor.llama_index_post_processor import LLamaIndexContextPostProcessorWrapper
@@ -80,19 +80,19 @@ class LlamaIndexRetrieverWrapper(Retriever[LlamaIndexRetrieverConfig]):
         )
         return cls(retriever, nodes_post_processors)
 
-    def get_retriever_output(self, query: str) -> list[RetrievedContext]:
+    def _get_output(self, model_input: ModelInput) -> RetrievalOutput:
         """Get the texts relevant to the query from the retriever database.
 
-        :param query: The query.
-        :type query: str
+        :param model_input: The input to use for retrieval.
+        :type model_input: ModelInput
         :return: The texts relevant to the query from the retriever database.
-        :rtype: list[str]
+        :rtype: RetrievalOutput
         """
-        nodes_with_scores = self.llama_index_retriever.retrieve(query)
+        nodes_with_scores = self.llama_index_retriever.retrieve(model_input.query)
         retrieved_context = [
             RetrievedContext.from_llama_index_node_with_score(node_with_score) for node_with_score in nodes_with_scores
         ]
 
         if self.nodes_post_processors is not None:
-            retrieved_context = self.nodes_post_processors.post_process_context(query, retrieved_context)
-        return retrieved_context
+            retrieved_context = self.nodes_post_processors.post_process_context(model_input.query, retrieved_context)
+        return RetrievalOutput(retrieved_context)

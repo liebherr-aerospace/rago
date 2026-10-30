@@ -1,4 +1,4 @@
-"""Define the base evaluator class that uses a judge language model to evaluate RAG outputs."""
+"""Define the base evaluator class that uses a judge language model to evaluate generation outputs."""
 
 from __future__ import annotations
 
@@ -9,16 +9,30 @@ from typing import TYPE_CHECKING, Optional
 from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from rago.data_objects import EvalSample, Metric, PromptTemplate, RAGOutput
-from rago.eval.base import BaseDependentEvaluator
+from rago.data_objects import EvalSample, GenerationOutput, Metric, PromptTemplate
+from rago.eval.base import BaseDependentEvaluator, DependentEvaluatorReference
 from rago.model.configs.llm_config.base import LLMConfig  # noqa: TC001
 from rago.model.wrapper.llm_agent import LangchainLLMAgent, LLMAgent
 from rago.model.wrapper.llm_agent.llm_agent_factory import LLMAgentFactory
 from rago.prompts import DEFAULT_EVAL_PROMPT, DEFAULT_PAIRWISE_EVAL_PROMPT, SOURCE_CONTEXT_PROMPT
 
 if TYPE_CHECKING:
+    from collections.abc import Sequence
+
     from rago.model.wrapper.llm_agent.base import LLMAgent
 
+@dataclass
+class LLMMetric(Metric):
+    """Contains LLM evaluation score and optional error_msg in case of failure.
+
+    :param score:  The score given to the generation output.
+    :type score: float
+    :param error_msg: Error message if judge evaluation fails and policy on error is not THROW_ERROR, defaults to None.
+    :type error_msg: Optional[str]
+    """
+
+    score: float
+    error_msg: Optional[str] = Field(default = None)
 
 @dataclass
 class LLMEvaluatorConfig:
@@ -45,7 +59,7 @@ class PolicyOnError(StrEnum):
 
 
 class JudgeError(Exception):
-    """Error in the score given by the judge LM (either the format or the value)."""
+    """Error in the score given by the judge LLM (either the format or the value)."""
 
     def __init__(self, evaluation: str) -> None:
         """Judge evaluation error: Evaluation is invalid.
@@ -58,7 +72,7 @@ class JudgeError(Exception):
 
 @dataclass
 class EvalPrompts:
-    """Contains all the prompt templates used by the LM evaluator.
+    """Contains all the prompt templates used by the LLM evaluator.
 
     :param evaluation_prompt: The prompt used by the judge for direct evaluation.
     :type evaluation_prompt: str
@@ -73,8 +87,8 @@ class EvalPrompts:
     source_context_prompt: str = Field(default=SOURCE_CONTEXT_PROMPT, min_length=1)
 
 
-class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
-    """Abstract class that defines the evaluator that evaluates RAG outputs using an LM."""
+class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
+    """Abstract class that defines the evaluator that evaluates generation outputs using an LLM."""
 
     def __init__(
         self,
@@ -86,15 +100,15 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
     ) -> None:
         """Create an instance of the BaseLLMEvaluator class.
 
-        :param judge: The judge used by the evaluator to evaluate answers, defaults to None.
+        :param judge: The judge used by the evaluator to evaluate generations' answers, defaults to None.
         :type judge: Optional[LLMAgent], optional
         :param min_score: The minimum score that the judge can give to an answer, defaults to 0.
         :type min_score: float, optional
         :param max_score: The maximum score that the judge can give to an answer, defaults to 5.
         :type max_score: float, optional
-        :param eval_prompts: Contains all the prompt templates used by the LM evaluator, defaults to None.
+        :param eval_prompts: Contains all the prompt templates used by the LLM evaluator, defaults to None.
         :type eval_prompts: Optional[EvalPrompts], optional
-        :param policy_on_errors: How errors from the LM judge should be handled, defaults to PolicyOnError.MIN_SCORE.
+        :param policy_on_errors: How errors from the LLM judge should be handled, defaults to PolicyOnError.MIN_SCORE.
         :type policy_on_errors: PolicyOnError, optional
         """
         super().__init__()
@@ -116,41 +130,45 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
             max_score=str(self.max_score),
         )
 
-    def evaluate(self, candidate_output: RAGOutput, eval_sample: EvalSample) -> dict[str, Metric]:
-        """Evaluate the candidate output on the eval_sample.
+    def evaluate(
+            self,
+            candidate_output: GenerationOutput,
+            reference: DependentEvaluatorReference[GenerationOutput],
+            ) -> Metric:
+        """Evaluate the candidate generation output based on the reference information.
 
-        :param candidate_output: The RAG output to evaluate.
-        :type candidate_output: RAGOutput
-        :param eval_sample: The sample to evaluate the candidate answer on.
-        :type eval_sample: EvalSample
-        :return: The evaluation score.
-        :rtype: dict[str, Metric]
+        :param candidate_output: The generation output to evaluate.
+        :type candidate_output: GenerationOutput
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: DependentEvaluatorReference[GenerationOutput]
+        :return: The judge Metric containing score and error msg in case of failure.
+        :rtype: Metric
         """
-        eval_prompt = self.get_filled_eval_prompt(candidate_output=candidate_output, eval_sample=eval_sample)
+        eval_prompt = self.get_filled_eval_prompt(candidate_output=candidate_output, reference=reference)
         evaluation = self.judge.query(eval_prompt)
         scores = self.get_evaluation_result_from_evaluation(evaluation)
         return scores
 
     def evaluate_n_wise(
         self,
-        candidate_outputs: list[RAGOutput],
-        eval_sample: EvalSample,
-    ) -> list[dict[str, Metric]]:
-        """Evaluate the list of candidate outputs using the eval_sample information by passing them to the judge LM.
+        candidate_outputs: list[GenerationOutput],
+        reference: DependentEvaluatorReference[GenerationOutput],
+    ) -> Sequence[LLMMetric]:
+        """Evaluate the list of candidate outputs using the reference information by passing them to the judge LLM.
 
-        :param candidate_outputs: The list candidate outputs to evaluate to evaluate on sample.
-        :type candidate_outputs: list[RAGOutput]
-        :param eval_sample: The sample to evaluate the candidate answer on.
-        :type eval_sample: EvalSample
-        :return: The evaluation results containing the eventual scores and explanations for each outputs.
-        :rtype: list[dict[str, Metric]]
+        :param candidate_outputs: The list of candidate generation outputs to evaluate.
+        :type candidate_outputs: list[GenerationOutput]
+        :param reference: The reference used by the evaluator to evaluate the candidate.
+        :type reference: DependentEvaluatorReference[GenerationOutput]
+        :return:  The judge Metric containing score and error msg in case of failure for each generation outputs.
+        :rtype: Sequence[LLMMetric]
         """
         num_candidates = len(candidate_outputs)
         shuffled_ids = self.shuffle_answers(num_candidates)
-        shuffled_candidates_outputs: list[RAGOutput] = [candidate_outputs[idx] for idx in shuffled_ids]
+        shuffled_candidates_outputs = [candidate_outputs[idx] for idx in shuffled_ids]
         eval_prompt = self.get_filled_n_wise_eval_prompt(
             candidates_outputs=shuffled_candidates_outputs,
-            eval_sample=eval_sample,
+            eval_sample=reference.eval_sample,
         )
         evaluation = self.judge.query(eval_prompt)
         scores = self.get_pairwise_evaluation_result_from_evaluation(evaluation, num_candidates)
@@ -160,25 +178,26 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         aligned_scores = [scores[inverse_shuffle_mapping[idx]] for idx in range(num_candidates)]
         return aligned_scores
 
-    def get_filled_eval_prompt(self, candidate_output: RAGOutput, eval_sample: EvalSample) -> str:
+    def get_filled_eval_prompt(
+            self, candidate_output: GenerationOutput, reference: DependentEvaluatorReference[GenerationOutput]) -> str:
         """Get the prompt used by the judge language model to evaluate the output filled with the necessary information.
 
-        :param candidate_output: The RAG output evaluated.
-        :type candidate_output: RAGOutput
-        :param eval_sample: The sample to evaluate the candidate answer on.
-        :type eval_sample: EvalSample
+        :param candidate_output: The generation output evaluated.
+        :type candidate_output: GenerationOutput
+        :param reference: The reference used to evaluate the generation candidate.
+        :type reference: DependentEvaluatorReference[GenerationOutput]
         :return: The prompt with the placeholders filled.
         :rtype: str
         """
         source_context_content = (
-            [context.text for context in eval_sample.context] if eval_sample.context is not None else None
+            [context.text for context in reference.eval_sample.context]
+            if reference.eval_sample.context is not None else None
         )
         source_context_prompt = self.get_filled_source_context_prompt(source_context_content)
-        if candidate_output.answer is None:
-            raise ValueError(candidate_output.answer)
+
         prompt = self.eval_prompt.get_filled_prompt(
-            candidate_answer=candidate_output.answer,
-            query=eval_sample.query,
+            candidate_answer=candidate_output.answer ,
+            query=reference.eval_sample.query,
             source_context_prompt=source_context_prompt,
         )
         return prompt
@@ -202,13 +221,13 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
 
     def get_filled_n_wise_eval_prompt(
         self,
-        candidates_outputs: list[RAGOutput],
+        candidates_outputs: list[GenerationOutput],
         eval_sample: EvalSample,
     ) -> str:
-        """Get the filled prompt used by the judge LM for pairwise evaluation.
+        """Get the filled prompt used by the judge LLM for pairwise evaluation.
 
-        :param candidate_output_1: The list of RAG outputs evaluated.
-        :type candidate_output_1: list[RAGOutput]
+        :param candidate_outputs: The list of generation outputs to evaluate.
+        :type candidate_outputs: list[GenerationOutput]
         :param eval_sample: The sample to evaluate the candidate answer on.
         :type eval_sample: EvalSample
         :return: The prompt with the place holders filled.
@@ -230,8 +249,8 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
 
         return prompt
 
-    def get_evaluation_result_from_evaluation(self, evaluation: str) -> dict[str, Metric]:
-        """Get the evaluation result from the judge LM evaluation output string .
+    def get_evaluation_result_from_evaluation(self, evaluation: str) -> LLMMetric:
+        """Get the evaluation result from the judge LLM evaluation output string .
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
         :type evaluation: str
@@ -248,7 +267,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         self,
         evaluation: str,
         num_candidates: int,
-    ) -> list[dict[str, Metric]]:
+    ) -> Sequence[LLMMetric]:
         """Get the evaluation results for both answers from the judge output's evaluation string.
 
         :param evaluation: The pairwise evaluation output string from the judge.
@@ -266,8 +285,8 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
         return scores
 
     @abstractmethod
-    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> list[dict[str, Metric]]:
-        """Parse the judge LM output evaluation string and return the results for each outputs.
+    def parse_n_wise_evaluation(self, evaluation: str, expected_number_of_score: int) -> Sequence[LLMMetric]:
+        """Parse the judge LLM output evaluation string and return the results for each outputs.
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
         :type evaluation: str
@@ -279,12 +298,12 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
             - it does not follow evaluation template.
         :raises ValueError: Any of the scores' string in the evaluation can not be converted to a float.
         :return: The evaluation results of each answers.
-        :rtype: list[dict[str, Metric]]
+        :rtype: list[LLMMetric]
         """
 
     @abstractmethod
-    def parse_evaluation(self, evaluation: str) -> dict[str, Metric]:
-        """Parse the judge LM output evaluation string and return the result.
+    def parse_evaluation(self, evaluation: str) -> LLMMetric:
+        """Parse the judge LLM output evaluation string and return the result.
 
         :param evaluation: The evaluation given by the judge to parse to get the score.
         :type evaluation: str
@@ -294,10 +313,10 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
             - it does not follow evaluation template.
         :raises ValueError: The score string in the evaluation can not be converted to a float.
         :return: The evaluation result.
-        :rtype: dict[str, Metric]
+        :rtype: LLMMetric
         """
 
-    def process_error(self, exception: Exception, evaluation: str) -> dict[str, Metric]:
+    def process_error(self, exception: Exception, evaluation: str) -> LLMMetric:
         """Process the error depending on the policy on error for evaluation.
 
         :param exception: Error to process.
@@ -317,7 +336,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[RAGOutput]):
                 raise JudgeError(evaluation) from exception
             case _:
                 raise ValueError from exception
-        return {"correctness": Metric(score=score_val, explanation=exception.args[0])}
+        return LLMMetric(score=score_val, error_msg=exception.args[0])
 
     @classmethod
     def make(
