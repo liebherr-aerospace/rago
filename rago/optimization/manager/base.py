@@ -255,7 +255,6 @@ class BaseOptunaManager[
             sampler=self.sampler,
         )
         self.logger.info("[INIT] Optuna Study Name: %s", self.manager.study_name)
-        self.logger.debug("[INIT] Optuna Study Direction: %s", self.manager.direction)
         self.logger.debug("[INIT] Optuna Study Pruner: %s", self.manager.pruner)
         self.logger.debug("[INIT] Optuna Study Sampler: %s", self.manager.sampler)
 

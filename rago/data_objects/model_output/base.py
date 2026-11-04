@@ -5,7 +5,7 @@ from pydantic.dataclasses import dataclass
 from rago.data_objects.base import DataObject
 
 
-@dataclass(kw_only=True)
+@dataclass
 class ModelOutput(DataObject):
     """Model Output format for Tunable Models.
 
@@ -13,7 +13,7 @@ class ModelOutput(DataObject):
     :type: time: float
     """
 
-    time: float = Field(default = 0)
+    time: float = Field(default=0, kw_only=True)
 
 
 

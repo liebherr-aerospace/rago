@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, ClassVar, cast
+from enum import StrEnum
+from typing import Any, cast
 
 import evaluate
 from pydantic.dataclasses import dataclass
@@ -11,26 +12,31 @@ from rago.data_objects import EvalSample, GenerationOutput, Metric
 from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
 
 
+class BertMetricName(StrEnum):
+    """Available scores for Bert score."""
+
+    PRECISION = "precision"
+    RECALL = "recall"
+    F1 = "f1"
+
 @dataclass
 class BertScoreMetric(Metric):
     """Contains the main evaluation score and additional scores computed from BertScore."""
 
     score: float
-    additional_scores: dict[str, float]
+    additional_scores: dict[BertMetricName, float]
 
 @register_evaluator("bert_score")
 class BertScore(BaseIndependentEvaluator[GenerationOutput]):
     """Define the Bert score that uses variants of the bert model to compute correctness by cosine similarity."""
 
-    metrics: ClassVar[list[str]] = ["precision", "recall", "f1"]
-
-    def __init__(self, metric: str) -> None:
+    def __init__(self, metric: str | BertScoreMetric) -> None:
         """Instantiate a BertScore by loading it from evaluate."""
         self.bert_metrics = evaluate.load("bertscore")
-        if metric not in self.metrics:
-            msg = f"{metric} is not a valid BertScore metric. Choose a metric name among: {self.metrics}"
+        if metric not in BertMetricName:
+            msg = f"{metric} is not a valid BertScore metric. Choose a metric name among: {list(BertMetricName)}"
             raise ValueError(msg)
-        self.metric = metric
+        self.metric = BertMetricName(metric)
 
     def evaluate(self, candidate_output: GenerationOutput, reference: EvaluatorReference) -> BertScoreMetric:
         """Evaluate the candidate generation output using the reference information.
@@ -76,9 +82,9 @@ class BertScore(BaseIndependentEvaluator[GenerationOutput]):
         :return: The dictionary of metrics.
         :rtype: dict[str, Evaluation] | list[dict[str, Evaluation]]
         """
-        scores = cast("dict[str, list[float]]", results)
+        scores = cast("dict[BertMetricName, list[float]]", results)
         if self.metric not in scores:
-            msg = f"{self.metric} is not a valid BertScore metric. Choose a metric name among: {self.metrics}"
+            msg = f"{self.metric} is not a valid BertScore metric. Choose a metric name among: {list(BertMetricName)}"
             raise ValueError(msg)
 
         score = self._get_mean_scores(scores.pop(self.metric))

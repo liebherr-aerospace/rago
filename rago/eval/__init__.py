@@ -8,6 +8,7 @@ from rago.eval.base import (
 from rago.eval.retrieval_evaluator import RetrievalF1Evaluator, RetrievalPrecisionEvaluator, RetrievalRecallEvaluator
 from rago.eval.generation_evaluator.sim_score import SimilarityScore
 from rago.eval.generation_evaluator import (
+    BertMetricName,
     BertScore, 
     BaseLLMEvaluator, 
     CoTLLMEvaluator, 
@@ -32,6 +33,7 @@ __all__ = [
     "SimpleLLMEvaluator",
     "PolicyOnError",
     "JudgeError",
+    "BertMetricName",
     "BertScore",
     "EvalPrompts",
     "SimilarityScore"
