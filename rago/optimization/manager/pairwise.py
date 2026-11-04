@@ -5,17 +5,15 @@ from __future__ import annotations
 import gc
 from typing import TYPE_CHECKING, Optional, cast
 
-import optuna
-
 from rago.data_objects import Candidate, EvalSample
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
 
+
     import optuna
 
     from rago.data_objects import ModelInput, ModelOutput
-    from rago.data_objects.eval_sample import EvalSample
     from rago.dataset import RAGDataset
     from rago.model.wrapper.tunable_model import TunableModel
     from rago.optimization.search_space.tunable_model_config_space import TunableModelConfigSpace
@@ -35,7 +33,7 @@ from rago.optimization.manager.base import BaseOptunaManager, OptimParams
 from rago.prompts import DEFAULT_REFERENCE_EVAL_PROMPT
 
 
-class SimplePairWiseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, ConfigT: TunableModelConfig](
+class PairWiseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, ConfigT: TunableModelConfig](
     BaseOptunaManager[ModelInputT, ModelOutputT, DependentEvaluatorReference[ModelOutputT], ConfigT]):
     """A simple direct optimization manager calling Optuna to optimize Reader parameters.
 

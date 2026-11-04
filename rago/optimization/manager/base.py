@@ -42,6 +42,7 @@ from rago.eval import EvaluatorReference
 from rago.model.wrapper.tunable_model import BuildContext
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
+MAX_DIRECTION = "maximize"
 
 class EvalMode(StrEnum):
     """Eval mode of the current evaluation."""
@@ -63,7 +64,6 @@ class ModelCandidateEval(DataObject):
 class OptimParams:
     """Parameters of the optimization."""
 
-    direction: str = Field(default = "maximize")
     path_experiments: str = Field(default = "experiments")
     experiment_name: str =  Field(default ="experiment_001")
     log_to_file: bool =  Field(default =True)
@@ -249,7 +249,7 @@ class BaseOptunaManager[
         self.manager = optuna.create_study(
             study_name=self.experiment_repo.experiment_name,
             storage=storage_name,
-            direction=self.params.direction,
+            direction=MAX_DIRECTION,
             pruner=self.pruner,
             load_if_exists=True,
             sampler=self.sampler,
@@ -291,6 +291,8 @@ class BaseOptunaManager[
         :return: True if the trial should be pruned, False otherwise.
         :rtype: bool
         """
+        if len(self.manager.best_trials) == 0:
+            return False
         best_score = self.manager.best_trial.value
         return trial.should_prune() and best_score is not None and score < best_score
 

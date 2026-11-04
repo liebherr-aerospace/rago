@@ -66,7 +66,7 @@ class BertScore(BaseIndependentEvaluator[GenerationOutput]):
         return eval_samples.reference_answer
 
     def _get_mean_scores(self, scores: list[float]) -> float:
-        return sum(scores)/min(len(scores), 1)
+        return sum(scores)/max(len(scores), 1)
 
     def get_evaluations(self, results: dict[str, Any]) -> BertScoreMetric:
         """Convert the dictionary to a dictionary of Metrics.

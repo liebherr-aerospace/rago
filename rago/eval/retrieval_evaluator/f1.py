@@ -8,7 +8,7 @@ from rago.data_objects import Metric, RetrievalOutput
 from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
 
 from .precision import RetrievalPrecisionEvaluator
-from .relevancy import RetrievalRecallEvaluator
+from .recall import RetrievalRecallEvaluator
 
 
 @dataclass

@@ -15,7 +15,7 @@ from rago.eval.generation_evaluator.llm_evaluator.simple import SimpleLLMEvaluat
 from rago.model.configs.llm_config.langchain import LangchainOllamaConfig
 from rago.model.wrapper.rag.base import RAG
 from rago.optimization.manager.base import OptimParams
-from rago.optimization.manager.simple import SimpleDirectOptunaManager
+from rago.optimization.manager.single import SingleOptunaManager
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
 from rago.optimization.search_space.reader_config_space import LangchainReaderConfigSpace
 from rago.optimization.search_space.retriever_config_space import RetrieverConfigSpace
@@ -36,7 +36,7 @@ SEED_DATASET = RAGDataset([], {doc.id: doc for doc in DOCUMENTS})
 @pytest.fixture
 def simple_manager(
     language_model_name: str,
-) -> SimpleDirectOptunaManager:
+) -> SingleOptunaManager:
     """Define the Base class for the simple direct optimization manager."""
     llm_config = LangchainOllamaConfig(model_name=language_model_name, temperature=0.0)
     params = OptimParams(
@@ -57,12 +57,11 @@ def simple_manager(
     retriever_space = RetrieverConfigSpace()
     reader_space = LangchainReaderConfigSpace()
     rag_config_space = RAGConfigSpace(retriever_space=retriever_space, reader_space=reader_space)
-    simple_direct_manager = SimpleDirectOptunaManager.from_seed_data(
+    simple_direct_manager = SingleOptunaManager.from_seed_data(
         params=params,
         model_cls=RAG,
         config_space=rag_config_space,
         optim_evaluator=evaluator,
-        optim_metric_name="correctness",
         test_evaluators=[evaluator],
         seed_data=SEED_DATASET,
         splits=(0.5, 0.5),
@@ -74,7 +73,7 @@ def simple_manager(
 
 
 @pytest.mark.skipif(IN_GITHUB_ACTIONS, reason="Test ignored in GitHub Actions")
-def test_load_database_results(simple_manager: SimpleDirectOptunaManager) -> None:
+def test_load_database_results(simple_manager: SingleOptunaManager) -> None:
     """Test if results have been generated and stored."""
     simple_manager.optimize()
     loaded_study = simple_manager.load_results()
@@ -82,7 +81,7 @@ def test_load_database_results(simple_manager: SimpleDirectOptunaManager) -> Non
 
 
 def test_result_database_exist(
-    simple_manager: SimpleDirectOptunaManager,
+    simple_manager: SingleOptunaManager,
     expected_results_storage_db: str,
 ) -> None:
     """Test if the database that stores the results of the experiment exists."""
@@ -90,13 +89,13 @@ def test_result_database_exist(
     assert storage_name == expected_results_storage_db
 
 
-def test_get_n_best_trials(simple_manager: SimpleDirectOptunaManager) -> None:
+def test_get_n_best_trials(simple_manager: SingleOptunaManager) -> None:
     """Test if we get the n best trials."""
     best_trials = simple_manager.get_n_best_trials(2)
     assert all(trial.value is not None for trial in best_trials)
 
 
-def test_get_n_best_configs(simple_manager: SimpleDirectOptunaManager) -> None:
+def test_get_n_best_configs(simple_manager: SingleOptunaManager) -> None:
     """Test if we get the n best rag configuration."""
     best_rag_configs = simple_manager.get_n_best_configs(2)
     assert all(isinstance(config, RAGConfig) for config in best_rag_configs)

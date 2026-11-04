@@ -23,7 +23,10 @@ class RetrievalPrecisionEvaluator(BaseIndependentEvaluator[RetrievalOutput]):
         if not reference.eval_sample.context:
             return Metric(1.0)
         if not candidate_output.retrieved_context:
-            return Metric(1.0)
-        retrieved_text = "\n".join(doc.text for doc in candidate_output.retrieved_context)
-        nb_found = sum(ctx.text in retrieved_text for ctx in reference.eval_sample.context)
-        return Metric(nb_found / len(reference.eval_sample.context))
+            return Metric(0.0)
+        expected_texts = [ctx.text for ctx in reference.eval_sample.context]
+        nb_relevant = sum(
+            any(expected in doc.text or doc.text in expected for expected in expected_texts)
+            for doc in candidate_output.retrieved_context
+        )
+        return Metric(nb_relevant / len(candidate_output.retrieved_context))

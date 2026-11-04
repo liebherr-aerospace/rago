@@ -18,7 +18,7 @@ from rago.model.configs.tunable_model_config import TunableModelConfig
 from .base import BaseOptunaManager
 
 
-class SimpleDirectOptunaManager[
+class SingleOptunaManager[
     ModelInputT: ModelInput,
     ModelOutputT: ModelOutput, EvaluatorReferenceT: EvaluatorReference, ConfigT: TunableModelConfig](
     BaseOptunaManager[ModelInputT, ModelOutputT, EvaluatorReferenceT, ConfigT]):

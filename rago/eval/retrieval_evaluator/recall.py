@@ -1,4 +1,4 @@
-"""Define an evaluator measuring the precision of a retrieval output's retrieved context."""
+"""Define an evaluator measuring the recall of a retrieval output's retrieved context."""
 
 from __future__ import annotations
 
@@ -23,7 +23,9 @@ class RetrievalRecallEvaluator(BaseIndependentEvaluator[RetrievalOutput]):
         if not reference.eval_sample.context:
             return Metric(1.0)
         if not candidate_output.retrieved_context:
-            return Metric(0.0)
+            return Metric(1.0)
         retrieved_text = "\n".join(doc.text for doc in candidate_output.retrieved_context)
         nb_found = sum(ctx.text in retrieved_text for ctx in reference.eval_sample.context)
         return Metric(nb_found / len(reference.eval_sample.context))
+
+
