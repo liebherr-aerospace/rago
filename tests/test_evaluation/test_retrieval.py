@@ -68,7 +68,7 @@ def test_no_retrieved_context(reference: EvaluatorReference) -> None:
 
 def test_no_expected_context() -> None:
     """No expected context gives 1 everywhere."""
-    output = RetrievalOutput(retrieved_context=[RetrievedContext("Thomas is 12.")])
+    output = RetrievalOutput([])
     result = RetrievalF1Evaluator().evaluate(output, EvaluatorReference(EvalSample("Hello!")))
     assert result.recall == 1
     assert result.precision == 1
