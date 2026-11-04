@@ -60,7 +60,7 @@ def test_precision_matches_both_inclusion_directions() -> None:
 
 def test_no_retrieved_context(reference: EvaluatorReference) -> None:
     """Expected context but nothing retrieved gives 0 everywhere."""
-    result = RetrievalF1Evaluator().evaluate(RetrievalOutput([RetrievedContext("Thomas is 12.")]), reference)
+    result = RetrievalF1Evaluator().evaluate(RetrievalOutput([]), reference)
     assert result.recall == 0
     assert result.precision == 0
     assert result.score == 0
