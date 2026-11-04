@@ -45,31 +45,31 @@ def test_noise_lowers_precision_only(reference: EvaluatorReference) -> None:
             RetrievedContext("The sky is blue."),
         ],
     )
-    result = RetrievalF1Evaluator().evaluate(output, eval_sample)
-    assert result["relevancy"].score == 1
-    assert result["precision"].score == 1 / 2
-    assert result["context_f1"].score == pytest.approx(2 / 3)
+    result = RetrievalF1Evaluator().evaluate(output, reference)
+    assert result.recall == 1
+    assert result.precision == 1 / 2
+    assert result.score == pytest.approx(2 / 3)
 
 
 def test_precision_matches_both_inclusion_directions() -> None:
     """A retrieved chunk counts as relevant if it contains or is contained in an expected chunk."""
-    sample = EvalSample("q", [Document("Thomas is 12 years old and lives in Paris.")])
+    ref = EvaluatorReference(EvalSample("q", [Document("Thomas is 12 years old and lives in Paris.")]))
     output = RetrievalOutput(retrieved_context=[RetrievedContext("Thomas is 12 years old")])
-    assert RetrievalF1Evaluator().evaluate(output, sample)["precision"].score == 1
+    assert RetrievalF1Evaluator().evaluate(output, ref).score == 1
 
 
 def test_no_retrieved_context(reference: EvaluatorReference) -> None:
     """Expected context but nothing retrieved gives 0 everywhere."""
-    result = RetrievalF1Evaluator().evaluate(RAGOutput("Thomas is 12."), eval_sample)
+    result = RetrievalF1Evaluator().evaluate(RetrievalOutput([RetrievedContext("Thomas is 12.")]), reference)
     assert result.recall == 0
-    assert result["precision"].score == 0
-    assert result["context_f1"].score == 0
+    assert result.precision == 0
+    assert result.score == 0
 
 
 def test_no_expected_context() -> None:
     """No expected context gives 1 everywhere."""
     output = RetrievalOutput(retrieved_context=[RetrievedContext("Thomas is 12.")])
-    result = RetrievalF1Evaluator().evaluate(output, EvalSample("Hello!"))
+    result = RetrievalF1Evaluator().evaluate(output, EvaluatorReference(EvalSample("Hello!")))
     assert result.recall == 1
     assert result.precision == 1
     assert result.score == 1
