@@ -20,7 +20,7 @@ DEFAULT_CACHE_DIR = str(os.environ.get("DEFAULT_CACHE_DIR", PATH_DEFAULT_DATA_DI
 PROCESSOR_REGISTRY: dict[str, type[DataProcessor]] = {}
 
 
-def register_processor(name: str) -> Callable[[type[DataProcessor]], type[DataProcessor]]:
+def register_processor[EvaluatorType: DataProcessor](name: str) -> Callable[[type[EvaluatorType]], type[EvaluatorType]]:
     """Register a data processor.
 
     :param name: Processor name.
@@ -29,7 +29,7 @@ def register_processor(name: str) -> Callable[[type[DataProcessor]], type[DataPr
     :rtype: Callable
     """
 
-    def decorator(cls: type[DataProcessor]) -> type[DataProcessor]:
+    def decorator(cls: type[EvaluatorType]) -> type[EvaluatorType]:
         PROCESSOR_REGISTRY[name] = cls
         return cls
 

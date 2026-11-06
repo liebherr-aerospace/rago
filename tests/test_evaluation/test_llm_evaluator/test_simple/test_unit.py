@@ -5,32 +5,35 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from rago.data_objects import Document, EvalSample, RAGOutput
-from rago.eval import JudgeError, PolicyOnError, SimpleLLMEvaluator
+from rago.data_objects import GenerationOutput
+from rago.eval import DependentEvaluatorReference, JudgeError, PolicyOnError, SimpleLLMEvaluator
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_in_interval_score_with_min_score_policy(lm: MagicMock) -> None:
+def test_evaluation_in_interval_score_with_min_score_policy(
+    llm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a score inside the authorized interval the output score is the same score with min score policy.
 
     i.e test that it is correctly parsed.
     """
     min_score = 0
     max_score = 5
-    lm.query.return_value = "0"
+    llm.query.return_value = "0"
     evaluator = SimpleLLMEvaluator(
-        judge=lm,
+        judge=llm,
         min_score=min_score,
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample(query="How old is thomas")
-    eval_result = evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
-    assert eval_result["correctness"].score == 0
+    eval_result = evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
+    assert eval_result.score == 0
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_output_out_interval_score_with_min_score_policy_2(lm: MagicMock) -> None:
+def test_evaluation_output_out_interval_score_with_min_score_policy_2(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a score outside the authorized interval, output score is the min score with min score policy."""
     min_score = 0
     max_score = 5
@@ -41,13 +44,14 @@ def test_evaluation_output_out_interval_score_with_min_score_policy_2(lm: MagicM
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample("How old is thomas", [Document("Thomas is 12.")])
-    eval_result = evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
-    assert eval_result["correctness"].score == 0
+    eval_result = evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
+    assert eval_result.score == 0
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_output_non_digit_score_with_min_score_policy_3(lm: MagicMock) -> None:
+def test_evaluation_output_non_digit_score_with_min_score_policy_3(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a non digit score the output score is the min score with the min score policy."""
     min_score = 0
     max_score = 5
@@ -58,13 +62,14 @@ def test_evaluation_output_non_digit_score_with_min_score_policy_3(lm: MagicMock
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample("How old is thomas", [Document("Thomas is 12.")])
-    eval_result = evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
-    assert eval_result["correctness"].score == 0
+    eval_result = evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
+    assert eval_result.score == 0
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_in_interval_score_with_nan_score_policy(lm: MagicMock) -> None:
+def test_evaluation_in_interval_score_with_nan_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a score inside the authorized interval the output score is the same score with nan score policy.
 
     i.e test that it is correctly parsed.
@@ -78,13 +83,14 @@ def test_evaluation_in_interval_score_with_nan_score_policy(lm: MagicMock) -> No
         max_score=max_score,
         policy_on_errors=PolicyOnError.NAN_SCORE,
     )
-    eval_sample = EvalSample("How old is thomas", [Document("Thomas is 12.")])
-    eval_result = evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
-    assert eval_result["correctness"].score == int(lm.query.return_value)
+    eval_result = evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
+    assert eval_result.score == int(lm.query.return_value)
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_out_interval_score_with_nan_score_policy(lm: MagicMock) -> None:
+def test_evaluation_out_interval_score_with_nan_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a score outside the authorized interval the output score is nan with the nan score policy."""
     min_score = 0
     max_score = 5
@@ -95,14 +101,15 @@ def test_evaluation_out_interval_score_with_nan_score_policy(lm: MagicMock) -> N
         max_score=max_score,
         policy_on_errors=PolicyOnError.NAN_SCORE,
     )
-    eval_sample = EvalSample("How old is thomas", [Document("Thomas is 12.")])
-    eval_result = evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
-    assert eval_result["correctness"].score is not None
-    assert math.isnan(eval_result["correctness"].score)
+    eval_result = evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
+    assert eval_result.score is not None
+    assert math.isnan(eval_result.score)
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_string_score_with_nan_score_policy(lm: MagicMock) -> None:
+def test_evaluation_string_score_with_nan_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a non digit score the output score is nan with the nan score policy."""
     min_score = 0
     max_score = 5
@@ -113,14 +120,15 @@ def test_evaluation_string_score_with_nan_score_policy(lm: MagicMock) -> None:
         max_score=max_score,
         policy_on_errors=PolicyOnError.NAN_SCORE,
     )
-    eval_sample = EvalSample("How old is thomas", [Document("Thomas is 12.")])
-    eval_result = evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
-    assert eval_result["correctness"].score is not None
-    assert math.isnan(eval_result["correctness"].score)
+    eval_result = evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
+    assert eval_result.score is not None
+    assert math.isnan(eval_result.score)
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_in_interval_score_with_trow_policy(lm: MagicMock) -> None:
+def test_evaluation_in_interval_score_with_trow_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a score inside the authorized interval the output score is the same."""
     min_score = 0
     max_score = 5
@@ -131,14 +139,15 @@ def test_evaluation_in_interval_score_with_trow_policy(lm: MagicMock) -> None:
         max_score=max_score,
         policy_on_errors=PolicyOnError.THROW_ERROR,
     )
-    eval_sample = EvalSample("How old is thomas", [Document("Thomas is 12.")])
-    eval_result = evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
-    assert eval_result["correctness"].score is not None
-    assert eval_result["correctness"].score == int(lm.query.return_value)
+    eval_result = evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
+    assert eval_result.score is not None
+    assert eval_result.score == int(lm.query.return_value)
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_evaluation_out_interval_score_with_trow_policy(lm: MagicMock) -> None:
+def test_evaluation_out_interval_score_with_trow_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a score outside the authorized interval the evaluation throws a JudgeError."""
     min_score = 0
     max_score = 5
@@ -149,13 +158,14 @@ def test_evaluation_out_interval_score_with_trow_policy(lm: MagicMock) -> None:
         max_score=max_score,
         policy_on_errors=PolicyOnError.THROW_ERROR,
     )
-    eval_sample = EvalSample("How old is thomas", [Document("Thomas is 12.")])
     with pytest.raises(JudgeError):
-        evaluator.evaluate(RAGOutput("Thomas is 12."), eval_sample)
+        evaluator.evaluate(GenerationOutput("Thomas is 12."), dependent_reference)
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_pairwise_evaluation_in_interval_scores_with_min_score_policy(lm: MagicMock) -> None:
+def test_pairwise_evaluation_in_interval_scores_with_min_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with scores inside the authorized interval the output scores stay the same with min score policy."""
     min_score = 0
     max_score = 5
@@ -166,14 +176,15 @@ def test_pairwise_evaluation_in_interval_scores_with_min_score_policy(lm: MagicM
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample(query="How old is thomas")
-    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
-    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
-    assert all(e["correctness"].score == 1 for e in eval_results)
+    rag_outputs = [GenerationOutput("Thomas is 12."), GenerationOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, dependent_reference)
+    assert all(e.score == 1 for e in eval_results)
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_pairwise_evaluation_out_interval_scores_with_min_score_policy(lm: MagicMock) -> None:
+def test_pairwise_evaluation_out_interval_scores_with_min_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with a score outside the authorized interval the output score is the min score with min score policy.
 
     i.e test the score is correctly parsed and that the check interval check works.
@@ -187,14 +198,15 @@ def test_pairwise_evaluation_out_interval_scores_with_min_score_policy(lm: Magic
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample(query="How old is thomas")
-    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
-    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
-    assert [e["correctness"].score == 0 for e in eval_results]
+    rag_outputs = [GenerationOutput("Thomas is 12."), GenerationOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, dependent_reference)
+    assert [e.score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_pairwise_evaluation_float_scores_with_min_score_policy(lm: MagicMock) -> None:
+def test_pairwise_evaluation_float_scores_with_min_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with non-digit scores the output scores are the min scores with min score policy.
 
     i.e test the score is correctly parsed and that the check interval check works.
@@ -208,14 +220,16 @@ def test_pairwise_evaluation_float_scores_with_min_score_policy(lm: MagicMock) -
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample(query="How old is thomas")
-    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
-    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
-    assert [e["correctness"].score == 0 for e in eval_results]
+
+    rag_outputs = [GenerationOutput("Thomas is 12."), GenerationOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, dependent_reference)
+    assert [e.score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_pairwise_evaluation_too_many_scores_with_min_score_policy(lm: MagicMock) -> None:
+def test_pairwise_evaluation_too_many_scores_with_min_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with too many score the output scores are the min scores with min score policy.
 
     i.e test the score is correctly parsed and that the check interval check works.
@@ -229,14 +243,15 @@ def test_pairwise_evaluation_too_many_scores_with_min_score_policy(lm: MagicMock
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample(query="How old is thomas")
-    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
-    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
-    assert [e["correctness"].score == 0 for e in eval_results]
+    rag_outputs = [GenerationOutput("Thomas is 12."), GenerationOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, dependent_reference)
+    assert [e.score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_pairwise_evaluation_not_enough_scores_with_min_score_policy(lm: MagicMock) -> None:
+def test_pairwise_evaluation_not_enough_scores_with_min_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with not enough scores the output scores are the min scores with min score policy.
 
     i.e test the score is correctly parsed and that the check interval check works.
@@ -250,14 +265,15 @@ def test_pairwise_evaluation_not_enough_scores_with_min_score_policy(lm: MagicMo
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample(query="How old is thomas")
-    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
-    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
-    assert [e["correctness"].score == 0 for e in eval_results]
+    rag_outputs = [GenerationOutput("Thomas is 12."), GenerationOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, dependent_reference)
+    assert [e.score == 0 for e in eval_results]
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
-def test_pairwise_evaluation_too_many_score_with_min_score_policy(lm: MagicMock) -> None:
+def test_pairwise_evaluation_too_many_score_with_min_score_policy(
+    lm: MagicMock,
+    dependent_reference: DependentEvaluatorReference) -> None:
     """Test that with only the second score incorrect both are the min score with min score policy.
 
     i.e test the score is correctly parsed and that the check interval check works.
@@ -271,7 +287,6 @@ def test_pairwise_evaluation_too_many_score_with_min_score_policy(lm: MagicMock)
         max_score=max_score,
         policy_on_errors=PolicyOnError.MIN_SCORE,
     )
-    eval_sample = EvalSample(query="How old is thomas")
-    rag_outputs = [RAGOutput("Thomas is 12."), RAGOutput("Thomas is 12.")]
-    eval_results = evaluator.evaluate_n_wise(rag_outputs, eval_sample)
-    assert [e["correctness"].score == 0 for e in eval_results]
+    rag_outputs = [GenerationOutput("Thomas is 12."), GenerationOutput("Thomas is 12.")]
+    eval_results = evaluator.evaluate_n_wise(rag_outputs, dependent_reference)
+    assert [e.score == 0 for e in eval_results]

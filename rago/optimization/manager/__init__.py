@@ -1,10 +1,10 @@
 from .base import BaseOptunaManager, OptimParams
-from .simple import SimpleDirectOptunaManager
-from .simple_pairwise import SimplePairWiseOptunaManager
+from .single import SingleOptunaManager
+from .pairwise import PairWiseOptunaManager
 
 __all__ = [
     "BaseOptunaManager",
     "OptimParams",
-    "SimpleDirectOptunaManager",
-    "SimplePairWiseOptunaManager",
+    "PairWiseOptunaManager",
+    "SingleOptunaManager",
 ]

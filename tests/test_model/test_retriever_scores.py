@@ -1,12 +1,12 @@
 """Test that retrieval scores are propagated (vector, BM25 metadata) and used by the hybrid retriever."""
 
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, patch
 
 import pytest
 from langchain_core.documents import Document
 from langchain_core.vectorstores import VectorStore
 
-from rago.data_objects import RetrievedContext
+from rago.data_objects import ModelInput, RetrievalOutput, RetrievedContext
 from rago.model.constructors.langchain.retriever_factory.base_factory import ScoredVectorStoreRetriever
 from rago.model.wrapper.retriever.base import Retriever
 from rago.model.wrapper.retriever.hybrid_langchain_retriever import HybridLangchainRetrieverWrapper
@@ -50,14 +50,20 @@ def test_scored_vector_store_retriever_keeps_scores(search_type: str) -> None:
     assert [doc.metadata["score"] for doc in docs] == [0.9, 0.4]
     assert docs[0].metadata["source"] == "x"
 
+@patch("rago.model.wrapper.retriever.base.Retriever")
+@patch("rago.model.wrapper.retriever.base.Retriever")
+def test_hybrid_weight_changes_ranking(
+    vector: MagicMock,
+    bm25: MagicMock,
+) -> None:
+    vector.get_output.return_value = RetrievalOutput(
+        [RetrievedContext("a", score=0.9), RetrievedContext("b", score=0.1)])
+    bm25.get_output.return_value = RetrievalOutput(
+        [RetrievedContext("b", score=12.0), RetrievedContext("a", score=2.0)])
 
-def test_hybrid_weight_changes_ranking() -> None:
-    vector = _FixedRetriever([RetrievedContext("a", score=0.9), RetrievedContext("b", score=0.1)])
-    bm25 = _FixedRetriever([RetrievedContext("b", score=12.0), RetrievedContext("a", score=2.0)])
+    vector_first = HybridLangchainRetrieverWrapper([(vector, 0.8), (bm25, 0.2)]).get_output(ModelInput("q"))
+    bm25_first = HybridLangchainRetrieverWrapper([(vector, 0.2), (bm25, 0.8)]).get_output(ModelInput("q"))
 
-    vector_first = HybridLangchainRetrieverWrapper([(vector, 0.8), (bm25, 0.2)]).get_retriever_output("q")
-    bm25_first = HybridLangchainRetrieverWrapper([(vector, 0.2), (bm25, 0.8)]).get_retriever_output("q")
-
-    assert [ctx.text for ctx in vector_first] == ["a", "b"]
-    assert [ctx.text for ctx in bm25_first] == ["b", "a"]
-    assert vector_first[0].score == pytest.approx(0.8)
+    assert [ctx.text for ctx in vector_first.retrieved_context] == ["a", "b"]
+    assert [ctx.text for ctx in bm25_first.retrieved_context] == ["b", "a"]
+    assert vector_first.retrieved_context[0].score == pytest.approx(0.8)

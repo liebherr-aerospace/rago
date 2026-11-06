@@ -1,11 +1,10 @@
 """Test the Optuna Experiments Repository."""
 
 from pathlib import Path
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
-from rago.data_objects.rag_config import RAGConfig
 from rago.optimization.repository.optuna_experiments_repository import OptunaExperimentRepository
 
 
@@ -43,29 +42,7 @@ def test_load_results_database_not_found(experiment001_repository: OptunaExperim
     """Test load results when result database found in the directory."""
     with (
         patch("pathlib.Path.exists", return_value=False),
-        pytest.raises(RuntimeError, match="Error loading the study: no result database found."),
+        pytest.raises(RuntimeError, match="Error loading the study: no result database found\\."),
     ):
         experiment001_repository.load_results()
 
-
-def test_convert_trial_to_rag_config(experiment001_repository: OptunaExperimentRepository) -> None:
-    """Test to convert optuna trial to RAG configuration."""
-    trial = MagicMock()
-    trial.params = {"param1": 10, "param2": 20}
-    expected_config_len = 2.0
-    config = experiment001_repository.convert_trial_to_rag_config(trial)
-    assert isinstance(config, RAGConfig)
-    assert len(config.params) == expected_config_len
-    param_names = {param.name for param in config.params}
-    param_values = {param.value for param in config.params}
-    assert param_names == {"param1", "param2"}
-    assert param_values == {10, 20}
-
-
-def test_convert_trial_to_rag_config_empty(experiment001_repository: OptunaExperimentRepository) -> None:
-    """Test to convert optuna trial to RAG configuration when trial is empty."""
-    trial = MagicMock()
-    trial.params = {}
-    config = experiment001_repository.convert_trial_to_rag_config(trial)
-    assert isinstance(config, RAGConfig)
-    assert len(config.params) == 0

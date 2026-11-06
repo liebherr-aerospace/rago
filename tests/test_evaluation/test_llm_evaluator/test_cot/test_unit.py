@@ -2,7 +2,7 @@
 
 from unittest.mock import MagicMock, patch
 
-from rago.eval import CoTLLMEvaluator, PolicyOnError
+from rago.eval import CoTLLMEvaluator, CoTMetric, LLMMetric, PolicyOnError
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -28,8 +28,8 @@ def test_evaluation_in_interval_score_with_min_score_policy(lm: MagicMock) -> No
 {evaluator.score_tag}
 {judge_score}
 """
-    eval_result = evaluator.get_evaluation_result_from_evaluation(judge_evaluation_string)
-    correctness = eval_result["correctness"]
+    correctness = evaluator.get_evaluation_result_from_evaluation(judge_evaluation_string)
+    assert isinstance(correctness, CoTMetric)
     assert correctness.score == int(judge_score)
     assert correctness.explanation == judge_reasoning
 
@@ -57,9 +57,10 @@ def test_evaluation_out_interval_score_with_min_score_policy(lm: MagicMock) -> N
 {evaluator.score_tag}
 {judge_score}
 """
+
     eval_result = evaluator.get_evaluation_result_from_evaluation(judge_evaluation_string)
-    correctness = eval_result["correctness"]
-    assert correctness.score == min_score
+    assert isinstance(eval_result, LLMMetric)
+    assert eval_result.score == min_score
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -84,9 +85,10 @@ def test_evaluation_missing_reasoning_with_min_score_policy(lm: MagicMock) -> No
 {evaluator.score_tag}
 {judge_score}
 """
+
     eval_result = evaluator.get_evaluation_result_from_evaluation(judge_evaluation_string)
-    correctness = eval_result["correctness"]
-    assert correctness.score == min_score
+    assert isinstance(eval_result, LLMMetric)
+    assert eval_result.score == min_score
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -115,8 +117,8 @@ def test_evaluation_incorrect_template_with_min_score_policy(lm: MagicMock) -> N
 {judge_score}
 """
     eval_result = evaluator.get_evaluation_result_from_evaluation(judge_evaluation_string)
-    correctness = eval_result["correctness"]
-    assert correctness.score == min_score
+    assert isinstance(eval_result, LLMMetric)
+    assert eval_result.score == min_score
 
 
 @patch("rago.model.wrapper.llm_agent.base.LLMAgent")
@@ -153,4 +155,4 @@ def test_get_pairwise_evaluation_result_with_correct_judge_output(lm: MagicMock)
     }
 """
     eval_results = evaluator.get_pairwise_evaluation_result_from_evaluation(judge_evaluation_string, num_candidates=2)
-    assert [e["correctness"].score == int(judge_scores[idx]) for idx, e in enumerate(eval_results)]
+    assert [e.score == int(judge_scores[idx]) for idx, e in enumerate(eval_results)]

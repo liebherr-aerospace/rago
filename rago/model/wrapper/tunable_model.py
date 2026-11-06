@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import time
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Optional, Self
@@ -10,7 +11,8 @@ from rago.model.configs.tunable_model_config import TunableModelConfig
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
-    from rago.data_objects import RAGOutput
+    from rago.data_objects import EvalSample, ModelInput, ModelOutput
+
 
 
 @dataclass
@@ -21,7 +23,7 @@ class BuildContext:
     inputs_chunks: Optional[list[str]] = None
 
 
-class TunableModel[ConfigT: TunableModelConfig](ABC):
+class TunableModel[InputT: ModelInput, OutputT: ModelOutput, ConfigT: TunableModelConfig](ABC):
     """Abstract base class for any model that can be optimised by the Optuna manager.
 
     Subclasses include full RAG pipelines, retriever-only models and
@@ -43,13 +45,31 @@ class TunableModel[ConfigT: TunableModelConfig](ABC):
         """
         ...
 
-    @abstractmethod
-    def get_output(self, query: str) -> RAGOutput:
-        """Produce an output for the given *query*.
+    def get_output(self, model_input: InputT) -> OutputT:
+        """Produce an output for the given model input.
 
-        :param query: The user query.
-        :type query: str
-        :return: The model output (answer and/or retrieved context).
-        :rtype: RAGOutput
+        :param model_input: The input to the tunable model.
+        :type model_input: InputT
+        :return: The model output.
+        :rtype: OutputT
         """
+        start = time.time()
+        output = self._get_output(model_input)
+        end = time.time()
+        output.time = end -start
+        return output
+
+    @classmethod
+    @abstractmethod
+    def get_input(cls, eval_sample: EvalSample) -> InputT:
+        """Extract the model from the eval sample.
+
+        :param eval_sample: The eval sample to extract the input from.
+        :type eval_sample: EvalSample
+        :return: The extracted model input.
+        :rtype: InputT
+        """
+
+    @abstractmethod
+    def _get_output(self, model_input: InputT) -> OutputT:
         ...

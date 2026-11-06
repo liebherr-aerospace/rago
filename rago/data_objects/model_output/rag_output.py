@@ -2,17 +2,14 @@
 
 from __future__ import annotations
 
-from typing import Optional
-
-from pydantic import Field
 from pydantic.dataclasses import dataclass
 
-from rago.data_objects.base import DataObject
-from rago.data_objects.retrieved_context import RetrievedContext  # noqa: TC001
+from .generation_output import GenerationOutput
+from .retrieval_output import RetrievalOutput
 
 
 @dataclass
-class RAGOutput(DataObject):
+class RAGOutput(GenerationOutput, RetrievalOutput):
     """Output of the RAG containing information relevant to a given query (e.g. retrieved documents and answer).
 
     :param answer: The answer of the RAG.
@@ -20,6 +17,3 @@ class RAGOutput(DataObject):
     :param retrieved_documents: The documents retrieved by the RAG to generate the answer.
     :type retrieved_documents: Optional[list[Document]]
     """
-
-    answer: Optional[str] = Field(default=None)
-    retrieved_context: Optional[list[RetrievedContext]] = Field(default=None)
