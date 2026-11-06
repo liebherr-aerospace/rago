@@ -5,8 +5,9 @@ from __future__ import annotations
 from pydantic.dataclasses import dataclass
 
 from rago.data_objects import Metric, RetrievalOutput
-from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
+from rago.eval.base import EvaluatorReference, register_evaluator
 
+from .base import RuleBasedRetrievalEvaluator
 from .precision import RetrievalPrecisionEvaluator
 from .recall import RetrievalRecallEvaluator
 
@@ -28,17 +29,19 @@ class RetrievalF1Metric(Metric):
     recall: float
 
 @register_evaluator("f1")
-class RetrievalF1Evaluator(BaseIndependentEvaluator[RetrievalOutput]):
+class RetrievalF1Evaluator(RuleBasedRetrievalEvaluator):
     """F1 score Evaluator of the retrieval output's retrieved context compared to the reference eval sample's context.
 
     If the eval sample in reference has no context, all metrics are 1.
     If it has context but the retrieved context is empty, all metrics are 0.
     """
 
-    def __init__(self)-> None:
+    def __init__(self, max_ratio: float = 1.0)-> None:
         """Instantiate the F1Evaluator with a relevancy and a precision evaluator."""
-        self.precision = RetrievalRecallEvaluator()
-        self.recall = RetrievalPrecisionEvaluator()
+        super().__init__(max_ratio)
+        self.precision = RetrievalPrecisionEvaluator(max_ratio)
+        self.recall = RetrievalRecallEvaluator(max_ratio)
+
 
     def evaluate(self, candidate_output: RetrievalOutput, reference: EvaluatorReference) -> RetrievalF1Metric:
         """Evaluate F1 score of the retrieved context in the candidate retrieval output.

@@ -7,11 +7,6 @@ from pathlib import Path
 
 import optuna
 
-import rago.data_objects
-import rago.data_objects.rag_config
-import rago.model.wrapper.rag.base
-from rago.data_objects.rag_config import RAGParam
-
 
 class OptunaExperimentRepository:
     """Class to manage saving and loading Optuna optimization experiments using SQLite.
@@ -77,14 +72,3 @@ class OptunaExperimentRepository:
             reverse=True,
         )
         return sorted_trials[:number]
-
-    def convert_trial_to_rag_config(self, trial: optuna.trial.FrozenTrial) -> rago.data_objects.rag_config.RAGConfig:
-        """Convert an Optuna trial to a RAGConfig object.
-
-        :param trial: The Optuna trial to convert.
-        :type trial: optuna.trial.FrozenTrial
-        :return: The corresponding RAGConfig object.
-        :rtype: RAGConfig
-        """
-        params = {RAGParam(name, value) for name, value in trial.params.items()}
-        return rago.data_objects.rag_config.RAGConfig(params=params)

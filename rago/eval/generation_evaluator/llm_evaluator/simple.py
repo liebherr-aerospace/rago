@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from typing import TYPE_CHECKING
 
+from rago.data_objects import GenerationOutput
 from rago.eval.base import register_evaluator
 
 from .base import BaseLLMEvaluator, JudgeError, LLMMetric
@@ -12,7 +13,7 @@ if TYPE_CHECKING:
     from collections.abc import Sequence
 
 @register_evaluator("simple_judge")
-class SimpleLLMEvaluator(BaseLLMEvaluator):
+class SimpleLLMEvaluator[ModelOutputT: GenerationOutput](BaseLLMEvaluator[ModelOutputT]):
     """A simple evaluator of generations using an LLM.
 
     This evaluator's answer is constrained to be in an interval (i.e. between min and max score).

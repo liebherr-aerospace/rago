@@ -6,14 +6,13 @@ from pathlib import Path
 import optuna
 import pytest
 
-from rago.data_objects.document import Document
-from rago.data_objects.rag_config import RAGConfig
+from rago.data_objects import Document, ModelInput, RAGOutput
 from rago.dataset import RAGDataset
 from rago.dataset.generator import DatasetGeneratorConfig
+from rago.eval import DependentEvaluatorReference, SimpleLLMEvaluator
 from rago.eval.generation_evaluator.llm_evaluator.base import LLMEvaluatorConfig
-from rago.eval.generation_evaluator.llm_evaluator.simple import SimpleLLMEvaluator
 from rago.model.configs.llm_config.langchain import LangchainOllamaConfig
-from rago.model.wrapper.rag.base import RAG
+from rago.model.wrapper.rag.base import RAG, RAGConfig
 from rago.optimization.manager.base import OptimParams
 from rago.optimization.manager.single import SingleOptunaManager
 from rago.optimization.search_space.rag_config_space import RAGConfigSpace
@@ -52,20 +51,20 @@ def simple_manager(
         min_score=0,
         max_score=7,
     )
-    evaluator = SimpleLLMEvaluator.make(evaluator_config)
-
+    evaluator = SimpleLLMEvaluator[RAGOutput].make(evaluator_config)
     retriever_space = RetrieverConfigSpace()
     reader_space = LangchainReaderConfigSpace()
     rag_config_space = RAGConfigSpace(retriever_space=retriever_space, reader_space=reader_space)
-    simple_direct_manager = SingleOptunaManager.from_seed_data(
+    simple_direct_manager = SingleOptunaManager[
+        ModelInput, RAGOutput, DependentEvaluatorReference[RAGOutput], RAGConfig].from_seed_data(
         params=params,
-        model_cls=RAG,
-        config_space=rag_config_space,
+        seed_data=SEED_DATASET,
+        dataset_generator_config=dataset_generator_config,
+        splits=(0.5, 0.5),
         optim_evaluator=evaluator,
         test_evaluators=[evaluator],
-        seed_data=SEED_DATASET,
-        splits=(0.5, 0.5),
-        dataset_generator_config=dataset_generator_config,
+        model_cls=RAG,
+        config_space=rag_config_space,
         sampler=optuna.samplers.TPESampler(),
         pruner=optuna.pruners.MedianPruner(),
     )
@@ -93,12 +92,6 @@ def test_get_n_best_trials(simple_manager: SingleOptunaManager) -> None:
     """Test if we get the n best trials."""
     best_trials = simple_manager.get_n_best_trials(2)
     assert all(trial.value is not None for trial in best_trials)
-
-
-def test_get_n_best_configs(simple_manager: SingleOptunaManager) -> None:
-    """Test if we get the n best rag configuration."""
-    best_rag_configs = simple_manager.get_n_best_configs(2)
-    assert all(isinstance(config, RAGConfig) for config in best_rag_configs)
 
 
 def test_log_file_exists_with_fixture() -> None:

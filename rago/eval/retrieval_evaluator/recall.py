@@ -3,11 +3,13 @@
 from __future__ import annotations
 
 from rago.data_objects import Metric, RetrievalOutput
-from rago.eval.base import BaseIndependentEvaluator, EvaluatorReference, register_evaluator
+from rago.eval.base import EvaluatorReference, register_evaluator
+
+from .base import RuleBasedRetrievalEvaluator
 
 
 @register_evaluator("relevancy")
-class RetrievalRecallEvaluator(BaseIndependentEvaluator[RetrievalOutput]):
+class RetrievalRecallEvaluator(RuleBasedRetrievalEvaluator):
     """Evaluator of the retrieval output's retrieved context recall to the reference eval sample's context."""
 
     def evaluate(self, candidate_output: RetrievalOutput, reference: EvaluatorReference) -> Metric:
@@ -23,9 +25,12 @@ class RetrievalRecallEvaluator(BaseIndependentEvaluator[RetrievalOutput]):
         if not reference.eval_sample.context:
             return Metric(1.0)
         if not candidate_output.retrieved_context:
-            return Metric(1.0)
-        retrieved_text = "\n".join(doc.text for doc in candidate_output.retrieved_context)
-        nb_found = sum(ctx.text in retrieved_text for ctx in reference.eval_sample.context)
-        return Metric(nb_found / len(reference.eval_sample.context))
+            return Metric(0.0)
+
+        nb_correct = self.get_num_correct_retrieved_context(
+            retrieved_context = candidate_output.retrieved_context,
+            reference_contexts = reference.eval_sample.context,
+            )
+        return Metric(nb_correct / len(reference.eval_sample.context))
 
 

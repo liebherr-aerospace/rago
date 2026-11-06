@@ -13,7 +13,7 @@ from __future__ import annotations
 import logging
 from abc import ABC, abstractmethod
 from collections import defaultdict
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Self
 
 import numpy as np
 import optuna
@@ -28,6 +28,7 @@ from rago.model.configs.tunable_model_config import (
 from rago.prompts import PromptConfig
 
 if TYPE_CHECKING:
+
     from rago.data_objects import EvalSample, ModelInput, ModelOutput
     from rago.dataset import RAGDataset
     from rago.dataset.generator import DatasetGeneratorConfig
@@ -90,7 +91,7 @@ class BaseOptunaManager[
         params: Optional[OptimParams] = None,
         datasets: dict[str, RAGDataset],
         optim_evaluator: BaseEvaluator[ModelOutputT, EvaluatorReferenceT],
-        test_evaluators: list[BaseEvaluator[ModelOutputT, EvaluatorReference]],
+        test_evaluators: list[BaseEvaluator[ModelOutputT, EvaluatorReferenceT]],
         model_cls: type[TunableModel[ModelInputT, ModelOutputT, ConfigT]],
         config_space: TunableModelConfigSpace[ConfigT],
         prompt_config: Optional[PromptConfig] = None,
@@ -151,13 +152,13 @@ class BaseOptunaManager[
         dataset_generator_config: Optional[DatasetGeneratorConfig] = None,
         splits: tuple[float, float],
         optim_evaluator: BaseEvaluator[ModelOutputT, EvaluatorReferenceT],
-        test_evaluators: list[BaseEvaluator[ModelOutputT, EvaluatorReference]],
+        test_evaluators: list[BaseEvaluator[ModelOutputT, EvaluatorReferenceT]],
         model_cls: type[TunableModel[ModelInputT, ModelOutputT, ConfigT]],
         config_space: TunableModelConfigSpace[ConfigT],
         prompt_config: Optional[PromptConfig] = None,
         sampler: Optional[optuna.samplers.BaseSampler] = None,
         pruner: Optional[optuna.pruners.BasePruner] = None,
-    ) -> BaseOptunaManager[ModelInputT, ModelOutputT, EvaluatorReferenceT, ConfigT]:
+    ) -> Self:
         """Initialize the Simple Direct Optimization Manager from seed data to generate dataset.
 
         :param params: Parameters of the optimization, defaults to None.

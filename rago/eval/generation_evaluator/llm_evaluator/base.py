@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from abc import abstractmethod
 from enum import StrEnum
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Optional, Self
 
 from pydantic import Field
 from pydantic.dataclasses import dataclass
@@ -87,7 +87,7 @@ class EvalPrompts:
     source_context_prompt: str = Field(default=SOURCE_CONTEXT_PROMPT, min_length=1)
 
 
-class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
+class BaseLLMEvaluator[ModelOutputT: GenerationOutput](BaseDependentEvaluator[ModelOutputT]):
     """Abstract class that defines the evaluator that evaluates generation outputs using an LLM."""
 
     def __init__(
@@ -132,17 +132,17 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
 
     def evaluate(
             self,
-            candidate_output: GenerationOutput,
-            reference: DependentEvaluatorReference[GenerationOutput],
-            ) -> Metric:
+            candidate_output: ModelOutputT,
+            reference: DependentEvaluatorReference[ModelOutputT],
+            ) -> LLMMetric:
         """Evaluate the candidate generation output based on the reference information.
 
         :param candidate_output: The generation output to evaluate.
-        :type candidate_output: GenerationOutput
+        :type candidate_output: ModelOutputT
         :param reference: The reference used by the evaluator to evaluate the candidate.
-        :type reference: DependentEvaluatorReference[GenerationOutput]
+        :type reference: DependentEvaluatorReference[ModelOutputT]
         :return: The judge Metric containing score and error msg in case of failure.
-        :rtype: Metric
+        :rtype: LLMMetric
         """
         eval_prompt = self.get_filled_eval_prompt(candidate_output=candidate_output, reference=reference)
         evaluation = self.judge.query(eval_prompt)
@@ -151,15 +151,15 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
 
     def evaluate_n_wise(
         self,
-        candidate_outputs: list[GenerationOutput],
-        reference: DependentEvaluatorReference[GenerationOutput],
+        candidate_outputs: list[ModelOutputT],
+        reference: DependentEvaluatorReference[ModelOutputT],
     ) -> Sequence[LLMMetric]:
         """Evaluate the list of candidate outputs using the reference information by passing them to the judge LLM.
 
         :param candidate_outputs: The list of candidate generation outputs to evaluate.
-        :type candidate_outputs: list[GenerationOutput]
+        :type candidate_outputs: list[ModelOutputT]
         :param reference: The reference used by the evaluator to evaluate the candidate.
-        :type reference: DependentEvaluatorReference[GenerationOutput]
+        :type reference: DependentEvaluatorReference[ModelOutputT]
         :return:  The judge Metric containing score and error msg in case of failure for each generation outputs.
         :rtype: Sequence[LLMMetric]
         """
@@ -179,13 +179,13 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         return aligned_scores
 
     def get_filled_eval_prompt(
-            self, candidate_output: GenerationOutput, reference: DependentEvaluatorReference[GenerationOutput]) -> str:
+            self, candidate_output: ModelOutputT, reference: DependentEvaluatorReference[ModelOutputT]) -> str:
         """Get the prompt used by the judge language model to evaluate the output filled with the necessary information.
 
         :param candidate_output: The generation output evaluated.
-        :type candidate_output: GenerationOutput
+        :type candidate_output: ModelOutputT
         :param reference: The reference used to evaluate the generation candidate.
-        :type reference: DependentEvaluatorReference[GenerationOutput]
+        :type reference: DependentEvaluatorReference[ModelOutputT]
         :return: The prompt with the placeholders filled.
         :rtype: str
         """
@@ -221,13 +221,13 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
 
     def get_filled_n_wise_eval_prompt(
         self,
-        candidates_outputs: list[GenerationOutput],
+        candidates_outputs: list[ModelOutputT],
         eval_sample: EvalSample,
     ) -> str:
         """Get the filled prompt used by the judge LLM for pairwise evaluation.
 
         :param candidate_outputs: The list of generation outputs to evaluate.
-        :type candidate_outputs: list[GenerationOutput]
+        :type candidate_outputs: list[ModelOutputT]
         :param eval_sample: The sample to evaluate the candidate answer on.
         :type eval_sample: EvalSample
         :return: The prompt with the place holders filled.
@@ -255,13 +255,16 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         :param evaluation: The evaluation given by the judge to parse to get the score.
         :type evaluation: str
         :return: The dict containing the score.
-        :rtype: dict[str, Metric]
+        :rtype: dict[str, LLMMetric]
         """
         try:
             eval_result = self.parse_evaluation(evaluation)
         except (JudgeError, ValueError) as e:
             eval_result = self.process_error(e, evaluation)
         return eval_result
+
+
+
 
     def get_pairwise_evaluation_result_from_evaluation(
         self,
@@ -275,7 +278,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         :param num_candidates: The number of candidates evaluated.
         :type num_candidates: int
         :return: The evaluation results of each candidate answers.
-        :rtype: list[dict[str, Metric]]
+        :rtype: list[dict[str, LLMMetric]]
         """
         try:
             scores = self.parse_n_wise_evaluation(evaluation, num_candidates)
@@ -298,7 +301,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
             - it does not follow evaluation template.
         :raises ValueError: Any of the scores' string in the evaluation can not be converted to a float.
         :return: The evaluation results of each answers.
-        :rtype: list[LLMMetric]
+        :rtype: Sequence[LLMMetric]
         """
 
     @abstractmethod
@@ -325,7 +328,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
         :type evaluation: str
         :raise ValueError: Incorrect PolicyOnError.
         :return: The eventual default value to replace the score.
-        :rtype: float
+        :rtype: LLMMetric
         """
         match self.policy_on_errors:
             case PolicyOnError.MIN_SCORE:
@@ -342,7 +345,7 @@ class BaseLLMEvaluator(BaseDependentEvaluator[GenerationOutput]):
     def make(
         cls,
         config: Optional[LLMEvaluatorConfig] = None,
-    ) -> BaseLLMEvaluator:
+    ) -> Self:
         """Build method to create an instance of a LLM Evaluator.
 
         :param config: Configuration of the evaluator to build.

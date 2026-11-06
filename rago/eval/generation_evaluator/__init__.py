@@ -1,6 +1,6 @@
 from .bert_score import BertScore, BertMetricName
 from .sim_score import SimilarityScore
-from .llm_evaluator import BaseLLMEvaluator,CoTLLMEvaluator, JudgeError, PolicyOnError, EvalPrompts, SimpleLLMEvaluator
+from .llm_evaluator import BaseLLMEvaluator,CoTLLMEvaluator, JudgeError, PolicyOnError, EvalPrompts, SimpleLLMEvaluator, CoTMetric, LLMMetric
 
 
 __all__ = [
@@ -13,4 +13,6 @@ __all__ = [
     "SimpleLLMEvaluator",
     "SimilarityScore",
     "CoTLLMEvaluator",
+    "CoTMetric",
+    "LLMMetric"
 ]

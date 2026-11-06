@@ -20,6 +20,7 @@ from .simple import LLMMetric, SimpleLLMEvaluator
 if TYPE_CHECKING:
     from collections.abc import Sequence
 
+    from rago.data_objects import GenerationOutput
     from rago.model.wrapper.llm_agent.base import LLMAgent
 
 @dataclass
@@ -57,7 +58,7 @@ class EvalOutputTags:
     score_i_tag_template: str = Field(default=DEFAULT_SCORE_I_TAG_TEMPLATE, min_length=1)
 
 @register_evaluator("cot_evaluator")
-class CoTLLMEvaluator(SimpleLLMEvaluator):
+class CoTLLMEvaluator[ModelOutputT: GenerationOutput](SimpleLLMEvaluator[ModelOutputT]):
     """An evaluator of answers using an LLM prompted with chain of thought (CoT)."""
 
     def __init__(
@@ -117,6 +118,7 @@ class CoTLLMEvaluator(SimpleLLMEvaluator):
             policy_on_errors=policy_on_errors,
             eval_prompts=eval_prompts,
         )
+
 
     @override
     def parse_evaluation(self, evaluation: str) -> CoTMetric:

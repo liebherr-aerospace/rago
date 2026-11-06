@@ -129,7 +129,7 @@ class PairWiseOptunaManager[ModelInputT: ModelInput, ModelOutputT: ModelOutput, 
                 outputs = [model.get_output(models_input) for model in models]
                 evaluations = self.optim_evaluator.evaluate_n_wise(
                     outputs,
-                    DependentEvaluatorReference(test_sample),
+                    self.get_evaluator_reference(self.optim_evaluator, test_sample),
                 )
                 for idx_trial, (o, e) in   enumerate(zip(outputs, evaluations,strict = True)):
                     candidates[idx_trial][n] = Candidate(o, e)
